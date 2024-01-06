@@ -1,0 +1,171 @@
+{
+	"layer": "top",
+	"position": "top",
+	"height": 27,
+	"margin-top": 10,
+	"modules-left": [
+		"cpu",
+		"memory",
+		"custom/cmus",
+		"hyprland/window"
+	],
+	"modules-center": [
+		"hyprland/workspaces"
+	],
+	"modules-right": [
+		"tray",
+		"custom/wireguard",
+		"pulseaudio",
+		"bluetooth",
+		"custom/colorpicker",
+		"hyprland/language",
+		"custom/cliphist",
+		"clock",
+		"custom/exit"
+	],
+	"cpu": {
+		"format": "<span font='20' rise='-1pt'>󰻠</span> {usage}%",
+		"tooltip": false
+	},
+	"memory": {
+		"format": "<span font='20' rise='-1pt'>󰍛</span> {}%",
+		"tooltip": false
+	},
+	"hyprland/window": {
+		"format": "{class}",
+		"max-length": 50,
+		"rewrite": {
+			"^(firefox)$": "<span font='20' rise='-1pt'></span> Firefox",
+			"^(chromium)$": "<span font='20' rise='-1pt'></span> Chrome",
+			"^(code)$": "<span font='20' rise='-1pt'>󰨞</span> VSCode",
+			"^(jetbrains-webstorm)$": "<span font='20' rise='-1pt'></span> WebStorm",
+			"^(kitty)$": "<span font='20' rise='-1pt'></span> Kitty",
+			"^(thunar)$": "<span font='20' rise='-1pt'></span> Thunar",
+			"org.kde.ark": "<span font='20' rise='-1pt'>󰀼</span> Ark",
+			"^(discord)$": "<span font='20' rise='-1pt'>󰙯</span> Discord",
+			"^(org.telegram.desktop)$": "<span font='20' rise='-1pt'></span> Telegram"
+		},
+		"separate-outputs": false
+	},
+	"custom/wireguard": {
+		"interval": 3,
+		"return-type": "json",
+		"format-icons": {
+			"connected": "<span color=\"#50fa7b\">VPN: 🔒</span>",
+			"disconnected": "<span color=\"#ff5555\">VPN: 🔓</span>"
+		},
+		"on-click": "exec ~/.config/wofi/wireguard/wireguard.sh -t",
+		"exec": "exec ~/.config/wofi/wireguard/wireguard.sh -s",
+		"format": "{icon}"
+	},
+	"custom/cliphist": {
+		"format": "<span font='20' rise='-1pt'></span>",
+		"on-click": "sleep 0.1 && ~/.config/wofi/cliphist/cliphist.sh",
+		"on-click-right": "sleep 0.1 && ~/.config/wofi/cliphist/cliphist.sh d",
+		"on-click-middle": "sleep 0.1 && ~/.config/wofi/cliphist/cliphist.sh w",
+		"tooltip": false
+	},
+	"custom/colorpicker": {
+		"format": "<span font='20' rise='-1pt'>󰈊</span>",
+		"on-click": "wl-color-picker clipboard",
+		"tooltip": false
+	},
+	"custom/exit": {
+		"format": "<span font='20' rise='-1pt'></span>",
+		"on-click": "wlogout",
+		"tooltip": false
+	},
+	"custom/menu": {
+		"format": "{icon}",
+		"format-icons": "󰣇",
+		"on-click": "wofi --show drun -c ~/.config/wofi/config -s ~/.config/wofi/style.css",
+		"escape": true,
+		"tooltip": false
+	},
+	"bluetooth": {
+		"format": "<span font='20' rise='-1pt'></span>",
+		"format-connected-battery": "<span font='20' rise='-1pt'></span>  {device_battery_percentage}% <span font='20' rise='-1pt'>{icon}</span>",
+		"format-icons": {
+			"default": [
+				"󰁺",
+				"󰁻",
+				"󰁼",
+				"󰁽",
+				"󰁾",
+				"󰁿",
+				"󰂀",
+				"󰂁",
+				"󰂂",
+				"󰁹"
+			]
+		},
+		"format-disabled": "",
+		"format-off": "",
+		"on-click": "blueman-manager"
+	},
+	"hyprland/workspaces": {
+		"format": "{id}",
+		"on-click": "activate",
+		"persistent-workspaces": {
+			"1": [
+				"DP-1"
+			],
+			"2": [
+				"DP-1"
+			],
+			"3": [
+				"DP-1"
+			],
+			"4": [
+				"DP-1"
+			],
+			"5": [
+				"HDMI-A-1"
+			],
+			"6": [
+				"HDMI-A-1"
+			],
+			"7": [
+				"HDMI-A-1"
+			],
+			"8": [
+				"DP-3"
+			],
+			"9": [
+				"DP-3"
+			],
+			"10": [
+				"DP-3"
+			]
+		},
+		"tooltip": false
+	},
+	"hyprland/language": {
+		"format": "{}",
+		"format-en": "EN",
+		"format-ru": "RU"
+	},
+	"tray": {
+		"icon-size": 20,
+		"spacing": 16
+	},
+	"clock": {
+		"tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
+		"format-alt": "{:%Y-%m-%d}"
+	},
+	"pulseaudio": {
+		"scroll-step": 5,
+		"format": "<span font='20' rise='-1pt'>{icon}</span> {volume}%",
+		"format-icons": {
+			"default": [
+				"",
+				"",
+				""
+			]
+		},
+		"on-click": "pavucontrol"
+	},
+	"custom/sep": {
+		"format": "_"
+	}
+}
