@@ -1,7 +1,7 @@
 function gachi
 git add .
-if test "$msg"
-git commit -m "$msg"
+if test $argv[1]
+git commit -m "$argv[1]"
 else
 git commit -m "update"
 end
