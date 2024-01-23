@@ -6,7 +6,7 @@
 	"modules-left": [
 		"cpu",
 		"memory",
-		"custom/cmus",
+		// "custom/cmus",
 		"hyprland/window"
 	],
 	"modules-center": [
