@@ -2,7 +2,7 @@
 # ширина
 width=200
 # высота
-height=120
+height=140
 
 # скрыть подменю
 no_actions=true

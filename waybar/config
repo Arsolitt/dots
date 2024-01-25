@@ -39,11 +39,14 @@
 			"^(chromium)$": "<span font='20' rise='-1pt'></span> Chrome",
 			"^(code)$": "<span font='20' rise='-1pt'>󰨞</span> VSCode",
 			"^(jetbrains-webstorm)$": "<span font='20' rise='-1pt'></span> WebStorm",
+			"^(jetbrains-phpstorm)$": "<span font='20' rise='-1pt'></span> PHPStorm",
 			"^(kitty)$": "<span font='20' rise='-1pt'></span> Kitty",
 			"^(thunar)$": "<span font='20' rise='-1pt'></span> Thunar",
 			"org.kde.ark": "<span font='20' rise='-1pt'>󰀼</span> Ark",
-			"^(discord)$": "<span font='20' rise='-1pt'>󰙯</span> Discord",
-			"^(org.telegram.desktop)$": "<span font='20' rise='-1pt'></span> Telegram"
+			"^(WebCord)$": "<span font='20' rise='-1pt'>󰙯</span> Discord",
+			"^(org.telegram.desktop)$": "<span font='20' rise='-1pt'></span> Telegram",
+			"^(obsidian)$": "<span font='20' rise='-1pt'>󱞁</span> Obsidian",
+			"^(org.keepassxc.KeePassXC)$": "<span font='20' rise='-1pt'></span> KeePassXC"
 		},
 		"separate-outputs": false
 	},
