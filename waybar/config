@@ -6,7 +6,6 @@
 	"modules-left": [
 		"cpu",
 		"memory",
-		// "custom/cmus",
 		"hyprland/window"
 	],
 	"modules-center": [
@@ -14,7 +13,6 @@
 	],
 	"modules-right": [
 		"tray",
-		// "custom/wireguard",
 		"pulseaudio",
 		"bluetooth",
 		"custom/colorpicker",
