@@ -34,7 +34,7 @@
 		"max-length": 50,
 		"rewrite": {
 			"^(firefox)$": "<span font='20' rise='-1pt'></span> Firefox",
-			"^(Vivaldi-stable)$": "<span font='20' rise='-1pt'></span> Vivaldi",
+			"^(floorp)$": "<span font='20' rise='-1pt'></span> Floorp",
 			"^(chromium)$": "<span font='20' rise='-1pt'></span> Chrome",
 			"^(code)$": "<span font='20' rise='-1pt'>󰨞</span> VSCode",
 			"^(jetbrains-webstorm)$": "<span font='20' rise='-1pt'></span> WebStorm",
