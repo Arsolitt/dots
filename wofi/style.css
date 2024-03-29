@@ -1,75 +1,97 @@
-/* параметры вообще для всего */
-*{
-  font-family: ComicShannsMono Nerd Font Mono, Comic Sans MS, Symbols Nerd Font;
-  font-size: 14px;
+* {
+	transition: 0.2s;
+	outline: none;
 }
 
-/* COLOR */
-@define-color bg #272a34;
-@define-color fg #f9f9f9;
-@define-color fg_2 #51a2da;
-
-
-/* параметры для окна */
 window {
-  background-color: @bg;
-  border-radius: 15px;
+	font-family: 'Operator Mono Lig';
+	font-size: 15px;
+	margin: 0px;
+	border: 2px solid #6272a4;
+	background-color: #282a36;
+	// background-color: transparent;
+	// border-radius: 16px;
+	border-left: none;
+	border-bottom: none;
 }
 
-/* параметры для окна ввода */
 #input {
-  margin: 10px 0;
-  padding: 5;
-  border-radius: 5px;
-  border: none;
-  border-bottom: 0px solid #2f343f;
-  background-color: @fg;
-  color: @bg;
+	padding: 4px;
+	margin: 20px;
+	padding-left: 20px;
+	border: none;
+	color: #44475a;
+	font-weight: bold;
+	background-color: #cba6f7;
+	outline: none;
+	border-radius: 16px;
 }
 
-/* параметры для окна с приложениями */
+#input image {
+	color: #f8f8f2;
+}
+
+#input:focus {
+	border: none;
+	outline: none;
+}
+
 #inner-box {
-  background-color: @bg;
-
+	margin: 20px;
+	margin-top: 0px;
+	border: none;
+	color: #cba6f7;
+	border-radius: 16px;
 }
 
-/* параметры пространства вокруг окна wofi */
+#inner-box * {
+	transition: none;
+}
+
 #outer-box {
-  margin: 20px;
-  padding:0px;
-  background-color: @bg;
+	margin: 0px;
+	border: none;
+	padding: 0px;
+	border-radius: 16px;
 }
 
-/* параметры для полосы прокрутки */
 #scroll {
-  background-color: @bg;
+	margin-top: 5px;
+	border: none;
+	border-radius: 16px;
+	margin-bottom: 5px;
 }
 
-/* параметры для текста */
-#text {
-  padding: 5px;
-  color: @fg;
-}
-
-/* параметры для 2й колонки если таковая имеется */
-#entry:nth-child(even){
-  background-color: @bg;
-}
-
-/* параметры для выделенного пункта */
-#entry:selected {
-  border-radius: 5px;
-  background-color: @fg_2;
-  outline: none;
-}
-
-/* параметры выделенного текста */
 #text:selected {
-  color: @bg;
+	color: #44475a;
+	font-weight: bold;
 }
 
-/* параметры для иконок */
-#img
+#img {
+	margin-right: 20px;
+	background: transparent;
+}
 
-/* параметры для не выделенного */
-#unselected
+#text {
+	margin: 0px;
+	border: none;
+	padding: 0px;
+	background: transparent;
+}
+
+#entry {
+	margin: 0px;
+	border: none;
+	border-radius: 16px;
+	background-color: transparent;
+	min-height: 32px;
+	font-weight: bold;
+}
+
+#entry:selected {
+	outline: none;
+	margin: 0px;
+	border: none;
+	border-radius: 16px;
+	background-color: #cba6f7;
+}
