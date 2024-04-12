@@ -3,22 +3,23 @@
 	"position": "top",
 	"output": ["DP-1"],
 	"height": 27,
-	"margin-top": 10,
+	"width": 1000,
+	// "margin": 5,
 
-	"modules-left": ["group/system", "hyprland/workspaces"],
+	"modules-left": ["tray"],
 
-	"modules-center": ["cava"],
+	"modules-center": ["hyprland/workspaces"],
 
-	"modules-right": ["hyprland/window", "group/tools", "tray"],
+	"modules-right": ["group/tools", "group/system"],
 
 	"group/tools": {
 		"orientation": "horizontal",
-		"modules": ["pulseaudio", "bluetooth", "custom/colorpicker"]
+		"modules": ["pulseaudio", "custom/colorpicker"]
 	},
 
 	"group/system": {
 		"orientation": "horizontal",
-		"modules": ["custom/exit", "clock", "hyprland/language"]
+		"modules": ["clock", "hyprland/language", "custom/exit"]
 	},
 	"cpu": {
 		"format": "<span font='20' rise='-1pt'>󰻠</span> {usage}%",
@@ -112,14 +113,20 @@
 		"format-icons": ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"]
 	},
 	"hyprland/workspaces": {
-		"format": "{id}",
+		"format": "{icon}",
 		"on-click": "activate",
 		"show-special": false,
 		"tooltip": false,
 		"persistent-workspaces": {
-			"DP-1": [1, 2, 3, 4, 5],
-			"DP-3": [9],
-			"HDMI-A-1": [8]
+			"*": 6
+		},
+		"format-icons": {
+			"1": "󰫍",
+			"2": "󰫍",
+			"3": "󰫍",
+			"4": "󰫍",
+			"5": "󰫍",
+			"6": "󰫍"
 		}
 	},
 	"hyprland/language": {
@@ -131,11 +138,6 @@
 		"icon-size": 20,
 		"spacing": 16
 	},
-	// "clock": {
-	// 	"tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
-	// 	"format-alt": "{:%Y-%m-%d}",
-	// 	"timezones": ["Europe/Moscow"]
-	// },
 	"clock": {
 		"format": "{:%H:%M}",
 		"format-alt": "{:L%A, %B %d, %Y (%R)}  ",
@@ -163,7 +165,7 @@
 	},
 	"pulseaudio": {
 		"scroll-step": 5,
-		"format": "<span font='20' rise='-1pt'>{icon}</span> {volume}%",
+		"format": "<span font='20' >{icon}</span> <span rise='3pt'>{volume}%</span>",
 		"format-icons": {
 			"default": ["", "", ""]
 		},

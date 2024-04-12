@@ -1,42 +1,51 @@
 * {
 	border-radius: 20px;
+	border-top-left-radius: 0px;
+	border-top-right-radius: 0px;
 	border: none;
 	font-family: FiraCode Nerd Font Mono Med, Symbols Nerd Font,
 		Material Symbols Outlined;
 	font-weight: 500;
-	font-size: 16px;
-	padding: 0px 0px;
-	margin: 0px 5px;
+	font-size: 14px;
+	min-height: 0;
 }
 
 @define-color bg #282A36;
 @define-color fg #F8F8F2;
-@define-color active #6272A4;
+@define-color active #FFB86C;
 @define-color gr #545d70;
 @define-color red #FF5555;
 @define-color green #50FA7B;
 @define-color blue #4b4e6f;
+@define-color orange #FFB86C;
 @define-color icon #BD93F9;
+@define-color comment #6272A4;
 
 window#waybar {
-	background-color: rgba(43, 48, 59, 0);
+	background-color: @bg;
 	color: #ffffff;
 	transition-property: background-color;
 	transition-duration: 0.5s;
 }
 
 #workspaces {
-	color: @fg;
-	background-color: @bg;
-	padding: 4px 0px;
-	margin: 0px 7px;
+	margin: 4px 5px 4px 5px;
+	border-radius: 6;
+}
+
+#workspaces button {
+	padding: 0 5px;
+	margin: 0 5px;
+	border-radius: 20px;
 }
 #workspaces button:hover {
 	background-color: @active;
+	color: @comment;
 	transition: background-color 0.5s;
 }
 #workspaces button.active {
 	background-color: @active;
+	color: @comment;
 	transition: background-color 0.5s;
 }
 
@@ -45,12 +54,8 @@ window#waybar {
 	transition: color 0.5s;
 }
 
-#tray,
-#cava {
-	padding: 0 10px;
-	margin: 0 6px;
-	background-color: @bg;
-	color: @icon;
+#tray {
+	margin: 0 0 0 10px;
 }
 
 #custom-colorpicker,
@@ -59,18 +64,18 @@ window#waybar {
 #language,
 #custom-exit,
 #clock {
-	padding: 0 5px;
 }
 
-#language:hover {
-	color: @active;
-	transition: color 0.5s;
+#custom-colorpicker,
+#pulseaudio,
+#language,
+#clock,
+#custom-exit {
+	margin: 0 10px 0 0;
 }
 
 #tools,
 #system {
-	padding: 0 10px;
-	margin: 0 6px;
 	color: @fg;
 	background-color: @bg;
 }
@@ -82,8 +87,6 @@ window#waybar {
 #window {
 	background-color: @bg;
 	color: @icon;
-	padding: 0 10px;
-	margin: 0 6px;
 	font-weight: bold;
 	min-width: 100px;
 }
