@@ -1,4 +1,4 @@
-function man --wraps=tldr --description 'alias man=tldr'
-  tldr $argv
+function man --wraps=tldr --description 'alias man man'
+ command man $argv
         
 end
