@@ -1,9 +1,9 @@
 function gachi
 git add .
 if test $argv[1]
-git commit -m "$argv[1]"
+git commit -m "$argv[1]" --no-verify
 else
-git commit -m "update"
+git commit -m "update" --no-verify
 end
 git push origin HEAD
 end
