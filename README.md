@@ -12,13 +12,8 @@
 - Fish
 - Grim + Slurp + Swappy
 - Cursor: Bibata Modern Classic
-- GTK: Tokyo Night
-- Font: Comic Shanns
-
-
-## Установка
-
-Гайда по установке не будет, использовать только, как источник вдохновения. Я даже сам не помню, какие тут пакеты нужны для корректной работы
+- GTK: Ant-slim
+- Font: Operator Mono Lig
 
 ## Скриншотики
 
