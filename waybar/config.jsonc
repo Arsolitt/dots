@@ -1,33 +1,86 @@
 {
-	"layer": "top",
+	// "reload_style_on_change": true,
+	"margin-top": 5,
+	"margin-left": 0,
+	"margin-right": 0,
+	"margin-bottom": 0,
+	"layer": "bottom",
 	"position": "top",
-	"output": ["DP-2"],
-	"height": 27,
-	"width": 1000,
+	"spacing": 10,
+	// "layer": "top",
+	// "position": "top",
+	"output": [
+		"DP-2"
+	],
+	"height": 25,
+	"width": 1720,
 	// "margin": 5,
-
-	"modules-left": ["tray"],
-
-	"modules-center": ["hyprland/workspaces"],
-
-	"modules-right": ["group/tools", "group/system"],
-
+	"modules-left": [
+		"hyprland/workspaces",
+		"tray",
+		"custom/colorpicker"
+	],
+	// "modules-center": [
+	// 	"hyprland/workspaces"
+	// ],
+	"modules-right": [
+		// "group/tools",
+		"pulseaudio",
+		"group/system",
+		"hyprland/language",
+		"clock",
+		"custom/exit"
+		// "network"
+	],
 	"group/tools": {
 		"orientation": "horizontal",
-		"modules": ["pulseaudio", "custom/colorpicker"]
+		"modules": []
 	},
-
 	"group/system": {
 		"orientation": "horizontal",
-		"modules": ["clock", "hyprland/language", "custom/exit"]
+		"modules": [
+			// "bluetooth",
+			"cpu",
+			"memory"
+		]
 	},
 	"cpu": {
-		"format": "<span font='20' rise='-1pt'>󰻠</span> {usage}%",
+		"format": "<span font='20' rise='-3pt'></span> {usage}%",
 		"tooltip": false
 	},
+	// "memory": {
+	// 	"format": "<span font='20' rise='-1pt'>󰍛</span> {}%",
+	// 	"tooltip": false
+	// },
 	"memory": {
-		"format": "<span font='20' rise='-1pt'>󰍛</span> {}%",
-		"tooltip": false
+		"interval": 10,
+		"format": "<span font='20' rise='0pt'>󰾆</span> <span rise='3pt'>{used:0.1f}G</span>",
+		"format-alt": "<span font='20' rise='0pt'>󰾆</span> <span rise='3pt'>{percentage}%</span>",
+		"format-alt-click": "click",
+		"tooltip": true,
+		"tooltip-format": "{used:0.1f}GB/{total:0.1f}G",
+		"on-click-right": "kitty --title btop sh -c 'btop'"
+	},
+	"bluetooth": {
+		"format": "<span font='20' rise='-1pt'></span>",
+		"format-connected-battery": "<span font='18' rise='0pt'>{icon}</span> <span rise='2pt'>{device_battery_percentage}%</span>",
+		"format-icons": {
+			"default": [
+				"󰁺",
+				"󰁻",
+				"󰁼",
+				"󰁽",
+				"󰁾",
+				"󰁿",
+				"󰂀",
+				"󰂁",
+				"󰂂",
+				"󰁹"
+			]
+		},
+		"format-disabled": "",
+		"format-off": "",
+		"on-click": "blueman-manager"
 	},
 	"hyprland/window": {
 		"format": "{title}",
@@ -49,17 +102,17 @@
 		// },
 		"separate-outputs": false
 	},
-	"custom/wireguard": {
-		"interval": 3,
-		"return-type": "json",
-		"format-icons": {
-			"connected": "<span color=\"#50fa7b\">VPN: 🔒</span>",
-			"disconnected": "<span color=\"#ff5555\">VPN: 🔓</span>"
-		},
-		"on-click": "exec ~/.config/wofi/wireguard/wireguard.sh -t",
-		"exec": "exec ~/.config/wofi/wireguard/wireguard.sh -s",
-		"format": "{icon}"
-	},
+	// "custom/wireguard": {
+	// 	"interval": 3,
+	// 	"return-type": "json",
+	// 	"format-icons": {
+	// 		"connected": "<span color=\"#50fa7b\">VPN: 🔒</span>",
+	// 		"disconnected": "<span color=\"#ff5555\">VPN: 🔓</span>"
+	// 	},
+	// 	"on-click": "exec ~/.config/wofi/wireguard/wireguard.sh -t",
+	// 	"exec": "exec ~/.config/wofi/wireguard/wireguard.sh -s",
+	// 	"format": "{icon}"
+	// },
 	"custom/cliphist": {
 		"format": "<span font='20' rise='-1pt'></span>",
 		"on-click": "sleep 0.1 && ~/.config/wofi/cliphist/cliphist.sh",
@@ -84,16 +137,6 @@
 		"escape": true,
 		"tooltip": false
 	},
-	"bluetooth": {
-		"format": "<span font='20' rise='-1pt'></span>",
-		"format-connected-battery": "<span font='20' rise='-1pt'></span>  {device_battery_percentage}% <span font='20' rise='-1pt'>{icon}</span>",
-		"format-icons": {
-			"default": ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
-		},
-		"format-disabled": "",
-		"format-off": "",
-		"on-click": "blueman-manager"
-	},
 	"cava": {
 		"framerate": 75,
 		"autosens": 0,
@@ -110,7 +153,16 @@
 		"waves": true,
 		"noise_reduction": 0.77,
 		"input_delay": 2,
-		"format-icons": ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"]
+		"format-icons": [
+			"▁",
+			"▂",
+			"▃",
+			"▄",
+			"▅",
+			"▆",
+			"▇",
+			"█"
+		]
 	},
 	"hyprland/workspaces": {
 		"format": "{icon}",
@@ -167,11 +219,54 @@
 		"scroll-step": 5,
 		"format": "<span font='20' >{icon}</span> <span rise='3pt'>{volume}%</span>",
 		"format-icons": {
-			"default": ["", "", ""]
+			"default": [
+				"",
+				"",
+				""
+			]
 		},
 		"on-click": "pavucontrol"
 	},
-	"custom/sep": {
+	"custom/separator": {
 		"format": "_"
+	},
+	"network": {
+		// "interface": "wlp2*", // (Optional) To force the use of this interface
+		/* "format-wifi": "{essid} ({signalStrength}%) ", */
+		"format": "",
+		"format-wifi": "{icon} {essid}",
+		"format-ethernet": " {ipaddr}/{cidr}",
+		"tooltip-format": "{essid}",
+		"format-linked": " {ifname} (No IP)",
+		"format-disconnected": "",
+		"format-icons": [
+			"󰤯",
+			"󰤟",
+			"󰤢",
+			"󰤥",
+			"󰤨"
+		],
+		"on-click": "~/.scripts/rofi-wifi"
+	},
+	"network#speed": {
+		"interval": 1,
+		"format": "{ifname}",
+		"format-wifi": " {bandwidthUpBits}  {bandwidthDownBits}",
+		"format-ethernet": "󰌘  {bandwidthUpBits}  {bandwidthDownBits}",
+		"format-disconnected": "󰌙",
+		"tooltip-format": "{ipaddr}",
+		"format-linked": "󰈁 {ifname} (No IP)",
+		"tooltip-format-wifi": "{essid} {icon} {signalStrength}%",
+		"tooltip-format-ethernet": "{ifname} 󰌘",
+		"tooltip-format-disconnected": "󰌙 Disconnected",
+		"min-length": 20,
+		"max-length": 24,
+		"format-icons": [
+			"󰤯",
+			"󰤟",
+			"󰤢",
+			"󰤥",
+			"󰤨"
+		]
 	}
 }
