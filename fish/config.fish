@@ -5,3 +5,5 @@ if status is-login
     exec Hyprland
 end
 set -gx EDITOR nano
+
+zoxide init fish | source
