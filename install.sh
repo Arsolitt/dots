@@ -15,5 +15,6 @@ ln -sf $PWD/swaylock $HOME/.config/swaylock
 ln -sf $PWD/waybar $HOME/.config/waybar
 ln -sf $PWD/wlogout $HOME/.config/wlogout
 ln -sf $PWD/wofi $HOME/.config/wofi
-ln -sf $PWD/foot $HOME/.config/foot
+ln -sf $PWD/.tmux $HOME/.tmux
+ln -sf $PWD/.tmux.conf $HOME/.tmux.conf
 ln -sf $PWD/electron-flags.conf $HOME/.config/electron-flags.conf

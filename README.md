@@ -7,13 +7,13 @@
 - Waybar
 - Wofi
 - Dunst
-- Thunar
+- Nemo
 - Kitty
 - Fish
 - Grim + Slurp + Swappy
 - Cursor: Bibata Modern Classic
 - GTK: Ant-slim
-- Font: Operator Mono Lig
+- Font: Maple Mono NF
 
 ## Скриншотики
 
