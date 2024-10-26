@@ -1,6 +1,6 @@
 parse_search=true #какая то херь с последовательностями изображений
 width=1050
-height=700
+height=500
 #xoffset=0px #смещение по х
 #yoffset=0px #смещение по y
 location=center #положение wofi center 0, top_left 1, top 2, top_right 3, right 4, bottom_right 5, bottom 6, bottom_left 7, left 8
