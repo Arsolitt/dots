@@ -33,7 +33,7 @@
 			"text": "Do Not Disturb"
 		},
 		"label": {
-			"max-lines": 1,
+			"max-lines": 3,
 			"text": "Notifications"
 		},
 		"mpris": {
