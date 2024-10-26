@@ -7,7 +7,7 @@
 - Hyprlock
 - Waybar
 - Wofi
-- Dunst
+- Swaync
 - Nemo
 - Kitty
 - Fish
@@ -18,6 +18,7 @@
 
 ## Скриншотики
 
+![image](README/screen_2.png)
 ![image](README/screen_1.png)
 
 ## Обои
