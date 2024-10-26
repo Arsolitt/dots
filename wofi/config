@@ -1,10 +1,9 @@
-#МОЙ КОНФИГ
 parse_search=true #какая то херь с последовательностями изображений
-width=400
-height=100%
-xoffset=-3px #смещение по х
-yoffset=13px #смещение по y
-location=top_left #положение wofi center 0, top_left 1, top 2, top_right 3, right 4, bottom_right 5, bottom 6, bottom_left 7, left 8
+width=1050
+height=700
+#xoffset=0px #смещение по х
+#yoffset=0px #смещение по y
+location=center #положение wofi center 0, top_left 1, top 2, top_right 3, right 4, bottom_right 5, bottom 6, bottom_left 7, left 8
 show=drun
 matching=fuzzy #contains
 prompt=Search...
@@ -15,8 +14,8 @@ halign=fill #выравнивание start, end или center
 content_halign=fill #тоже выравнивание start, end или center
 orientation=vertical #horizontal или vertical
 insensitive=true
-#allow_images=true #какая то хрень с обработкой изображений
-#image_size=28
+allow_images=true #какая то хрень с обработкой изображений
+image_size=28
 gtk_dark=false #включает темный вариант темы если такая есть
 term=kitty
 hide_scroll=true

@@ -4,6 +4,7 @@
 
 - Hyprland
 - Hyprpaper
+- Hyprlock
 - Waybar
 - Wofi
 - Dunst
