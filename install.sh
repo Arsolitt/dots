@@ -5,7 +5,7 @@ cd yay || exit
 makepkg -si
 
 ln -sf "$PWD"/ags "$HOME"/.config/ags
-ln -sf "$PWD"/dunst "$HOME"/.config/dunst
+ln -sf "$PWD"/swaync "$HOME"/.config/swaync
 ln -sf "$PWD"/fish "$HOME"/.config/fish
 ln -sf "$PWD"/gtk-2.0 "$HOME"/.config/gtk-2.0
 ln -sf "$PWD"/gtk-3.0 "$HOME"/.config/gtk-3.0
