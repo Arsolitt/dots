@@ -1,4 +1,4 @@
-function gachi
+function gachip
   git add .
   if test $argv[1]
     git commit -m "$argv[1]"
