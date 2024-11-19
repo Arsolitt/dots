@@ -5,4 +5,5 @@ function gachi
   else
     git commit -m "update"
   end
+  git push origin HEAD
 end
