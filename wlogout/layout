@@ -30,7 +30,7 @@
 }
 {
     "label": "reboot",
-    "action": "sleep 1; systemctl reboot",
+    "action": "sleep 1; systemctl reboot -i",
     "text": "Reboot",
     "keybind": "r"
 }
