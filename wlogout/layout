@@ -18,7 +18,7 @@
 }
 {
     "label": "shutdown",
-    "action": "sleep 1; systemctl poweroff",
+    "action": "sleep 1; systemctl poweroff -i",
     "text": "Shutdown",
     "keybind": "s"
 }
