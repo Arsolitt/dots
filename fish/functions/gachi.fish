@@ -3,6 +3,6 @@ function gachi
   if test $argv[1]
     git commit -m "$argv[1]"
   else
-    git commit -m "update"
+    git commit -m "WIP"
   end
 end
