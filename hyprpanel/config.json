@@ -74,5 +74,6 @@
   "menus.clock.weather.unit": "metric",
   "hyprpanel.restartAgs": true,
   "tear": false,
-  "theme.bar.layer": "bottom"
+  "theme.bar.layer": "bottom",
+  "menus.transitionTime": 200
 }
