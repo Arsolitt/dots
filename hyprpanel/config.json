@@ -75,5 +75,8 @@
   "hyprpanel.restartAgs": true,
   "tear": false,
   "theme.bar.layer": "bottom",
-  "menus.transitionTime": 200
+  "menus.transitionTime": 200,
+  "menus.dashboard.shortcuts.left.shortcut3.command": "vesktop",
+  "menus.dashboard.shortcuts.left.shortcut4.command": "wofi --show drun",
+  "menus.dashboard.shortcuts.right.shortcut3.command": "bind = $mainMod, End, exec, grim -o \"$(hyprctl -j activeworkspace | jq -r '(.monitor)')\" - | tee $HOME/Pictures/Screenshots/$(date +'%Y-%m-%d_%H-%M-%S').png | wl-copy"
 }
