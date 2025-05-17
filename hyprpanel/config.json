@@ -5,7 +5,6 @@
   "bar.layouts": {
     "0": {
       "left": [
-        "dashboard",
         "workspaces",
         "bluetooth",
         "systray"
@@ -17,7 +16,8 @@
         "volume",
         "network",
         "clock",
-        "notifications"
+        "notifications",
+        "dashboard"
       ]
     },
     "1": {
