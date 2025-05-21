@@ -9,6 +9,7 @@ makepkg -si
 xargs yay -S < packages.txt
 
 ln -sf "$PWD"/fish "$HOME"/.config/fish
+ln -sf "$PWD"/mimeapps.list "$HOME"/.config/mimeapps.list
 ln -sf "$PWD"/gtk-2.0 "$HOME"/.config/gtk-2.0
 ln -sf "$PWD"/gtk-3.0 "$HOME"/.config/gtk-3.0
 ln -sf "$PWD"/hypr "$HOME"/.config/hypr
