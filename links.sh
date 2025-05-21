@@ -1,13 +1,5 @@
 #!/bin/bash
 
-cd /tmp || exit
-
-git clone https://aur.archlinux.org/yay.git
-cd yay || exit
-makepkg -si
-
-xargs yay -S < packages.txt
-
 ln -sf "$PWD"/fish "$HOME"/.config/fish
 ln -sf "$PWD"/mimeapps.list "$HOME"/.config/mimeapps.list
 ln -sf "$PWD"/gtk-2.0 "$HOME"/.config/gtk-2.0
