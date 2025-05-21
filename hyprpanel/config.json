@@ -51,7 +51,7 @@
   "theme.bar.scaling": 100,
   "theme.font.name": "Maple Mono NF",
   "theme.font.style": "normal",
-  "theme.font.label": "Maple Mono NF Semi-Bold",
+  "theme.font.label": "Maple Mono NF",
   "theme.font.weight": 600,
   "theme.bar.margin_top": "0.4em",
   "bar.systray.ignore": [
