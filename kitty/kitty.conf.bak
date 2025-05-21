@@ -1,10 +1,5 @@
 # vim:fileencoding=utf-8:ft=conf
 
-# BEGIN_KITTY_THEME
-# Kanagawa
-include current-theme.conf
-# END_KITTY_THEME
-
 # Font family. You can also specify different fonts for the
 # bold/italic/bold-italic variants. By default they are derived automatically,
 # by the OSes font system. Setting them manually is useful for font families
@@ -252,3 +247,9 @@ macos_option_as_alt no
 # macos_titlebar_color background
 
 allow_remote_control yes
+
+
+# BEGIN_KITTY_THEME
+# Dracula
+include current-theme.conf
+# END_KITTY_THEME
