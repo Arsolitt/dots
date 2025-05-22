@@ -7,6 +7,7 @@ SETUVAR Z_DATA_DIR:/home/arsolitt/\x2elocal/share/z
 SETUVAR Z_EXCLUDE:\x5e/home/arsolitt\x24
 SETUVAR __fish_initialized:3800
 SETUVAR _tide_left_items:\x1d
+SETUVAR _tide_prompt_9671:\x1b\x28B\x1b\x5bm\x1b\x28B\x1b\x5bm\x1e\x1b\x28B\x1b\x5bm\x1b\x28B\x1b\x5bm
 SETUVAR _tide_right_items:\x1d
 SETUVAR fish_color_autosuggestion:brblack
 SETUVAR fish_color_cancel:\x2dr
