@@ -10,15 +10,15 @@
 # ----------------------------------------------------- 
 # Load configuration files
 # ----------------------------------------------------- 
-source = ~/.config/hypr/conf/workspaces.conf
+source = ~/.config/hypr/conf/laptop/monitors.conf
+source = ~/.config/hypr/conf/laptop/workspaces.conf
+source = ~/.config/hypr/conf/laptop/windowrules.conf
 source = ~/.config/hypr/conf/keyboard.conf
-source = ~/.config/hypr/conf/monitors.conf
 source = ~/.config/hypr/conf/windows.conf
 source = ~/.config/hypr/conf/layouts.conf
 source = ~/.config/hypr/conf/decorations.conf
 source = ~/.config/hypr/conf/misc.conf
 source = ~/.config/hypr/conf/environment.conf
-source = ~/.config/hypr/conf/windowrules.conf
 source = ~/.config/hypr/conf/autostart.conf
 # ----------------------------------------------------- 
 # Load configuration files
