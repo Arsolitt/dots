@@ -1,5 +1,5 @@
 hyprpanel
-fish_variables
+**/fish_variables
 hyprland.conf
 hyprlock.conf
 hyprpaper.conf
