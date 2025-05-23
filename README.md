@@ -25,6 +25,7 @@
 ![image](README/screen_1.png)
 ![image](README/screen_2.png)
 ![image](README/screen_3.png)
+![image](README/screen_4.png)
 
 ## Wallpapers
 
