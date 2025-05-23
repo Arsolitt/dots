@@ -2,7 +2,7 @@
 x-scheme-handler/tonsite=org.telegram.desktop.desktop
 application/x-ms-dos-executable;application/x-wine-extension-msp;application/x-msi;application/x-msdos-program;text/win-bat;=PortProton.desktop
 application/yaml=cursor-cursor.desktop
-text/plain=code.desktop
+text/plain=cursor-cursor.desktop
 image/png=swayimg.desktop
 image/webp=swayimg.desktop
 x-scheme-handler/jetbrains=jetbrains-toolbox.desktop
@@ -21,11 +21,13 @@ application/x-extension-xhtml=zen.desktop
 application/x-extension-xht=zen.desktop
 inode/directory=nemo.desktop
 application/x-zerosize=swayimg.desktop
+image/jpeg=swayimg.desktop
+audio/x-mod=cursor-cursor.desktop
 
 [Added Associations]
 x-scheme-handler/tonsite=org.telegram.desktop.desktop;
 application/yaml=code.desktop;cursor-cursor.desktop;
-text/plain=code.desktop;
+text/plain=code.desktop;cursor-cursor.desktop;
 image/png=swayimg.desktop;
 image/webp=swayimg.desktop;
 application/octet-stream=code.desktop;
@@ -45,3 +47,4 @@ application/xhtml+xml=zen.desktop;
 application/x-extension-xhtml=zen.desktop;
 application/x-extension-xht=zen.desktop;
 application/x-zerosize=swayimg.desktop;
+image/jpeg=swayimg.desktop;
