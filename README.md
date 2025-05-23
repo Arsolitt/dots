@@ -1,35 +1,58 @@
 <h1 align="center">Arch + Hyprland</h1>
 
-## Основной софт
-
+## Main
 - Hyprland
 - Hyprpaper
 - Hyprlock
-- Waybar
+- Hyprpanel
 - Wofi
-- Swaync
 - Nemo
 - Kitty
+- Kitty theme: Kanagawa
 - Fish
-- Grim + Slurp + Swappy
-- Cursor: Bibata-Modern-Ice
-- GTK: Tokyonight-Dark
+  ```sh
+  tide configure --auto --style=Classic --prompt_colors='16 colors' --show_time=No --classic_prompt_separators=Vertical --powerline_prompt_heads=Round --powerline_prompt_tails=Flat --powerline_prompt_style='Two lines, character' --prompt_connection=Disconnected --powerline_right_prompt_frame=No --prompt_spacing=Compact --icons='Few icons' --transient=Yes
+  ```
+- Fish theme: Kanagawa
+- Screenshots: Grim + Slurp + Swappy
+- Cursor: vimix Kanagawa Lotus
+- GTK: Kanagawa Orange Dark
+- Icons: Kanagawa
 - Font: Maple Mono NF
 
-## Скриншотики
+## Screenshots
 
-![image](README/screen_2.png)
 ![image](README/screen_1.png)
+![image](README/screen_2.png)
+![image](README/screen_3.png)
 
-## Обои
+## Wallpapers
 
 #### Original
-![image](README/when-the-banshee-cries(5824x3264).png)
+![image](README/Samurai%20(3840x2160).jpg)
 #### Ultrawide
-![image](README/when-the-banshee-cries(5824x2430).png)
-#### Vertical
-![image](README/when-the-banshee-cries(1836x3264).png)
+![image](README/Samurai%20(3440x1440).jpg)
 
 ## Licensing
 
-Да что хотите делайте с ними
+MIT License
+
+Copyright (c) [year] [fullname]
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

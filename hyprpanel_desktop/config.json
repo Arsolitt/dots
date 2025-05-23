@@ -78,5 +78,19 @@
   "menus.transitionTime": 200,
   "menus.dashboard.shortcuts.left.shortcut3.command": "vesktop",
   "menus.dashboard.shortcuts.left.shortcut4.command": "wofi --show drun",
-  "menus.dashboard.shortcuts.right.shortcut3.command": "bind = $mainMod, End, exec, grim -o \"$(hyprctl -j activeworkspace | jq -r '(.monitor)')\" - | tee $HOME/Pictures/Screenshots/$(date +'%Y-%m-%d_%H-%M-%S').png | wl-copy"
+  "menus.dashboard.shortcuts.right.shortcut3.command": "bind = $mainMod, End, exec, grim -o \"$(hyprctl -j activeworkspace | jq -r '(.monitor)')\" - | tee $HOME/Pictures/Screenshots/$(date +'%Y-%m-%d_%H-%M-%S').png | wl-copy",
+  "wallpaper.enable": false,
+  "wallpaper.pywal": false,
+  "theme.bar.menus.monochrome": false,
+  "wallpaper.image": "/home/arsolitt/Pictures/background/3440x1440/Samurai (3440x1440).jpg",
+  "theme.bar.menus.background": "#11111b",
+  "theme.bar.menus.text": "#cdd6f4",
+  "theme.bar.menus.cards": "#1e1e2e",
+  "theme.bar.menus.dimtext": "#585b70",
+  "theme.matugen": true,
+  "theme.matugen_settings.mode": "dark",
+  "theme.matugen_settings.scheme_type": "expressive",
+  "theme.matugen_settings.contrast": 0,
+  "theme.matugen_settings.variation": "standard_2",
+  "menus.dashboard.powermenu.avatar.image": "/home/arsolitt/Pictures/avatar/JI39-gYj4YI-2.png"
 }

@@ -1,9 +1,3 @@
-# if status is-interactive
-    # Commands to run in interactive sessions can go here
-# end
-if status is-login
-    # exec Hyprland
-end
 if status is-login
     if test -z "$DISPLAY" -a "$(tty)" = /dev/tty1
         exec Hyprland
@@ -17,3 +11,4 @@ set -q KREW_ROOT; and set -gx PATH $PATH $KREW_ROOT/.krew/bin; or set -gx PATH $
 # bun
 set --export BUN_INSTALL "$HOME/.bun"
 set --export PATH $BUN_INSTALL/bin $PATH
+source ~/.config/fish/themes/kanagawa.fish
