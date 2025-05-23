@@ -13,7 +13,7 @@ general {
 # BACKGROUND
 background {
     monitor = DP-2
-    path = ~/Pictures/background/when-the-banshee-cries(5824x2430).png
+    path = ~/Pictures/background/3440x1440/Samurai (3440x1440).jpg
     blur_passes = 1
     blur_size = 2
     noise = 0
@@ -26,7 +26,7 @@ background {
 
 background {
     monitor = HDMI-A-1
-    path = ~/Pictures/background/when-the-banshee-cries(5824x2430).png
+    path = ~/Pictures/background/2560x1440/Samurai (2560x1440).jpg
     blur_passes = 1
     blur_size = 2
     noise = 0
