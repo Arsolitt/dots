@@ -14,3 +14,4 @@ ln -sf "$PWD"/wlogout "$HOME"/.config/
 ln -sf "$PWD"/wofi "$HOME"/.config/
 ln -sf "$PWD"/hyprpanel "$HOME"/.config/
 ln -sf "$PWD"/electron-flags.conf "$HOME"/.config/
+ln -sf "$PWD"/btop "$HOME"/.config/

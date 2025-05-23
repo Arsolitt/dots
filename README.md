@@ -1,6 +1,6 @@
 <h1 align="center">Arch + Hyprland</h1>
 
-## Main
+## Overview
 - Hyprland
 - Hyprpaper
 - Hyprlock
