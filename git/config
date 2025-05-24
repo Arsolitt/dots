@@ -1,0 +1,44 @@
+[user]
+  email = arsolitt@gmail.com
+  name = Arsolitt
+  signingkey = B78BC1C68E9FD51EA1A6CA6F4D8302CE6A9247C4
+
+[commit]
+  gpgSign = true
+
+[core]
+  autocrlf = input
+  compression = 9 
+  fsync = none
+
+[init]
+  defaultBranch = main
+
+[status]
+  branch = true
+  short = true
+  showStash = true
+  showUntrackedFiles = all
+
+[push]
+  autoSetupRemote = true
+  default = current
+  followTags = true
+
+[pull]
+  rebase = true
+
+[submodule]
+  fetchJobs = 16
+
+[rebase]
+  autoStash = true
+
+[blame]
+  coloring = highlightRecent
+  date = relative
+
+[diff]
+  context = 3
+  renames = copies
+  interHunkContext = 10
