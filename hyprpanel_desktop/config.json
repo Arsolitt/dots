@@ -92,5 +92,8 @@
   "theme.matugen_settings.scheme_type": "expressive",
   "theme.matugen_settings.contrast": 0,
   "theme.matugen_settings.variation": "standard_2",
-  "menus.dashboard.powermenu.avatar.image": "/home/arsolitt/Pictures/avatar/JI39-gYj4YI-2.png"
+  "menus.dashboard.powermenu.avatar.image": "/home/arsolitt/Pictures/avatar/JI39-gYj4YI-2.png",
+  "bar.customModules.storage.paths": [
+    "/"
+  ]
 }
