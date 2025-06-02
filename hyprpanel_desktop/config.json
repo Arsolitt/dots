@@ -95,5 +95,7 @@
   "menus.dashboard.powermenu.avatar.image": "/home/arsolitt/Pictures/avatar/JI39-gYj4YI-2.png",
   "bar.customModules.storage.paths": [
     "/"
-  ]
+  ],
+  "menus.power.sleep": "",
+  "menus.dashboard.powermenu.sleep": "fish -c 'hyprlock &; systemctl suspend'"
 }
