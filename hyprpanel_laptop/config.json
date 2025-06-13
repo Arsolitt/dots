@@ -13,10 +13,12 @@
         "media"
       ],
       "right": [
+        "kbinput",
         "volume",
         "network",
         "clock",
         "notifications",
+        "battery",
         "dashboard"
       ]
     },
@@ -59,7 +61,7 @@
   ],
   "menus.volume.raiseMaximumVolume": true,
   "menus.clock.time.military": true,
-  "bar.clock.format": "%a %b %d  %H:%M:%S",
+  "bar.clock.format": "%a %b %d %H:%M",
   "bar.network.label": false,
   "bar.network.showWifiInfo": false,
   "bar.bluetooth.label": false,
@@ -82,5 +84,14 @@
   "menus.dashboard.powermenu.avatar.image": "/home/arsolitt/Pictures/avatar/JI39-gYj4YI-2.png",
   "bar.customModules.storage.paths": [
     "/"
-  ]
+  ],
+  "theme.bar.buttons.battery.enableBorder": false,
+  "bar.battery.label": false,
+  "bar.battery.hideLabelWhenFull": false,
+  "theme.matugen": true,
+  "theme.matugen_settings.variation": "standard_2",
+  "wallpaper.enable": false,
+  "wallpaper.image": "/home/arsolitt/Pictures/background/2560x1600/Samurai (2560x1600).jpg",
+  "theme.matugen_settings.mode": "dark",
+  "theme.matugen_settings.scheme_type": "expressive"
 }
