@@ -14,5 +14,6 @@ ln -sf "$PWD"/wofi "$HOME"/.config/
 ln -sf "$PWD"/hyprpanel "$HOME"/.config/
 ln -sf "$PWD"/btop "$HOME"/.config/
 ln -sf "$PWD"/git "$HOME"/.config/
+ln -sf "$PWD"/nvim "$HOME"/.config/
 ln -sf "$PWD"/gpg-agent.conf "$HOME"/.gnupg/gpg-agent.conf
 ln -sf "$PWD"/electron-flags.conf "$HOME"/.config/
