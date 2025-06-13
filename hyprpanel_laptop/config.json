@@ -93,5 +93,7 @@
   "wallpaper.enable": false,
   "wallpaper.image": "/home/arsolitt/Pictures/background/2560x1600/Samurai (2560x1600).jpg",
   "theme.matugen_settings.mode": "dark",
-  "theme.matugen_settings.scheme_type": "expressive"
+  "theme.matugen_settings.scheme_type": "expressive",
+  "menus.power.sleep": "fish -c 'hyprlock &; systemctl suspend'",
+  "menus.dashboard.powermenu.sleep": "fish -c 'hyprlock &; systemctl suspend'"
 }

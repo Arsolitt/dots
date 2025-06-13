@@ -24,8 +24,8 @@ source = ~/.config/hypr/conf/autostart.conf
 # Load configuration files
 # ----------------------------------------------------- 
 
-
-
+bindl=,switch:on:Lid Switch,exec,hyprlock
+bindl=,switch:on:Lid Switch,exec,systemctl suspend
 
 
 
