@@ -58,7 +58,7 @@
   clean =sops --input-type yaml --output-type yaml --indent 2 --encrypt -p 99579EC8377A9A4F3DBFFE90A2D87A2F9AECEEE2 --encrypted-regex '^(data|stringData)$' --output /dev/stdout /dev/stdin
 	smudge = sops --input-type yaml --output-type yaml --indent 2 --decrypt -p 99579EC8377A9A4F3DBFFE90A2D87A2F9AECEEE2 --unencrypted-regex '^(data|stringData)$' --output /dev/stdout /dev/stdin
 
-[filter "sops_psc"]
+[filter "sops_psc_prod"]
 	required = true
   clean =sops --input-type yaml --output-type yaml --indent 2 --encrypt -p 7D3130FE408B6BDD22E800C19027DAE169152A24 --encrypted-regex '^(data|stringData)$' --output /dev/stdout /dev/stdin
 	smudge = sops --input-type yaml --output-type yaml --indent 2 --decrypt -p 7D3130FE408B6BDD22E800C19027DAE169152A24 --unencrypted-regex '^(data|stringData)$' --output /dev/stdout /dev/stdin
