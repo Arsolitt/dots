@@ -37,6 +37,19 @@ background {
     color = $base
 }
 
+background {
+    monitor = HDMI-A-2
+    path = ~/Pictures/background/2560x1440/Samurai (2560x1440).jpg
+    blur_passes = 1
+    blur_size = 2
+    noise = 0
+    contrast = 1.1
+    brightness = 1
+    vibrancy = 0.5
+    vibrancy_darkness = 0.5
+    color = $base
+}
+
 
 # TIME
 label {

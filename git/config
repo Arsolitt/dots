@@ -45,7 +45,7 @@
 
 [filter "sops_homelab"]
 	required = true
-  clean =sops --input-type yaml --output-type yaml --indent 2 --encrypt -p 7A31FF8DBF6055680E9EA3DB6D65D8CF3B037901 --encrypted-regex '^(data|stringData)$' --output /dev/stdout /dev/stdin
+  clean = sops --input-type yaml --output-type yaml --indent 2 --encrypt -p 7A31FF8DBF6055680E9EA3DB6D65D8CF3B037901 --encrypted-regex '^(data|stringData)$' --output /dev/stdout /dev/stdin
 	smudge = sops --input-type yaml --output-type yaml --indent 2 --decrypt -p 7A31FF8DBF6055680E9EA3DB6D65D8CF3B037901 --unencrypted-regex '^(data|stringData)$' --output /dev/stdout /dev/stdin
 
 [filter "sops_audiostore"]
