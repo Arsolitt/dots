@@ -14,4 +14,5 @@ set -q KREW_ROOT; and set -gx PATH $PATH $KREW_ROOT/.krew/bin; or set -gx PATH $
 # bun
 set --export BUN_INSTALL "$HOME/.bun"
 set --export PATH $BUN_INSTALL/bin $PATH
+set --export PATH /home/arsolitt/.cargo/bin $PATH
 source ~/.config/fish/themes/kanagawa.fish
