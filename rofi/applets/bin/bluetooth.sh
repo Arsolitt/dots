@@ -19,6 +19,8 @@
 # Constants
 divider="---------"
 goback="Back"
+theme="$HOME/.config/rofi/applets/type-bt/style-1.rasi"
+# theme="$HOME/.config/rofi/applets/bluetooth.rasi"
 
 # Checks if bluetooth controller is powered on
 power_on() {
@@ -304,7 +306,7 @@ show_menu() {
 }
 
 # Rofi command to pipe into, can add any options here
-rofi_command="rofi -dmenu -theme $HOME/.config/rofi/applets/type-4/style-2.rasi $* -p"
+rofi_command="rofi -dmenu -theme ${theme} $* -p"
 
 case "$1" in
     --status)
