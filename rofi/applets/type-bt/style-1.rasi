@@ -6,11 +6,10 @@
  **/
 
 configuration {
-	modi:                       "";
-    show-icons:                 false;
-  hover-select: true;
-  me-select-entry: "";
-  me-accept-entry: [ MousePrimary, MouseSecondary, MouseDPrimary ];
+    show-icons: false;
+    hover-select: true;
+    me-select-entry: "";
+    me-accept-entry: [ MousePrimary, MouseSecondary, MouseDPrimary ];
 }
 
 /*****----- Global Properties -----*****/
@@ -49,7 +48,7 @@ window {
     location:                 center;
     anchor:                   center;
     fullscreen:               false;
-    width:                    600px; /* Сделал немного уже для меню */
+    width:                    600px;
     x-offset:                 0px;
     y-offset:                 0px;
     margin:                   0px;
@@ -71,7 +70,6 @@ mainbox {
     border-radius:            12px;
     border-color:             @border-colour;
     background-color:         transparent;
-    /* Убрали 'mode-switcher' и 'message', т.к. скрипт их не использует */
     children:                 [ "inputbar", "listview" ];
 }
 

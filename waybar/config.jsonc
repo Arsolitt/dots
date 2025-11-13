@@ -170,6 +170,7 @@
 				""
 			]
 		},
+		// "on-click": "~/.config/rofi/applets/bin/volume.sh"
 		"on-click": "pavucontrol"
 	},
 	"custom/separator": {

@@ -20,7 +20,6 @@
 divider="---------"
 goback="Back"
 theme="$HOME/.config/rofi/applets/type-bt/style-1.rasi"
-# theme="$HOME/.config/rofi/applets/bluetooth.rasi"
 
 # Checks if bluetooth controller is powered on
 power_on() {
