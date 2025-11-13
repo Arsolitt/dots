@@ -3,24 +3,25 @@
 	/* border-top-left-radius: 0px; */
 	/* border-top-right-radius: 0px; */
 	/* border: none; */
-	font-family: FiraCode Nerd Font Mono Med, Symbols Nerd Font,
-		Material Symbols Outlined;
-	font-weight: 500;
+	font-family: Maple Mono NF Propo,JetBrains Mono Nerd Font Propo;
+	font-weight: 600;
 	font-size: 15px;
-	min-height: 25px;
+	/* min-height: 25px; */
 }
 
-@define-color bg #282A36;
-@define-color fg #F8F8F2;
+@define-color bg0 #1F1F28;
+@define-color bg1 #223249;
+@define-color fg #DCD7BA;
 @define-color active #FFB86C;
-@define-color gr #545d70;
-@define-color red #FF5555;
-@define-color green #50FA7B;
-@define-color blue #4b4e6f;
+@define-color gr #727169;
+@define-color red #C34043;
+@define-color green #76946A;
+@define-color blue #7E9CD8;
 @define-color orange #FFB86C;
-@define-color icon #BD93F9;
-@define-color comment #6272A4;
+/* @define-color icon #BD93F9;
+@define-color comment #6272A4; */
 
+/*
 @define-color background rgba(0, 0, 0, 0.0);
 @define-color bg-module rgba(0, 0, 0, 0.7);
 @define-color bg-tray rgba(0, 0, 0, 0.8);
@@ -36,6 +37,7 @@
 @define-color border-alt rgba(2, 10, 20, 1.0);
 
 @define-color separator rgba(56, 70, 84, 1.0);
+*/
 
 /* window#waybar {
 	background-color: @bg;
@@ -45,9 +47,9 @@
 } */
 
 window#waybar {
-	background: @background;
-	border: 0px solid @border;
-	border-radius: 10;
+	background: @bg0;
+	/* border: 0px solid @border; */
+	border-radius: 10px;
 }
 
 #workspaces {
@@ -93,11 +95,11 @@ window#waybar {
 }
 
 #workspaces button.active {
-	color: @foreground;
+	color: @fg;
 }
 
 #mode {
-	background: #64727d;
+	background: @bg1;
 	border-bottom: 3px solid white;
 }
 
@@ -105,15 +107,15 @@ window#waybar {
 	margin: 0 0 0 10px;
 } */
 
-#tray {
+/*#tray {
 	background-color: @bg-tray;
-}
+}*/
 
-@keyframes blink {
+/*@keyframes blink {
 	to {
 		color: @fg-blink;
 	}
-}
+}*/
 
 #custom-bandwidth,
 #custom-notification,
@@ -135,22 +137,30 @@ window#waybar {
 #custom-colorpicker,
 #system,
 #custom-exit,
-#custom-notification {
-	padding: 2 10 2 8px;
-	background-color: @bg-module;
-	border-radius: 14px;
-	border: 2px solid @border-module;
-	color: @fg-module;
+#custom-notification,
+#bluetooth {
+	padding: 0px 10px 0px 10px;
+	margin: 7px 0px;
+	background-color: @bg1;
+	border-radius: 8px;
+	border: 1px solid @bg1;
+	color: @fg;
 }
 
-#bluetooth,
+#workspaces {
+	margin: 7px 0 7px 32px;
+}
+
+#custom-exit {
+	margin: 7px 32px 7px 0;
+}
+
 #memory,
 #cpu {
 	margin-left: 5px;
 	margin-right: 5px;
 }
-#system {
-}
+
 
 #custom-notification {
 	min-width: 20px;
@@ -158,7 +168,7 @@ window#waybar {
 }
 
 #custom-seperator {
-	color: @separator;
+	color: @bg0;
 }
 
 /* #custom-colorpicker,

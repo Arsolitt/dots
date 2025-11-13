@@ -1,0 +1,14 @@
+/**
+ *
+ * Author : Aditya Shakya (adi1090x)
+ * Github : @adi1090x
+ * 
+ * Fonts
+ *
+ **/
+
+* {
+    var-font-family: "JetBrains Mono Nerd Font Propo";
+    var-font-size: "10";
+    font: "JetBrains Mono Nerd Font Propo 12";
+}
