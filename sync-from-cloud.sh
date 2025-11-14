@@ -1,17 +1,84 @@
 #!/bin/bash
+set -euo pipefail # -e: выход при ошибке, -u: ошибка при использовании неопределенной переменной, -o pipefail: ошибка в пайпе ведет к выходу
 
-COMMAND_ARGS=" --transfers=100 --checkers=100 --fast-list --multi-thread-streams=32 --multi-thread-chunk-size=128M --buffer-size=64M --log-level INFO --fix-case --progress --stats-one-line"
+# --- КОНФИГУРАЦИЯ ---
+# Используем те же аргументы, что и в скрипте бэкапа для консистентности
+RCLONE_COMMON_ARGS=(
+    --transfers=100
+    --checkers=100
+    --fast-list
+    --multi-thread-streams=32
+    --multi-thread-chunk-size=128M
+    --buffer-size=64M
+    --log-level INFO
+    --fix-case
+    --progress
+    --stats-one-line
+)
 
-export RCLONE_PASSWORD_COMMAND="pass rclone/config"
+# Команда для получения пароля. Можно вынести в переменную окружения,
+# если не хотите хранить в скрипте.
+RCLONE_PASSWORD_COMMAND="${RCLONE_PASSWORD_COMMAND:-"pass rclone/config"}"
 
-# shellcheck disable=SC2086
-rclone sync projects: ~/projects/ $COMMAND_ARGS \
-  --exclude="**/{node_modules,.next,target,.venv}/**" --exclude="**/cpython**" && \
-rclone sync configs:.kube/ ~/.kube $COMMAND_ARGS \
-  --exclude="cache/**" && \
-rclone sync configs:.talos/ ~/.talos $COMMAND_ARGS && \
-rclone sync configs:.ssh/ ~/.ssh $COMMAND_ARGS && \
-rclone sync configs:Pictures/ ~/Pictures $COMMAND_ARGS && \
-rclone sync configs:.zen/ ~/.zen $COMMAND_ARGS && \
-rclone sync configs:.docker/ ~/.docker $COMMAND_ARGS && \
-rclone sync configs:.gpg/ ~/.gpg $COMMAND_ARGS
+# --- ЛОГИКА СКРИПТА ---
+
+# Функция для запуска восстановления с проверкой результата
+run_restore() {
+    local src="$1"
+    local dst="$2"
+    local extra_args=("${@:3}") # Все остальные аргументы - это массив
+
+    echo "--- Начинаю восстановление: $src -> $dst ---"
+    if rclone sync "$src" "$dst" "${RCLONE_COMMON_ARGS[@]}" "${extra_args[@]}"; then
+        echo "✅ Успешно восстановлено: $dst"
+        return 0
+    else
+        echo "❌ ОШИБКА при восстановлении: $dst"
+        return 1
+    fi
+}
+
+# Основная логика
+main() {
+    # --- ВАЖНОЕ ПРЕДУПРЕЖДЕНИЕ ---
+    echo "⚠️  ВНИМАНИЕ! ⚠️"
+    echo "Вы собираетесь восстановить данные из бэкапа."
+    echo "Это действие может привести к УДАЛЕНИЮ или ПЕРЕЗАПИСИ локальных файлов в целевых директориях."
+    echo "Убедитесь, что вы хотите это сделать."
+    echo
+    read -p "Вы уверены, что хотите продолжить? (Введите 'yes' для подтверждения): " confirmation
+
+    if [ "$confirmation" != "yes" ]; then
+        echo "Операция отменена."
+        exit 0
+    fi
+
+    echo "Запуск скрипта восстановления..."
+    export RCLONE_PASSWORD_COMMAND
+
+    # Счетчик ошибок
+    error_count=0
+
+    # Запускаем каждую задачу независимо
+    # Направление потока: remote -> local
+    run_restore "projects:" "$HOME/projects/" --exclude="**/{node_modules,.next,target,.venv}/**" --exclude="**/cpython**" || ((error_count++))
+    run_restore "configs:.kube/" "$HOME/.kube/" --exclude="cache/**" || ((error_count++))
+    run_restore "configs:.talos/" "$HOME/.talos/" || ((error_count++))
+    run_restore "configs:.ssh/" "$HOME/.ssh/" || ((error_count++))
+    run_restore "configs:Pictures/" "$HOME/Pictures/" || ((error_count++))
+    run_restore "configs:.zen/" "$HOME/.zen/" || ((error_count++))
+    run_restore "configs:.docker/" "$HOME/.docker/" || ((error_count++))
+    run_restore "configs:.gpg/" "$HOME/.gpg/" || ((error_count++))
+
+    echo "=== Все задачи восстановления завершены ==="
+    if [ "$error_count" -gt 0 ]; then
+        echo "⚠️ Всего ошибок: $error_count"
+        exit 1
+    else
+        echo "🎉 Все данные успешно восстановлены!"
+        exit 0
+    fi
+}
+
+# Запуск основной функции
+main
