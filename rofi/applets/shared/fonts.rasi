@@ -8,7 +8,7 @@
  **/
 
 * {
-    var-font-family: "JetBrains Mono Nerd Font Propo";
+    var-font-family: "JetBrainsMono Nerd Font Propo";
     var-font-size: "10";
-    font: "JetBrains Mono Nerd Font Propo 12";
+    font: "JetBrainsMono Nerd Font Propo 12";
 }
