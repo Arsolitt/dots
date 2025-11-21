@@ -81,7 +81,7 @@ confirm_exit() {
 confirm_run () {	
 	selected="$(confirm_exit)"
 	if [[ "$selected" == "$yes" ]]; then
-        ${1} && ${2} & ${3}
+        ${1} && ${2} && ${3}
     else
         exit
     fi	
@@ -94,7 +94,7 @@ run_cmd() {
 	elif [[ "$1" == '--opt2' ]]; then
 		confirm_run 'kill -9 -1'
 	elif [[ "$1" == '--opt3' ]]; then
-		confirm_run 'amixer set Master mute' 'hyprlock' 'systemctl suspend'
+		confirm_run 'amixer set Master mute' 'swaylock' 'systemctl suspend'
 	elif [[ "$1" == '--opt4' ]]; then
 		confirm_run 'systemctl hibernate'
 	elif [[ "$1" == '--opt5' ]]; then
