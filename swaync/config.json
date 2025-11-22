@@ -6,7 +6,6 @@
 	"control-center-margin-bottom": 0,
 	"control-center-margin-right": 0,
 	"control-center-margin-left": 1109,
-	"notification-icon-size": 32,
 	"notification-body-image-height": 100,
 	"notification-body-image-width": 200,
 	"timeout": 1,
@@ -35,10 +34,6 @@
 		"label": {
 			"max-lines": 3,
 			"text": "Notifications"
-		},
-		"mpris": {
-			"image-size": 96,
-			"image-radius": 12
 		},
 		"volume": {
 			"label": " 󰕾 "

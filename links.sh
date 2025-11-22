@@ -17,6 +17,7 @@ ln -sf "$PWD"/git "$HOME"/.config/
 # ln -sf "$PWD"/nvim "$HOME"/.config/
 ln -sf "$PWD"/rofi "$HOME"/.config/
 ln -sf "$PWD"/swaylock "$HOME"/.config/
+ln -sf "$PWD"/swaync "$HOME"/.config/
 ln -sf "$PWD"/waybar "$HOME"/.config/
 ln -sf "$PWD"/gpg-agent.conf "$HOME"/.gnupg/gpg-agent.conf
 ln -sf "$PWD"/electron-flags.conf "$HOME"/.config/

@@ -14,6 +14,11 @@
 @define-color bg-selected @background;
 @define-color shade-lighter rgba(255, 255, 255, 0.1);
 
+:root {
+	--notification-icon-size: 32px;
+	--mpris-album-art-icon-size: 96px;
+}
+
 .testing {
 	background-color: red;
 }
