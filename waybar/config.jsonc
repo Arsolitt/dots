@@ -7,31 +7,26 @@
 	"layer": "bottom",
 	"position": "top",
 	"spacing": 10,
-	// "layer": "top",
-	// "position": "top",
-	"output": [
-		"DP-2"
-	],
+	// "output": [
+	// 	"DP-2"
+	// ],
 	"height": 25,
 	"width": 1720,
-	// "margin": 5,
 	"modules-left": [
-		"hyprland/workspaces",
 		"custom/notification",
-		"tray"
-	],
-	// "modules-center": [
-	// 	"hyprland/workspaces"
-	// ],
-	"modules-right": [
-		"hyprland/language",
-		"pulseaudio",
+		"tray",
 		"bluetooth",
-		// "group/tools",
+		"pulseaudio",
+		"hyprland/language"
+	],
+	"modules-center": [
+		"hyprland/workspaces"
+	],
+	"modules-right": [
+		"network",
 		"group/system",
 		"clock",
 		"custom/exit"
-		// "network"
 	],
 	"group/tools": {
 		"orientation": "horizontal",
@@ -50,12 +45,10 @@
 		"format-icons": {
 			"notification": "<span foreground='red'><sup></sup></span>",
 			"none": "",
-			// "dnd-notification": "<span foreground='red'><sup></sup></span>",
 			"dnd-notification": "",
 			"dnd-none": "",
 			"inhibited-notification": "<span foreground='red'><sup></sup></span>",
 			"inhibited-none": "",
-			// "dnd-inhibited-notification": "<span foreground='red'><sup></sup></span>",
 			"dnd-inhibited-notification": "",
 			"dnd-inhibited-none": ""
 		},
@@ -132,7 +125,6 @@
 		"spacing": 16
 	},
 	"clock": {
-		// "format": "{:%H:%M}",
 		"format": "{:L%a, %b %d, %H:%M:%OS} 󰃰",
 		// "format-alt": "{:L%A, %B %d, %Y (%R)} 󰃰",
 		"interval": 1,
@@ -175,7 +167,35 @@
 	},
 	"custom/separator": {
 		"format": "_"
+	},
+	"network": {
+		// "interface": "wlp2*", // (Optional) To force the use of this interface
+		/* "format-wifi": "{essid} ({signalStrength}%) ", */
+		"format": "",
+		"format-wifi": "{icon} {essid}",
+		"format-ethernet": "󰈀",
+		"tooltip-format": "{essid}",
+		"format-linked": "󰈁 {ifname} (No IP)",
+		"format-disconnected": "",
+		"format-icons": ["󰤯", "󰤟", "󰤢", "󰤥", "󰤨"],
+		"format-alt": " {bandwidthUpBits}  {bandwidthDownBits}"
+		// "on-click": "~/.scripts/rofi-wifi"
 	}
+	// "network#speed": {
+	// 	"interval": 1,
+	// 	"format": "{ifname}",
+	// 	"format-wifi": " {bandwidthUpBits}  {bandwidthDownBits}",
+	// 	"format-ethernet": "󰌘  {bandwidthUpBits}  {bandwidthDownBits}",
+	// 	"format-disconnected": "󰌙",
+	// 	"tooltip-format": "{ipaddr}",
+	// 	"format-linked": "󰈁 {ifname} (No IP)",
+	// 	"tooltip-format-wifi": "{essid} {icon} {signalStrength}%",
+	// 	"tooltip-format-ethernet": "{ifname} 󰌘",
+	// 	"tooltip-format-disconnected": "󰌙 Disconnected",
+	// 	"min-length": 20,
+	// 	"max-length": 24,
+	// 	"format-icons": ["󰤯", "󰤟", "󰤢", "󰤥", "󰤨"]
+	// }
 	// "hyprland/window": {
 	// 	"format": "{title}",
 	// 	"max-length": 50,
@@ -244,31 +264,5 @@
 	// 	"input_delay": 2,
 	// 	"format-icons": ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"]
 	// },
-	// "network": {
-	// 	// "interface": "wlp2*", // (Optional) To force the use of this interface
-	// 	/* "format-wifi": "{essid} ({signalStrength}%) ", */
-	// 	"format": "",
-	// 	"format-wifi": "{icon} {essid}",
-	// 	"format-ethernet": " {ipaddr}/{cidr}",
-	// 	"tooltip-format": "{essid}",
-	// 	"format-linked": " {ifname} (No IP)",
-	// 	"format-disconnected": "",
-	// 	"format-icons": ["󰤯", "󰤟", "󰤢", "󰤥", "󰤨"],
-	// 	"on-click": "~/.scripts/rofi-wifi"
-	// },
-	// "network#speed": {
-	// 	"interval": 1,
-	// 	"format": "{ifname}",
-	// 	"format-wifi": " {bandwidthUpBits}  {bandwidthDownBits}",
-	// 	"format-ethernet": "󰌘  {bandwidthUpBits}  {bandwidthDownBits}",
-	// 	"format-disconnected": "󰌙",
-	// 	"tooltip-format": "{ipaddr}",
-	// 	"format-linked": "󰈁 {ifname} (No IP)",
-	// 	"tooltip-format-wifi": "{essid} {icon} {signalStrength}%",
-	// 	"tooltip-format-ethernet": "{ifname} 󰌘",
-	// 	"tooltip-format-disconnected": "󰌙 Disconnected",
-	// 	"min-length": 20,
-	// 	"max-length": 24,
-	// 	"format-icons": ["󰤯", "󰤟", "󰤢", "󰤥", "󰤨"]
-	// }
+
 }

@@ -147,7 +147,7 @@ window#waybar {
 	color: @fg;
 }
 
-#workspaces {
+#custom-notification {
 	margin: 7px 0 7px 32px;
 }
 
