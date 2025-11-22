@@ -4,8 +4,8 @@
 - Hyprland
 - Hyprpaper
 - Hyprlock
-- Hyprpanel
-- Wofi
+- Waybar
+- Rofi
 - Nemo
 - Kitty
 - Kitty theme: Kanagawa
