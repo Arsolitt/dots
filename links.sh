@@ -10,13 +10,11 @@ ln -sf "$PWD"/kitty "$HOME"/.config/
 ln -sf "$PWD"/nwg-look "$HOME"/.config/
 ln -sf "$PWD"/swappy "$HOME"/.config/
 ln -sf "$PWD"/swayimg "$HOME"/.config/
-# ln -sf "$PWD"/wofi "$HOME"/.config/
-# ln -sf "$PWD"/hyprpanel "$HOME"/.config/
 ln -sf "$PWD"/btop "$HOME"/.config/
 ln -sf "$PWD"/git "$HOME"/.config/
 # ln -sf "$PWD"/nvim "$HOME"/.config/
 ln -sf "$PWD"/rofi "$HOME"/.config/
-ln -sf "$PWD"/swaylock "$HOME"/.config/
+ln -sf "$PWD"/hyprlock "$HOME"/.config/
 ln -sf "$PWD"/swaync "$HOME"/.config/
 ln -sf "$PWD"/waybar "$HOME"/.config/
 ln -sf "$PWD"/gpg-agent.conf "$HOME"/.gnupg/gpg-agent.conf
