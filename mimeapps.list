@@ -2,7 +2,7 @@
 x-scheme-handler/tonsite=org.telegram.desktop.desktop
 application/x-ms-dos-executable;application/x-wine-extension-msp;application/x-msi;application/x-msdos-program;text/win-bat;=PortProton.desktop
 application/yaml=cursor-cursor.desktop
-text/plain=cursor.desktop
+text/plain=code-oss.desktop
 image/png=swayimg.desktop
 image/webp=swayimg.desktop
 x-scheme-handler/jetbrains=jetbrains-toolbox.desktop
@@ -27,7 +27,7 @@ audio/x-mod=cursor-cursor.desktop
 [Added Associations]
 x-scheme-handler/tonsite=org.telegram.desktop.desktop;
 application/yaml=code.desktop;cursor-cursor.desktop;
-text/plain=code.desktop;cursor-cursor.desktop;cursor.desktop;
+text/plain=code.desktop;cursor-cursor.desktop;cursor.desktop;code-oss.desktop;
 image/png=swayimg.desktop;
 image/webp=swayimg.desktop;
 application/octet-stream=code.desktop;
