@@ -1,6 +1,13 @@
-preload = ~/Pictures/background/2560x1440/Samurai (2560x1440).jpg
-preload = ~/Pictures/background/3440x1440/Samurai (3440x1440).jpg
-wallpaper = DP-2,     ~/Pictures/background/3440x1440/Samurai (3440x1440).jpg
-wallpaper = HDMI-A-1, ~/Pictures/background/2560x1440/Samurai (2560x1440).jpg
-wallpaper = HDMI-A-2, ~/Pictures/background/2560x1440/Samurai (2560x1440).jpg
 splash = false
+
+wallpaper {
+    monitor = DP-2
+    path = ~/Pictures/background/3440x1440/Samurai (3440x1440).jpg
+    fit_mode = cover
+}
+
+wallpaper {
+    monitor = HDMI-A-1
+    path = ~/Pictures/background/2560x1440/Samurai (2560x1440).jpg
+    fit_mode = cover
+}
