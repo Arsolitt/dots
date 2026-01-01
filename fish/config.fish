@@ -1,6 +1,6 @@
 if status is-login
     if test -z "$DISPLAY" -a "$(tty)" = /dev/tty1
-        exec Hyprland
+        exec start-hyprland
     end
 end
 
