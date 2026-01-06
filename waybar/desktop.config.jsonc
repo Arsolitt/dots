@@ -1,0 +1,268 @@
+{
+	// "reload_style_on_change": true,
+	"margin-top": 5,
+	"margin-left": 0,
+	"margin-right": 0,
+	"margin-bottom": 0,
+	"layer": "bottom",
+	"position": "top",
+	"spacing": 10,
+	// "output": [
+	// 	"DP-2"
+	// ],
+	"height": 25,
+	"width": 1720,
+	"modules-left": [
+		"custom/notification",
+		"tray",
+		"bluetooth",
+		"pulseaudio",
+		"hyprland/language"
+	],
+	"modules-center": [
+		"hyprland/workspaces"
+	],
+	"modules-right": [
+		"network",
+		"group/system",
+		"clock",
+		"custom/exit"
+	],
+	"group/tools": {
+		"orientation": "horizontal",
+		"modules": []
+	},
+	"group/system": {
+		"orientation": "horizontal",
+		"modules": [
+			"cpu",
+			"memory"
+		]
+	},
+	"custom/notification": {
+		"tooltip": false,
+		"format": "{icon}",
+		"format-icons": {
+			"notification": "<span foreground='red'><sup></sup></span>",
+			"none": "",
+			"dnd-notification": "",
+			"dnd-none": "",
+			"inhibited-notification": "<span foreground='red'><sup></sup></span>",
+			"inhibited-none": "",
+			"dnd-inhibited-notification": "",
+			"dnd-inhibited-none": ""
+		},
+		"return-type": "json",
+		"exec-if": "which swaync-client",
+		"exec": "swaync-client -swb",
+		"on-click": "swaync-client -t -sw",
+		"on-click-right": "swaync-client -d -sw",
+		"escape": true
+	},
+	"cpu": {
+		"format": "<span font='20' rise='-3pt'></span> {usage}%",
+		"tooltip": false
+	},
+	"memory": {
+		"interval": 10,
+		"format": "<span font='20' rise='0pt'>󰾆</span> <span rise='3pt'>{used:0.1f}G</span>",
+		"format-alt": "<span font='20' rise='0pt'>󰾆</span> <span rise='3pt'>{percentage}%</span>",
+		"format-alt-click": "click",
+		"tooltip": true,
+		"tooltip-format": "{used:0.1f}GB/{total:0.1f}G",
+		"on-click-right": "kitty --title btop sh -c 'btop'"
+	},
+	"bluetooth": {
+		"format": "<span font='20' rise='-1pt'></span>",
+		"format-connected-battery": "<span font='18' rise='0pt'>{icon}</span> <span rise='2pt'>{device_battery_percentage}%</span>",
+		"format-icons": {
+			"default": [
+				"󰁺",
+				"󰁻",
+				"󰁼",
+				"󰁽",
+				"󰁾",
+				"󰁿",
+				"󰂀",
+				"󰂁",
+				"󰂂",
+				"󰁹"
+			]
+		},
+		"format-disabled": "",
+		"format-off": "",
+		"on-click": "~/.config/rofi/applets/bin/bluetooth.sh"
+	},
+	"custom/exit": {
+		"format": "<span font='20' rise='-1pt'></span>",
+		"on-click": "~/.config/rofi/applets/bin/powermenu.sh",
+		"tooltip": false
+	},
+	"hyprland/workspaces": {
+		"format": "{icon}",
+		"on-click": "activate",
+		"show-special": false,
+		"tooltip": false,
+		"persistent-workspaces": {
+			"*": 6
+		},
+		"format-icons": {
+			"1": "󰫍",
+			"2": "󰫍",
+			"3": "󰫍",
+			"4": "󰫍",
+			"5": "󰫍",
+			"6": "󰫍"
+		}
+	},
+	"hyprland/language": {
+		"format": "{}",
+		"format-en": "EN",
+		"format-ru": "RU"
+	},
+	"tray": {
+		"icon-size": 20,
+		"spacing": 16
+	},
+	"clock": {
+		"format": "{:L%a, %b %d, %H:%M:%OS} 󰃰",
+		// "format-alt": "{:L%A, %B %d, %Y (%R)} 󰃰",
+		"interval": 1,
+		"tooltip-format": "{calendar}",
+		"locale": "en_GB.UTF-8",
+		"calendar": {
+			"mode": "month",
+			"mode-mon-col": 3,
+			"weeks-pos": "",
+			"on-scroll": 1,
+			"on-click-right": "mode",
+			"format": {
+				"months": "<span color='#DCD7BA'><b>{}</b></span>",
+				"days": "<span color='#727169'><b>{}</b></span>",
+				// "weeks":      "<span color='#99ffdd'><b>W{}</b></span>",
+				"weekdays": "<span color='#FFB86C'><b>{}</b></span>",
+				"today": "<span color='#C34043'><b><u>{}</u></b></span>"
+			}
+		},
+		"actions": {
+			"on-click-right": "mode",
+			"on-click-forward": "tz_up",
+			"on-click-backward": "tz_down",
+			"on-scroll-up": "shift_down",
+			"on-scroll-down": "shift_up"
+		}
+	},
+	"pulseaudio": {
+		"scroll-step": 5,
+		"format": "<span font='20' >{icon}</span> <span rise='3pt'>{volume}%</span>",
+		"format-icons": {
+			"default": [
+				"",
+				"",
+				""
+			]
+		},
+		// "on-click": "~/.config/rofi/applets/bin/volume.sh"
+		"on-click": "pavucontrol"
+	},
+	"custom/separator": {
+		"format": "_"
+	},
+	"network": {
+		// "interface": "wlp2*", // (Optional) To force the use of this interface
+		/* "format-wifi": "{essid} ({signalStrength}%) ", */
+		"format": "",
+		"format-wifi": "{icon} {essid}",
+		"format-ethernet": "󰈀",
+		"tooltip-format": "{essid}",
+		"format-linked": "󰈁 {ifname} (No IP)",
+		"format-disconnected": "",
+		"format-icons": ["󰤯", "󰤟", "󰤢", "󰤥", "󰤨"],
+		"format-alt": " {bandwidthUpBits}  {bandwidthDownBits}"
+		// "on-click": "~/.scripts/rofi-wifi"
+	}
+	// "network#speed": {
+	// 	"interval": 1,
+	// 	"format": "{ifname}",
+	// 	"format-wifi": " {bandwidthUpBits}  {bandwidthDownBits}",
+	// 	"format-ethernet": "󰌘  {bandwidthUpBits}  {bandwidthDownBits}",
+	// 	"format-disconnected": "󰌙",
+	// 	"tooltip-format": "{ipaddr}",
+	// 	"format-linked": "󰈁 {ifname} (No IP)",
+	// 	"tooltip-format-wifi": "{essid} {icon} {signalStrength}%",
+	// 	"tooltip-format-ethernet": "{ifname} 󰌘",
+	// 	"tooltip-format-disconnected": "󰌙 Disconnected",
+	// 	"min-length": 20,
+	// 	"max-length": 24,
+	// 	"format-icons": ["󰤯", "󰤟", "󰤢", "󰤥", "󰤨"]
+	// }
+	// "hyprland/window": {
+	// 	"format": "{title}",
+	// 	"max-length": 50,
+	// 	"rewrite": {
+	// 		"^(firefox)$": "<span font='20' rise='-1pt'></span> Firefox",
+	// 		"^(floorp)$": "<span font='20' rise='-1pt'></span> Floorp",
+	// 		"^(chromium)$": "<span font='20' rise='-1pt'></span> Chrome",
+	// 		"^(code)$": "<span font='20' rise='-1pt'>󰨞</span> VSCode",
+	// 		"^(jetbrains-webstorm)$": "<span font='20' rise='-1pt'></span> WebStorm",
+	// 		"^(jetbrains-phpstorm)$": "<span font='20' rise='-1pt'></span> PHPStorm",
+	// 		"^(kitty)$": "<span font='20' rise='-1pt'></span> Kitty",
+	// 		"^(thunar)$": "<span font='20' rise='-1pt'></span> Thunar",
+	// 		"org.kde.ark": "<span font='20' rise='-1pt'>󰀼</span> Ark",
+	// 		"^(discord)$": "<span font='20' rise='-1pt'>󰙯</span> Discord",
+	// 		"^(org.telegram.desktop)$": "<span font='20' rise='-1pt'></span> Telegram",
+	// 		"^(obsidian)$": "<span font='20' rise='-1pt'>󱞁</span> Obsidian",
+	// 		"^(org.keepassxc.KeePassXC)$": "<span font='20' rise='-1pt'></span> KeePassXC"
+	// 	},
+	// 	"separate-outputs": false
+	// },
+	// "custom/wireguard": {
+	// 	"interval": 3,
+	// 	"return-type": "json",
+	// 	"format-icons": {
+	// 		"connected": "<span color=\"#50fa7b\">VPN: 🔒</span>",
+	// 		"disconnected": "<span color=\"#ff5555\">VPN: 🔓</span>"
+	// 	},
+	// 	"on-click": "exec ~/.config/wofi/wireguard/wireguard.sh -t",
+	// 	"exec": "exec ~/.config/wofi/wireguard/wireguard.sh -s",
+	// 	"format": "{icon}"
+	// },
+	// "custom/cliphist": {
+	// 	"format": "<span font='20' rise='-1pt'></span>",
+	// 	"on-click": "sleep 0.1 && ~/.config/wofi/cliphist/cliphist.sh",
+	// 	"on-click-right": "sleep 0.1 && ~/.config/wofi/cliphist/cliphist.sh d",
+	// 	"on-click-middle": "sleep 0.1 && ~/.config/wofi/cliphist/cliphist.sh w",
+	// 	"tooltip": false
+	// },
+	// "custom/colorpicker": {
+	// 	"format": "<span font='20' rise='-1pt'>󰈊</span>",
+	// 	"on-click": "wl-color-picker clipboard",
+	// 	"tooltip": false
+	// },
+	// "custom/menu": {
+	// 	"format": "{icon}",
+	// 	"format-icons": "󰣇",
+	// 	"on-click": "wofi --show drun -c ~/.config/wofi/config -s ~/.config/wofi/style.css",
+	// 	"escape": true,
+	// 	"tooltip": false
+	// },
+	// "cava": {
+	// 	"framerate": 75,
+	// 	"autosens": 0,
+	// 	"sensitivity": 100,
+	// 	"bars": 15,
+	// 	"lower_cutoff_freq": 50,
+	// 	"higher_cutoff_freq": 10000,
+	// 	"method": "pipewire",
+	// 	"source": "auto",
+	// 	"stereo": true,
+	// 	"reverse": false,
+	// 	"bar_delimiter": 0,
+	// 	"monstercat": false,
+	// 	"waves": true,
+	// 	"noise_reduction": 0.77,
+	// 	"input_delay": 2,
+	// 	"format-icons": ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"]
+	// },
+
+}
