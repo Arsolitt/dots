@@ -10,7 +10,7 @@
 	// "output": [
 	// 	"DP-2"
 	// ],
-	"height": 20,
+	"height": 25,
 	"width": 1580,
 	"modules-left": [
 		"custom/notification",
