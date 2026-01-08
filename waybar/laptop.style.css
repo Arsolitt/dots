@@ -1,0 +1,205 @@
+* {
+	/* border-radius: 20px; */
+	/* border-top-left-radius: 0px; */
+	/* border-top-right-radius: 0px; */
+	/* border: none; */
+	font-family: JetBrainsMono Nerd Font Propo;
+	font-weight: 600;
+	font-size: 15px;
+	/* min-height: 25px; */
+}
+
+@define-color bg0 #1F1F28;
+@define-color bg1 #223249;
+@define-color fg #DCD7BA;
+@define-color active #FFB86C;
+@define-color gr #727169;
+@define-color red #C34043;
+@define-color green #76946A;
+@define-color blue #7E9CD8;
+@define-color orange #FFB86C;
+/* @define-color icon #BD93F9;
+@define-color comment #6272A4; */
+
+/*
+@define-color background rgba(0, 0, 0, 0.0);
+@define-color bg-module rgba(0, 0, 0, 0.7);
+@define-color bg-tray rgba(0, 0, 0, 0.8);
+
+@define-color foreground rgba(49, 163, 200, 1.0);
+@define-color fg-module rgba(245, 250, 255, 1.0);
+@define-color fg-alt rgba(0, 0, 0, 1.0);
+@define-color fg-blink rgba(75, 230, 255, 1.0);
+@define-color fg-persist rgba(135, 145, 165, 1.0);
+
+@define-color border rgba(0, 175, 250, 1);
+@define-color border-module rgba(60, 158, 224, 1.0);
+@define-color border-alt rgba(2, 10, 20, 1.0);
+
+@define-color separator rgba(56, 70, 84, 1.0);
+*/
+
+/* window#waybar {
+	background-color: @bg;
+	color: #ffffff;
+	transition-property: background-color;
+	transition-duration: 0.5s;
+} */
+
+window#waybar {
+	background: @bg0;
+	/* border: 0px solid @border; */
+	border-radius: 10px;
+}
+
+#workspaces {
+	/* margin: 4px 5px 4px 5px; */
+	/* border-radius: 6; */
+}
+
+/* #workspaces button {
+	padding: 0 5px;
+	margin: 0 5px;
+	border-radius: 20px;
+} */
+
+/* #workspaces button {
+    margin: 0 1px;
+    padding: 0 2px;
+    color: @fg-module;
+}
+
+#workspaces button:hover {
+	background-color: @active;
+	color: @comment;
+	transition: background-color 0.5s;
+}
+
+#workspaces button.active {
+	background-color: @active;
+	color: @comment;
+	transition: background-color 0.5s;
+}
+
+#workspaces button.urgent {
+	color: @red;
+	transition: color 0.5s;
+} */
+
+#workspaces button:hover {
+	background: transparent;
+}
+
+#workspaces button.focused {
+	border-top: 2px solid transparent;
+}
+
+#workspaces button.active {
+	color: @fg;
+}
+
+#mode {
+	background: @bg1;
+	border-bottom: 3px solid white;
+}
+
+/* #tray {
+	margin: 0 0 0 10px;
+} */
+
+/*#tray {
+	background-color: @bg-tray;
+}*/
+
+/*@keyframes blink {
+	to {
+		color: @fg-blink;
+	}
+}*/
+
+#custom-bandwidth,
+#custom-notification,
+#custom-update,
+#custom-logo,
+#window,
+#custom-storage,
+#network,
+#wireplumber,
+#battery,
+#tray,
+#backlight,
+#workspaces,
+#clock,
+#custom-spotify,
+#mode,
+#pulseaudio,
+#language,
+#custom-colorpicker,
+#system,
+#custom-exit,
+#custom-notification,
+#bluetooth,
+#battery {
+	padding: 0px 10px 0px 10px;
+	margin: 7px 0px;
+	background-color: @bg1;
+	border-radius: 8px;
+	border: 1px solid @bg1;
+	color: @fg;
+}
+
+#custom-notification {
+	margin: 7px 0 7px 32px;
+}
+
+#custom-exit {
+	margin: 7px 32px 7px 0;
+}
+
+#memory,
+#cpu {
+	margin-left: 5px;
+	margin-right: 5px;
+}
+
+
+#custom-notification {
+	min-width: 20px;
+	padding-left: 12px;
+}
+
+#custom-seperator {
+	color: @bg0;
+}
+
+/* #custom-colorpicker,
+#bluetooth,
+#pulseaudio,
+#language,
+#custom-exit,
+#clock {} */
+
+/* #custom-colorpicker,
+#pulseaudio,
+#language,
+#clock,
+#custom-exit {
+	margin: 0 10px 0 0;
+} */
+
+/* #tools,
+#system {
+	color: @fg;
+	background-color: @bg;
+} */
+
+/* #custom-sep {
+	color: rgba(0, 0, 0, 0);
+} */
+
+/* #window {
+	background-color: @bg;
+	color: @icon;
+	font-weight: bold;
+	min-width: 100px;
+} */

@@ -138,7 +138,8 @@ window#waybar {
 #system,
 #custom-exit,
 #custom-notification,
-#bluetooth {
+#bluetooth,
+#battery {
 	padding: 0px 10px 0px 10px;
 	margin: 7px 0px;
 	background-color: @bg1;

@@ -10,7 +10,7 @@
 	// "output": [
 	// 	"DP-2"
 	// ],
-	"height": 25,
+	"height": 20,
 	"width": 1580,
 	"modules-left": [
 		"custom/notification",
@@ -23,9 +23,10 @@
 		"hyprland/workspaces"
 	],
 	"modules-right": [
-		"network",
-		"group/system",
+		// "network",
+		// "group/system",
 		"clock",
+		"battery",
 		"custom/exit"
 	],
 	"group/tools": {
@@ -180,7 +181,17 @@
 		"format-icons": ["󰤯", "󰤟", "󰤢", "󰤥", "󰤨"],
 		"format-alt": " {bandwidthUpBits}  {bandwidthDownBits}"
 		// "on-click": "~/.scripts/rofi-wifi"
-	}
+	},
+	"battery": {
+    "interval": 60,
+    "states": {
+        "warning": 30,
+        "critical": 15
+    },
+    "format": "{capacity}% {icon}",
+    "format-icons": ["", "", "", "", ""],
+    "max-length": 25
+  }
 	// "network#speed": {
 	// 	"interval": 1,
 	// 	"format": "{ifname}",
