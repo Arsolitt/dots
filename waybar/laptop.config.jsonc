@@ -23,7 +23,7 @@
 		"hyprland/workspaces"
 	],
 	"modules-right": [
-		// "network",
+		"network",
 		// "group/system",
 		"clock",
 		"battery",
