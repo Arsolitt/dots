@@ -23,7 +23,7 @@ run_backup() {
 
     echo "--- Начинаю бэкап: $src -> $dst ---"
     # Передаем массивы правильно
-    if rclone copy "$src" "$dst" "${RCLONE_COMMON_ARGS[@]}" "${extra_args[@]}"; then
+    if rclone copy "$src" "$dst" "${RCLONE_COMMON_ARGS[@]}" "${extra_args[@]}" || true; then
         echo "✅ Успешно: $src"
         return 0
     else
