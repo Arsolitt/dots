@@ -1,29 +1,59 @@
 #!/bin/bash
-
 set -euo pipefail
 
-RCLONE_PASSWORD_COMMAND="${RCLONE_PASSWORD_COMMAND:-"pass rclone/config"}"
-RCLONE_COMMON_ARGS=(
-     --transfers=100
-     --checkers=100
-     --fast-list
-     --multi-thread-streams=32
-     --multi-thread-chunk-size=128M
-     --buffer-size=64M
-     --log-level INFO
-     --fix-case
-     --progress
-     --stats-one-line
+# --- Конфигурация ---
+# Адрес репозитория. Для SSH: sftp:user@host:/path/to/repo
+# Убедитесь, что у вас настроен SSH-ключ для беспарольного входа.
+RESTIC_REPOSITORY="${RESTIC_REPOSITORY:-sftp:gateway:/mnt/backup/restic}"
+export RESTIC_REPOSITORY
+
+# Команда для получения пароля от репозитория
+# Restic запросит этот пароль при инициализации и каждом бэкапе
+RESTIC_PASSWORD_COMMAND="${RESTIC_PASSWORD_COMMAND:-"pass restic/backup-repo"}"
+export RESTIC_PASSWORD_COMMAND
+
+# Общие аргументы restic
+# В restic меньше настроек параллелизма, он управляет этим автоматически,
+# но можно ограничить скорость при необходимости.
+RESTIC_COMMON_ARGS=(
+    --verbose
 )
+
+# Исключения для projects (развернуты для совместимости с restic glob)
+PROJECT_EXCLUDES=(
+    --exclude="**/node_modules"
+    --exclude="**/.next"
+    --exclude="**/.nuxt"
+    --exclude="**/target"
+    --exclude="**/.venv"
+    --exclude="**/venv"
+    --exclude="**/cpython"
+    --exclude="**/dist"
+    --exclude="**/.build"
+    --exclude="**/__pycache__"
+    --exclude="**/*.pyc"
+)
+
+# --- Функции ---
+
+init_repo() {
+    echo "Проверка репозитория..."
+    # Если команда snapshots падает (репозиторий не существует), инициализируем
+    if ! restic snapshots "${RESTIC_COMMON_ARGS[@]}" > /dev/null 2>&1; then
+        echo "Инициализация нового репозитория..."
+        restic init
+    fi
+}
 
 run_backup() {
     local src="$1"
-    local dst="$2"
-    local extra_args=("${@:3}") # Все остальные аргументы - это массив
+    local tag="$2"
+    local extra_args=("${@:3}")
 
-    echo "--- Начинаю бэкап: $src -> $dst ---"
-    # Передаем массивы правильно
-    if rclone copy "$src" "$dst" "${RCLONE_COMMON_ARGS[@]}" "${extra_args[@]}" || true; then
+    echo "--- Начинаю бэкап: $src (тег: $tag) ---"
+    
+    # restic backup <путь> --tag <имя_тега> [исключения]
+    if restic backup "$src" "${RESTIC_COMMON_ARGS[@]}" --tag "$tag" "${extra_args[@]}"; then
         echo "✅ Успешно: $src"
         return 0
     else
@@ -32,22 +62,39 @@ run_backup() {
     fi
 }
 
+# --- Основной блок ---
+
 main() {
-    echo "Запуск скрипта бэкапа..."
-    export RCLONE_PASSWORD_COMMAND
+    echo "Запуск скрипта бэкапа Restic..."
+    
+    # Инициализация репозитория при необходимости
+    init_repo
+
     error_count=0
 
-    # Запускаем каждую задачу независимо
-    run_backup "$HOME/projects/" "projects:" --exclude="**/{node_modules,.next,target,.venv}/**" --exclude="**/cpython**" || ((error_count++))
-    run_backup "$HOME/.kube" "configs:.kube/" --exclude="cache/**" || ((error_count++))
-    run_backup "$HOME/.talos" "configs:.talos/" || ((error_count++))
-    run_backup "$HOME/.ssh" "configs:.ssh/" || ((error_count++))
-    run_backup "$HOME/Pictures" "configs:Pictures/" || ((error_count++))
-    run_backup "$HOME/.zen" "configs:.zen/" || ((error_count++))
-    run_backup "$HOME/.docker" "configs:.docker/" || ((error_count++))
-    run_backup "$HOME/.gpg" "configs:.gpg/" || ((error_count++))
+    # Бэкап проектов с исключениями
+    run_backup "$HOME/projects/" "projects" "${PROJECT_EXCLUDES[@]}" || ((error_count++))
 
-    echo "=== Все задачи бэкапа завершены ==="
+    # Бэкап конфигов
+    # Rclone создавал папку configs:.kube, restic просто пометит снимок тегом 'configs'
+    run_backup "$HOME/.kube" "configs" --exclude="cache" || ((error_count++))
+    run_backup "$HOME/.talos" "configs" || ((error_count++))
+    run_backup "$HOME/.ssh" "configs" || ((error_count++))
+    run_backup "$HOME/.docker" "configs" || ((error_count++))
+    run_backup "$HOME/.gpg" "configs" || ((error_count++))
+    
+    # Медиа и прочее
+    run_backup "$HOME/Pictures" "media" || ((error_count++))
+    run_backup "$HOME/.zen" "configs" || ((error_count++))
+
+    echo "=== Выполнение задач завершено ==="
+
+    # Опционально: очистка старых снапшотов
+    # Рекомендуется запускать после бэкапа
+    echo "Запуск очистки (forget/prune)..."
+    # Пример: хранить последние 5 снапшотов каждого тега, или по времени
+    # restic forget --prune --keep-daily 7 --keep-weekly 4 --tag projects || true
+
     if [ "$error_count" -gt 0 ]; then
         echo "⚠️ Всего ошибок: $error_count"
         exit 1
