@@ -4,7 +4,7 @@ set -euo pipefail
 # --- Конфигурация ---
 # Адрес репозитория. Для SSH: sftp:user@host:/path/to/repo
 # Убедитесь, что у вас настроен SSH-ключ для беспарольного входа.
-RESTIC_REPOSITORY="${RESTIC_REPOSITORY:-sftp:gateway:/mnt/backup/restic}"
+RESTIC_REPOSITORY="${RESTIC_REPOSITORY:-sftp:pbackup:/mnt/backup/restic}"
 export RESTIC_REPOSITORY
 
 # Команда для получения пароля от репозитория
