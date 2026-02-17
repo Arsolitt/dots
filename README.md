@@ -18,7 +18,7 @@
 - Cursor: vimix Kanagawa Lotus
 - GTK: Kanagawa Orange Dark
 - Icons: Kanagawa
-- Font: Agave Nerd
+- Font: FantasqueSansM
 
 ## Screenshots
 
