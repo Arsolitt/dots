@@ -82,10 +82,11 @@ main() {
     run_backup "$HOME/.ssh" "configs" || ((error_count++))
     run_backup "$HOME/.docker" "configs" || ((error_count++))
     run_backup "$HOME/.gpg" "configs" || ((error_count++))
+    run_backup "$HOME/.zen" "configs" || ((error_count++))
+    run_backup "$HOME/.config/opencode" "configs" || ((error_count++))
     
     # Медиа и прочее
     run_backup "$HOME/Pictures" "media" || ((error_count++))
-    run_backup "$HOME/.zen" "configs" || ((error_count++))
 
     echo "=== Выполнение задач завершено ==="
 

@@ -72,6 +72,7 @@ main() {
     run_restore "configs" "$HOME/.docker" || ((error_count++))
     run_restore "configs" "$HOME/.gpg" || ((error_count++))
     run_restore "configs" "$HOME/.zen" || ((error_count++))
+    run_restore "configs" "$HOME/.config/opencode" || ((error_count++))
 
     # Медиа
     run_restore "media" "$HOME/Pictures" || ((error_count++))
