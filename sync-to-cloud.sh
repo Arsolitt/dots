@@ -95,6 +95,9 @@ main() {
     echo "Запуск очистки (forget/prune)..."
     # Пример: хранить последние 5 снапшотов каждого тега, или по времени
     # restic forget --prune --keep-daily 7 --keep-weekly 4 --tag projects || true
+    restic forget --prune --keep-last 3 --tag projects
+    restic forget --prune --keep-last 3 --tag configs
+    restic forget --prune --keep-last 3 --tag media
 
     if [ "$error_count" -gt 0 ]; then
         echo "⚠️ Всего ошибок: $error_count"
