@@ -1,2 +1,5 @@
 [general]
 antialiasing=yes
+
+[keys.viewer]
+Ctrl+e = exec nemo "%"
