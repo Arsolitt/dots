@@ -77,3 +77,9 @@
 	required = true
   clean =sops --input-type yaml --output-type yaml --indent 2 --encrypt -p B3480D6537E039BB9CB87CBE9D9491F944F7D04E --encrypted-regex '^(data|stringData)$' --output /dev/stdout /dev/stdin
 	smudge = sops --input-type yaml --output-type yaml --indent 2 --decrypt -p B3480D6537E039BB9CB87CBE9D9491F944F7D04E --unencrypted-regex '^(data|stringData)$' --output /dev/stdout /dev/stdin
+[credential "https://github.com"]
+	helper = 
+	helper = !/usr/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = 
+	helper = !/usr/bin/gh auth git-credential
