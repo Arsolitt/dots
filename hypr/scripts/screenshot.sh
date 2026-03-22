@@ -6,7 +6,7 @@ function Help() {
     cat <<EOF
 Usage: screenshot.sh [options ..] -m [mode] .. -- [command]
 
-Screenshot.sh is a fork of hyprshot with swappy integration.
+Screenshot.sh is a fork of hyprshot with satty integration.
 
 Examples:
   capture a region               \`screenshot.sh -m region\`
@@ -21,7 +21,7 @@ Options:
   -D, --delay               how long to delay taking the screenshot after selection (seconds)
   -z, --freeze              freeze the screen on initialization
   -d, --debug               print debug information
-  -e, --edit                open screenshot in swappy for editing
+  -e, --edit                open screenshot in satty for editing
   -r, --raw                 output raw image data to stdout
   --clipboard-only          copy screenshot to clipboard and don't save image in disk
   -- [command]              open screenshot with a command of your choosing
@@ -102,7 +102,7 @@ function save_geometry() {
     if [ $CLIPBOARD -eq 0 ]; then
         mkdir -p "$SAVEDIR"
         if [ $EDIT -eq 1 ]; then
-            grim -g "${geometry}" - | swappy -f - -o - | tee "$SAVE_FULLPATH" | wl-copy
+            grim -g "${geometry}" - | satty -f - -o - | tee "$SAVE_FULLPATH" | wl-copy
         else
             grim -g "${geometry}" - | tee "$SAVE_FULLPATH" | wl-copy
         fi
@@ -112,7 +112,7 @@ function save_geometry() {
         }
     else
         if [ $EDIT -eq 1 ]; then
-            grim -g "${geometry}" - | swappy -f - -o - | wl-copy
+            grim -g "${geometry}" - | satty -f - -o - | wl-copy
         else
             wl-copy --type image/png < <(grim -g "${geometry}" -)
         fi

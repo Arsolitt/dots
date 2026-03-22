@@ -6,5 +6,5 @@ function eswa
         return 1
     end
     
-    wl-paste -t $mime | swappy -f -
+    wl-paste -t $mime | satty -f -
 end
