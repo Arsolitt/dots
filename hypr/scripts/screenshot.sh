@@ -102,7 +102,7 @@ function save_geometry() {
     if [ $CLIPBOARD -eq 0 ]; then
         mkdir -p "$SAVEDIR"
         if [ $EDIT -eq 1 ]; then
-            grim -g "${geometry}" - | satty -f - -o - | tee "$SAVE_FULLPATH" | wl-copy
+            grim -g "${geometry}" - | satty -f - -o - --actions-on-escape=save-to-file,exit | tee "$SAVE_FULLPATH" | wl-copy
         else
             grim -g "${geometry}" - | tee "$SAVE_FULLPATH" | wl-copy
         fi
@@ -112,7 +112,7 @@ function save_geometry() {
         }
     else
         if [ $EDIT -eq 1 ]; then
-            grim -g "${geometry}" - | satty -f - -o - | wl-copy
+            grim -g "${geometry}" - | satty -f - -o - --actions-on-escape=save-to-file,exit | wl-copy
         else
             wl-copy --type image/png < <(grim -g "${geometry}" -)
         fi

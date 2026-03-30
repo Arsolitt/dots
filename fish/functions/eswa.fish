@@ -6,5 +6,5 @@ function eswa
         return 1
     end
     
-    wl-paste -t $mime | satty -f -
+    wl-paste -t $mime | satty -f - -o - --actions-on-escape=save-to-file,exit
 end
