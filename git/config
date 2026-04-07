@@ -98,6 +98,15 @@
   clean=sops --encrypt -p B3480D6537E039BB9CB87CBE9D9491F944F7D04E --output /dev/stdout /dev/stdin
 	smudge=sops --decrypt -p B3480D6537E039BB9CB87CBE9D9491F944F7D04E --output /dev/stdout /dev/stdin
 
+[filter "sops_pcr_prod"]
+	required = true
+  clean=sops --input-type yaml --output-type yaml --indent 2 --encrypt -p F431C200D643AE82D9D9493D5113F0524C1FB44A --encrypted-regex '^(data|stringData)$' --output /dev/stdout /dev/stdin
+	smudge=sops --input-type yaml --output-type yaml --indent 2 --decrypt -p F431C200D643AE82D9D9493D5113F0524C1FB44A --unencrypted-regex '^(data|stringData)$' --output /dev/stdout /dev/stdin
+[filter "sops_full_pcr_prod"]
+	required = true
+  clean=sops --encrypt -p F431C200D643AE82D9D9493D5113F0524C1FB44A --output /dev/stdout /dev/stdin
+	smudge=sops --decrypt -p F431C200D643AE82D9D9493D5113F0524C1FB44A --output /dev/stdout /dev/stdin
+
 [credential "https://github.com"]
 	helper = 
 	helper = !/usr/bin/gh auth git-credential
