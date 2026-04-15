@@ -23,6 +23,7 @@ inode/directory=nemo.desktop
 application/x-zerosize=swayimg.desktop
 image/jpeg=swayimg.desktop
 audio/x-mod=cursor-cursor.desktop
+x-scheme-handler/claude-cli=claude-code-url-handler.desktop
 
 [Added Associations]
 x-scheme-handler/tonsite=org.telegram.desktop.desktop;
@@ -30,7 +31,7 @@ application/yaml=code.desktop;cursor-cursor.desktop;
 text/plain=code.desktop;cursor-cursor.desktop;cursor.desktop;code-oss.desktop;
 image/png=swayimg.desktop;
 image/webp=swayimg.desktop;
-application/octet-stream=code.desktop;
+application/octet-stream=code-oss.desktop;code.desktop;
 application/vnd.openxmlformats-officedocument.spreadsheetml.sheet=code.desktop;
 application/vnd.apple.keynote=code.desktop;
 application/x-x509-ca-cert=code.desktop;

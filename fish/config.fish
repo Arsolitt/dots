@@ -20,3 +20,4 @@ set --export PATH $BUN_INSTALL/bin $PATH
 # cargo
 set --export PATH ~/.cargo/bin $PATH
 source ~/.config/fish/themes/kanagawa.fish
+export PATH="$HOME/.local/bin:$PATH"
