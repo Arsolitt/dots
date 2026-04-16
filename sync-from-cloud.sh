@@ -73,6 +73,7 @@ main() {
     run_restore "configs" "$HOME/.gpg" || ((error_count++))
     run_restore "configs" "$HOME/.zen" || ((error_count++))
     run_restore "configs" "$HOME/.config/opencode" || ((error_count++))
+    run_restore "configs" "$HOME/.claude" || ((error_count++))
 
     # Медиа
     run_restore "media" "$HOME/Pictures" || ((error_count++))

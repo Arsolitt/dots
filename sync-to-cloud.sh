@@ -84,6 +84,7 @@ main() {
     run_backup "$HOME/.gpg" "configs" || ((error_count++))
     run_backup "$HOME/.zen" "configs" || ((error_count++))
     run_backup "$HOME/.config/opencode" "configs" || ((error_count++))
+    run_backup "$HOME/.claude" "configs" || ((error_count++))
     
     # Медиа и прочее
     run_backup "$HOME/Pictures" "media" || ((error_count++))

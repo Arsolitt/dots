@@ -7,7 +7,7 @@ function cc --description "Launch Claude Code with preferred defaults"
 
     set --local model $_flag_model
     if test -z "$model"
-        set model claude-opus-4-6
+        set model claude-opus-4-7
     end
 
     set --local cmd claude --effort max --model $model
