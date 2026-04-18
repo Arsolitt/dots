@@ -80,7 +80,7 @@ main() {
     run_backup "$HOME/.ssh" --tag ssh --tag configs || ((error_count++))
     run_backup "$HOME/.docker" --tag docker --tag configs || ((error_count++))
     run_backup "$HOME/.gpg" --tag gpg --tag configs || ((error_count++))
-    run_backup "$ZEN_DIR" --tag zen --tag configs || ((error_count++))
+    # run_backup "$ZEN_DIR" --tag zen --tag configs || ((error_count++))
     run_backup "$HOME/.config/opencode" --tag opencode --tag configs || ((error_count++))
     run_backup "$HOME/.claude" --tag claude --tag configs || ((error_count++))
 
