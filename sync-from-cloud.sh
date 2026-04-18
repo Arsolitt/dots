@@ -33,30 +33,27 @@ run_restore() {
 
     echo "--- Восстановление: $dest (тег: $tag) ---"
 
-    local tmp_dir
-    tmp_dir="$(mktemp -d)"
+    local cache_dir="$HOME/.cache/restic-restore/$tag"
+    mkdir -p "$cache_dir"
 
     if restic restore latest \
         "${RESTIC_COMMON_ARGS[@]}" \
         --tag "$tag" \
-        --target "$tmp_dir"; then
+        --target "$cache_dir"; then
         mkdir -p "$dest"
 
-        # Ищем нужную поддиректорию в восстановленном дереве (любая глубина)
         local found=""
         for rel_path in "$@"; do
-            found="$(find "$tmp_dir" -type d -path "*/$rel_path" | head -n 1)"
+            found="$(find "$cache_dir" -type d -path "*/$rel_path" | head -n 1)"
             if [ -n "$found" ]; then
-                cp -Rp "$found/." "$dest"
+                rsync -a --delete "$found/" "$dest/"
                 break
             fi
         done
 
-        rm -rf "$tmp_dir"
         echo "✅ Успешно: $dest"
         return 0
     else
-        rm -rf "$tmp_dir"
         echo "❌ ОШИБКА при восстановлении: $dest"
         return 1
     fi
