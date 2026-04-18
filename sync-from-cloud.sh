@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # --- Зависимости ---
-for cmd in restic pass rsync; do
+for cmd in restic pass rsync jq; do
     command -v "$cmd" &>/dev/null || { echo "Ошибка: $cmd не найден. Установите его сначала."; exit 1; }
 done
 
@@ -25,38 +25,43 @@ RESTIC_COMMON_ARGS=(
 
 # --- Функции ---
 
-# $1 = тег снапшота, $2 = куда восстанавливать, $3+ = возможные относительные пути от $HOME
+# $1 = тег снапшота, $2 = куда восстанавливать
 run_restore() {
     local tag="$1"
     local dest="$2"
-    shift 2
 
     echo "--- Восстановление: $dest (тег: $tag) ---"
+
+    local original_path
+    original_path="$(restic snapshots --tag "$tag" --latest 1 --json \
+        | jq --raw-output '.[0].paths[0] // empty')"
+
+    if [ -z "$original_path" ]; then
+        echo "❌ Не удалось определить путь из снапшота (тег: $tag)"
+        return 1
+    fi
 
     local cache_dir="$HOME/.cache/restic-restore/$tag"
     mkdir -p "$cache_dir"
 
-    if restic restore latest \
+    if ! restic restore latest \
         "${RESTIC_COMMON_ARGS[@]}" \
         --tag "$tag" \
-        --target "$cache_dir"; then
-        mkdir -p "$dest"
-
-        local found=""
-        for rel_path in "$@"; do
-            found="$(find "$cache_dir" -type d -path "*/$rel_path" | head -n 1)"
-            if [ -n "$found" ]; then
-                rsync -a "$found/" "$dest/"
-                break
-            fi
-        done
-
-        echo "✅ Успешно: $dest"
-        return 0
-    else
+        --target "$cache_dir" \
+        --overwrite if-changed; then
         echo "❌ ОШИБКА при восстановлении: $dest"
         return 1
     fi
+
+    local restored_path="$cache_dir$original_path"
+    if [ ! -d "$restored_path" ]; then
+        echo "❌ Восстановленный путь не найден: $restored_path"
+        return 1
+    fi
+
+    mkdir -p "$dest"
+    rsync --archive "$restored_path/" "$dest/"
+    echo "✅ Успешно: $dest"
 }
 
 list_snapshots() {
@@ -86,20 +91,20 @@ main() {
     error_count=0
 
     # Проекты
-    run_restore "projects" "$HOME/projects/" "projects" || ((error_count++))
+    run_restore "projects" "$HOME/projects/" || ((error_count++))
 
     # Конфиги
-    run_restore "kube" "$HOME/.kube" ".kube" || ((error_count++))
-    run_restore "talos" "$HOME/.talos" ".talos" || ((error_count++))
-    run_restore "ssh" "$HOME/.ssh" ".ssh" || ((error_count++))
-    run_restore "docker" "$HOME/.docker" ".docker" || ((error_count++))
-    run_restore "gpg" "$HOME/.gpg" ".gpg" || ((error_count++))
-    run_restore "zen" "$ZEN_DIR" ".zen" "Library/Application Support/zen" || ((error_count++))
-    run_restore "opencode" "$HOME/.config/opencode" ".config/opencode" || ((error_count++))
-    run_restore "claude" "$HOME/.claude" ".claude" || ((error_count++))
+    run_restore "kube" "$HOME/.kube" || ((error_count++))
+    run_restore "talos" "$HOME/.talos" || ((error_count++))
+    run_restore "ssh" "$HOME/.ssh" || ((error_count++))
+    run_restore "docker" "$HOME/.docker" || ((error_count++))
+    run_restore "gpg" "$HOME/.gpg" || ((error_count++))
+    run_restore "zen" "$ZEN_DIR" || ((error_count++))
+    run_restore "opencode" "$HOME/.config/opencode" || ((error_count++))
+    run_restore "claude" "$HOME/.claude" || ((error_count++))
 
     # Медиа
-    run_restore "media" "$HOME/Pictures" "Pictures" || ((error_count++))
+    run_restore "media" "$HOME/Pictures" || ((error_count++))
 
     echo "=== Восстановление завершено ==="
 
