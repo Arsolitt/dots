@@ -99,7 +99,7 @@ main() {
     run_restore "ssh" "$HOME/.ssh" || ((error_count++))
     run_restore "docker" "$HOME/.docker" || ((error_count++))
     run_restore "gpg" "$HOME/.gpg" || ((error_count++))
-    run_restore "zen" "$ZEN_DIR" || ((error_count++))
+    # run_restore "zen" "$ZEN_DIR" || ((error_count++))
     run_restore "opencode" "$HOME/.config/opencode" || ((error_count++))
     run_restore "claude" "$HOME/.claude" || ((error_count++))
 
