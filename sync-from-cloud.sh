@@ -38,7 +38,7 @@ run_restore() {
         --tag "$tag" \
         --path "$path" \
         --target / \
-        "${extra_args[@]}"; then
+        ${extra_args[@]+"${extra_args[@]}"}; then
         echo "✅ Успешно: $path"
         return 0
     else

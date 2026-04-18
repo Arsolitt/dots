@@ -64,7 +64,7 @@ run_backup() {
     echo "--- Начинаю бэкап: $src (тег: $tag) ---"
     
     # restic backup <путь> --tag <имя_тега> [исключения]
-    if restic backup "$src" "${RESTIC_COMMON_ARGS[@]}" --tag "$tag" "${extra_args[@]}"; then
+    if restic backup "$src" "${RESTIC_COMMON_ARGS[@]}" --tag "$tag" ${extra_args[@]+"${extra_args[@]}"}; then
         echo "✅ Успешно: $src"
         return 0
     else
