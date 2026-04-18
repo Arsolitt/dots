@@ -42,14 +42,12 @@ run_restore() {
         --target "$tmp_dir"; then
         mkdir -p "$dest"
 
-        # В снапшоте полный путь: /home/user/.kube → tmp_dir/home/user/.kube
-        # Находим корень старого home и копируем нужную поддиректорию
-        local old_root
-        old_root="$(find "$tmp_dir" -mindepth 2 -maxdepth 2 -type d | head -n 1)"
-
+        # Ищем нужную поддиректорию в восстановленном дереве (любая глубина)
+        local found=""
         for rel_path in "$@"; do
-            if [ -d "$old_root/$rel_path" ]; then
-                cp -Rp "$old_root/$rel_path/." "$dest"
+            found="$(find "$tmp_dir" -type d -path "*/$rel_path" | head -n 1)"
+            if [ -n "$found" ]; then
+                cp -Rp "$found/." "$dest"
                 break
             fi
         done
