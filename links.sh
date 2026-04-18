@@ -156,10 +156,13 @@ install_linux() {
 install_gpg() {
     log_info "installing gpg-agent config"
     ensure_dir "$HOME/.gnupg"
-    link "$DOTFILES_DIR/gpg-agent.conf" "$HOME/.gnupg/gpg-agent.conf"
-    if [[ "$OS" != "Linux" ]]; then
-        log_warn "macOS: pinentry-program is not set here; install pinentry-mac via brew if you need it"
+
+    local src="$DOTFILES_DIR/gpg-agent.conf"
+    if [[ "$OS" == "Darwin" ]]; then
+        src="$DOTFILES_DIR/gpg-agent.macos.conf"
+        log_warn "macOS: ensure pinentry-mac is installed (brew install pinentry-mac)"
     fi
+    link "$src" "$HOME/.gnupg/gpg-agent.conf"
 }
 
 main() {
