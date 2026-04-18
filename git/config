@@ -112,10 +112,10 @@
 	smudge=sops --decrypt -p F431C200D643AE82D9D9493D5113F0524C1FB44A --output /dev/stdout /dev/stdin
 
 [credential "https://github.com"]
-	helper = 
-	helper = !/usr/bin/gh auth git-credential
+	helper =
+	helper = !gh auth git-credential
 [credential "https://gist.github.com"]
-	helper = 
-	helper = !/usr/bin/gh auth git-credential
+	helper =
+	helper = !gh auth git-credential
 [protocol "file"]
 	allow = always

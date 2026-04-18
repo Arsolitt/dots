@@ -1,5 +1,5 @@
 if status is-login
-    if test -z "$DISPLAY" -a "$(tty)" = /dev/tty1
+    if test (uname) = Linux -a -z "$DISPLAY" -a "$(tty)" = /dev/tty1
         exec start-hyprland
     end
 end
