@@ -25,24 +25,41 @@ RESTIC_COMMON_ARGS=(
 
 # --- Функции ---
 
+# $1 = тег снапшота, $2 = куда восстанавливать, $3+ = возможные относительные пути от $HOME
 run_restore() {
     local tag="$1"
-    local path="$2"
-    local extra_args=("${@:3}")
+    local dest="$2"
+    shift 2
 
-    echo "--- Восстановление: $path (тег: $tag) ---"
+    echo "--- Восстановление: $dest (тег: $tag) ---"
 
-    # --path фильтрует снапшот по пути бэкапа, --target / восстанавливает в оригинальное расположение
+    local tmp_dir
+    tmp_dir="$(mktemp -d)"
+
     if restic restore latest \
         "${RESTIC_COMMON_ARGS[@]}" \
         --tag "$tag" \
-        --path "$path" \
-        --target / \
-        ${extra_args[@]+"${extra_args[@]}"}; then
-        echo "✅ Успешно: $path"
+        --target "$tmp_dir"; then
+        mkdir -p "$dest"
+
+        # В снапшоте полный путь: /home/user/.kube → tmp_dir/home/user/.kube
+        # Находим корень старого home и копируем нужную поддиректорию
+        local old_root
+        old_root="$(find "$tmp_dir" -mindepth 1 -maxdepth 1 -type d | head -n 1)"
+
+        for rel_path in "$@"; do
+            if [ -d "$old_root/$rel_path" ]; then
+                cp -Rp "$old_root/$rel_path/." "$dest"
+                break
+            fi
+        done
+
+        rm -rf "$tmp_dir"
+        echo "✅ Успешно: $dest"
         return 0
     else
-        echo "❌ ОШИБКА при восстановлении: $path"
+        rm -rf "$tmp_dir"
+        echo "❌ ОШИБКА при восстановлении: $dest"
         return 1
     fi
 }
@@ -74,20 +91,20 @@ main() {
     error_count=0
 
     # Проекты
-    run_restore "projects" "$HOME/projects/" || ((error_count++))
+    run_restore "projects" "$HOME/projects/" "projects" || ((error_count++))
 
     # Конфиги
-    run_restore "configs" "$HOME/.kube" --exclude="cache" || ((error_count++))
-    run_restore "configs" "$HOME/.talos" || ((error_count++))
-    run_restore "configs" "$HOME/.ssh" || ((error_count++))
-    run_restore "configs" "$HOME/.docker" || ((error_count++))
-    run_restore "configs" "$HOME/.gpg" || ((error_count++))
-    run_restore "configs" "$ZEN_DIR" || ((error_count++))
-    run_restore "configs" "$HOME/.config/opencode" || ((error_count++))
-    run_restore "configs" "$HOME/.claude" || ((error_count++))
+    run_restore "kube" "$HOME/.kube" ".kube" || ((error_count++))
+    run_restore "talos" "$HOME/.talos" ".talos" || ((error_count++))
+    run_restore "ssh" "$HOME/.ssh" ".ssh" || ((error_count++))
+    run_restore "docker" "$HOME/.docker" ".docker" || ((error_count++))
+    run_restore "gpg" "$HOME/.gpg" ".gpg" || ((error_count++))
+    run_restore "zen" "$ZEN_DIR" ".zen" "Library/Application Support/zen" || ((error_count++))
+    run_restore "opencode" "$HOME/.config/opencode" ".config/opencode" || ((error_count++))
+    run_restore "claude" "$HOME/.claude" ".claude" || ((error_count++))
 
     # Медиа
-    run_restore "media" "$HOME/Pictures" || ((error_count++))
+    run_restore "media" "$HOME/Pictures" "Pictures" || ((error_count++))
 
     echo "=== Восстановление завершено ==="
 
