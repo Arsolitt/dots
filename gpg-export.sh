@@ -1,11 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Директория для сохранения ключей
 EXPORT_DIR="$HOME/.gpg"
 
 # --- Проверки ---
-# Проверяем, установлена ли утилита gpg
-if ! command -v gpg &> /dev/null; then
+if ! command -v gpg &>/dev/null; then
     echo "Ошибка: утилита gpg не найдена. Установите её сначала."
     exit 1
 fi

@@ -1,5 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
+
+# --- Зависимости ---
+for cmd in restic pass; do
+    command -v "$cmd" &>/dev/null || { echo "Ошибка: $cmd не найден. Установите его сначала."; exit 1; }
+done
 
 # --- Конфигурация ---
 # Адрес репозитория. Для SSH: sftp:user@host:/path/to/repo
