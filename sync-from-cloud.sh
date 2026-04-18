@@ -6,6 +6,12 @@ for cmd in restic pass; do
     command -v "$cmd" &>/dev/null || { echo "Ошибка: $cmd не найден. Установите его сначала."; exit 1; }
 done
 
+# --- Платформа ---
+case "$(uname -s)" in
+    Darwin) ZEN_DIR="$HOME/Library/Application Support/zen" ;;
+    *)      ZEN_DIR="$HOME/.zen" ;;
+esac
+
 # --- Конфигурация ---
 RESTIC_REPOSITORY="${RESTIC_REPOSITORY:-sftp:pbackup:/mnt/backup/restic}"
 export RESTIC_REPOSITORY
@@ -76,7 +82,7 @@ main() {
     run_restore "configs" "$HOME/.ssh" || ((error_count++))
     run_restore "configs" "$HOME/.docker" || ((error_count++))
     run_restore "configs" "$HOME/.gpg" || ((error_count++))
-    run_restore "configs" "$HOME/.zen" || ((error_count++))
+    run_restore "configs" "$ZEN_DIR" || ((error_count++))
     run_restore "configs" "$HOME/.config/opencode" || ((error_count++))
     run_restore "configs" "$HOME/.claude" || ((error_count++))
 

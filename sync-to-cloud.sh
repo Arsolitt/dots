@@ -6,6 +6,12 @@ for cmd in restic pass; do
     command -v "$cmd" &>/dev/null || { echo "Ошибка: $cmd не найден. Установите его сначала."; exit 1; }
 done
 
+# --- Платформа ---
+case "$(uname -s)" in
+    Darwin) ZEN_DIR="$HOME/Library/Application Support/zen" ;;
+    *)      ZEN_DIR="$HOME/.zen" ;;
+esac
+
 # --- Конфигурация ---
 # Адрес репозитория. Для SSH: sftp:user@host:/path/to/repo
 # Убедитесь, что у вас настроен SSH-ключ для беспарольного входа.
@@ -87,7 +93,7 @@ main() {
     run_backup "$HOME/.ssh" "configs" || ((error_count++))
     run_backup "$HOME/.docker" "configs" || ((error_count++))
     run_backup "$HOME/.gpg" "configs" || ((error_count++))
-    run_backup "$HOME/.zen" "configs" || ((error_count++))
+    run_backup "$ZEN_DIR" "configs" || ((error_count++))
     run_backup "$HOME/.config/opencode" "configs" || ((error_count++))
     run_backup "$HOME/.claude" "configs" || ((error_count++))
     
