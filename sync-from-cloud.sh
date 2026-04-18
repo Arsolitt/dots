@@ -45,7 +45,7 @@ run_restore() {
         # В снапшоте полный путь: /home/user/.kube → tmp_dir/home/user/.kube
         # Находим корень старого home и копируем нужную поддиректорию
         local old_root
-        old_root="$(find "$tmp_dir" -mindepth 1 -maxdepth 1 -type d | head -n 1)"
+        old_root="$(find "$tmp_dir" -mindepth 2 -maxdepth 2 -type d | head -n 1)"
 
         for rel_path in "$@"; do
             if [ -d "$old_root/$rel_path" ]; then
