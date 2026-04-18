@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # --- Зависимости ---
-for cmd in restic pass; do
+for cmd in restic pass rsync; do
     command -v "$cmd" &>/dev/null || { echo "Ошибка: $cmd не найден. Установите его сначала."; exit 1; }
 done
 
@@ -46,7 +46,7 @@ run_restore() {
         for rel_path in "$@"; do
             found="$(find "$cache_dir" -type d -path "*/$rel_path" | head -n 1)"
             if [ -n "$found" ]; then
-                rsync -a --delete "$found/" "$dest/"
+                rsync -a "$found/" "$dest/"
                 break
             fi
         done
