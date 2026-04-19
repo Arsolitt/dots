@@ -6,11 +6,12 @@ function cc --description "Launch Claude Code with preferred defaults"
     set -lx CLAUDE_CODE_NEW_INIT 1
 
     if set --query _flag_zai
-        if test -z "$ZAI_API_KEY"
-            echo "cc: ZAI_API_KEY is not set" >&2
+        set -l zai_token (pass zai/api-key 2>/dev/null)
+        if test -z "$zai_token"
+            echo "cc: failed to retrieve ZAI API key from pass" >&2
             return 1
         end
-        set -fx ANTHROPIC_AUTH_TOKEN $ZAI_API_KEY
+        set -fx ANTHROPIC_AUTH_TOKEN $zai_token
         set -fx ANTHROPIC_BASE_URL http://127.0.0.1:8889
         set -fx API_TIMEOUT_MS 3000000
     end
