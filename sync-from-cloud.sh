@@ -54,13 +54,17 @@ run_restore() {
     fi
 
     local restored_path="$cache_dir$original_path"
-    if [ ! -d "$restored_path" ]; then
+    if [ -d "$restored_path" ]; then
+        mkdir -p "$dest"
+        rsync --archive "$restored_path/" "$dest/"
+    elif [ -f "$restored_path" ]; then
+        mkdir -p "$(dirname "$dest")"
+        rsync --archive "$restored_path" "$dest"
+    else
         echo "❌ Восстановленный путь не найден: $restored_path"
         return 1
     fi
 
-    mkdir -p "$dest"
-    rsync --archive "$restored_path/" "$dest/"
     echo "✅ Успешно: $dest"
 }
 
@@ -102,7 +106,10 @@ main() {
     run_restore "password-store" "$HOME/.password-store" || ((error_count++))
     # run_restore "zen" "$ZEN_DIR" || ((error_count++))
     run_restore "opencode" "$HOME/.config/opencode" || ((error_count++))
-    run_restore "claude" "$HOME/.claude" || ((error_count++))
+    run_restore "claude-rules" "$HOME/.claude/rules" || ((error_count++))
+    run_restore "claude-settings" "$HOME/.claude/settings.json" || ((error_count++))
+    run_restore "claude-commands" "$HOME/.claude/commands" || ((error_count++))
+    run_restore "claude-md" "$HOME/CLAUDE.md" || ((error_count++))
 
     # Медиа
     run_restore "media" "$HOME/Pictures" || ((error_count++))
