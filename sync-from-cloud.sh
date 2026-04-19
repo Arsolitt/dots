@@ -105,11 +105,11 @@ main() {
     run_restore "gpg" "$HOME/.gpg" || ((error_count++))
     run_restore "password-store" "$HOME/.password-store" || ((error_count++))
     # run_restore "zen" "$ZEN_DIR" || ((error_count++))
-    run_restore "opencode" "$HOME/.config/opencode" || ((error_count++))
-    run_restore "claude-rules" "$HOME/.claude/rules" || ((error_count++))
-    run_restore "claude-settings" "$HOME/.claude/settings.json" || ((error_count++))
-    run_restore "claude-commands" "$HOME/.claude/commands" || ((error_count++))
-    run_restore "claude-md" "$HOME/CLAUDE.md" || ((error_count++))
+    # run_restore "opencode" "$HOME/.config/opencode" || ((error_count++))
+    run_restore "claude,rules" "$HOME/.claude/rules" || ((error_count++))
+    run_restore "claude,settings" "$HOME/.claude/settings.json" || ((error_count++))
+    run_restore "claude,commands" "$HOME/.claude/commands" || ((error_count++))
+    run_restore "claude,md" "$HOME/CLAUDE.md" || ((error_count++))
 
     # Медиа
     run_restore "media" "$HOME/Pictures" || ((error_count++))

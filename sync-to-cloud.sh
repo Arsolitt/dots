@@ -82,11 +82,11 @@ main() {
     run_backup "$HOME/.gpg" --tag gpg --tag configs || ((error_count++))
     run_backup "$HOME/.password-store" --tag password-store --tag configs || ((error_count++))
     # run_backup "$ZEN_DIR" --tag zen --tag configs || ((error_count++))
-    run_backup "$HOME/.config/opencode" --tag opencode --tag configs || ((error_count++))
-    run_backup "$HOME/.claude/rules" --tag claude-rules --tag configs || ((error_count++))
-    run_backup "$HOME/.claude/settings.json" --tag claude-settings --tag configs || ((error_count++))
-    run_backup "$HOME/.claude/commands" --tag claude-commands --tag configs || ((error_count++))
-    run_backup "$HOME/CLAUDE.md" --tag claude-md --tag configs || ((error_count++))
+    # run_backup "$HOME/.config/opencode" --tag opencode --tag configs || ((error_count++))
+    run_backup "$HOME/.claude/rules" --tag claude --tag rules --tag configs || ((error_count++))
+    run_backup "$HOME/.claude/settings.json" --tag claude --tag settings --tag configs || ((error_count++))
+    run_backup "$HOME/.claude/commands" --tag claude --tag commands --tag configs || ((error_count++))
+    run_backup "$HOME/CLAUDE.md" --tag claude --tag md --tag configs || ((error_count++))
 
     # Бэкап медиа
     run_backup "$HOME/Pictures" --tag media || ((error_count++))
