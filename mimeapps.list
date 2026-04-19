@@ -9,10 +9,10 @@ x-scheme-handler/jetbrains=jetbrains-toolbox.desktop
 x-scheme-handler/postman=Postman.desktop
 x-scheme-handler/discord=vesktop.desktop
 application/vnd.ms-publisher=code.desktop
-x-scheme-handler/http=zen.desktop
-x-scheme-handler/https=zen.desktop
+x-scheme-handler/http=vivaldi-stable.desktop
+x-scheme-handler/https=vivaldi-stable.desktop
 x-scheme-handler/chrome=zen.desktop
-text/html=zen.desktop
+text/html=vivaldi-stable.desktop
 application/x-extension-htm=zen.desktop
 application/x-extension-html=zen.desktop
 application/x-extension-shtml=zen.desktop
@@ -24,6 +24,8 @@ application/x-zerosize=swayimg.desktop
 image/jpeg=swayimg.desktop
 audio/x-mod=cursor-cursor.desktop
 x-scheme-handler/claude-cli=claude-code-url-handler.desktop
+x-scheme-handler/about=vivaldi-stable.desktop
+x-scheme-handler/unknown=vivaldi-stable.desktop
 
 [Added Associations]
 x-scheme-handler/tonsite=org.telegram.desktop.desktop;

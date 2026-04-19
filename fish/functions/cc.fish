@@ -1,9 +1,10 @@
 function cc --description "Launch Claude Code with preferred defaults"
-    argparse 'y/yolo' 'm/model=' 'z/zai' -- $argv
+    argparse 'y/yolo' 'm/model=' 'z/zai' 'l/long' -- $argv
     or return
 
     set -lx CLAUDE_CODE_NO_FLICKER 1
     set -lx CLAUDE_CODE_NEW_INIT 1
+    set -lx CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING 1
 
     if set --query _flag_zai
         set -l zai_token (pass zai/api-key 2>/dev/null)
@@ -16,15 +17,20 @@ function cc --description "Launch Claude Code with preferred defaults"
         set -fx API_TIMEOUT_MS 3000000
     end
 
-    set --local cmd claude --effort max
-
+    set -l model
     if test -n "$_flag_model"
-        set --append cmd --model $_flag_model
+        set model $_flag_model
     else if set --query _flag_zai
-        set --append cmd --model glm-5-turbo
+        set model glm-5-turbo
     else
-        set --append cmd --model claude-opus-4-7
+        set model claude-opus-4-6
     end
+
+    if set --query _flag_long
+        set model $model"[1m]"
+    end
+
+    set --local cmd claude --effort max --model $model
 
     if set --query _flag_yolo
         set --append cmd --dangerously-skip-permissions
