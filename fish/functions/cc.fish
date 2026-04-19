@@ -28,6 +28,11 @@ function cc --description "Launch Claude Code with preferred defaults"
 
     if set --query _flag_long
         set model $model"[1m]"
+    else
+        switch $model
+            case 'claude-opus-4-6' 'claude-opus-4-7'
+                set model $model"[1m]"
+        end
     end
 
     set --local cmd claude --effort max --model $model
