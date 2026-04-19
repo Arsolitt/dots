@@ -11,7 +11,7 @@ function cc --description "Launch Claude Code with preferred defaults"
             return 1
         end
         set -fx ANTHROPIC_AUTH_TOKEN $ZAI_API_KEY
-        set -fx ANTHROPIC_BASE_URL http://127.0.0.1:8888
+        set -fx ANTHROPIC_BASE_URL http://127.0.0.1:8889
         set -fx API_TIMEOUT_MS 3000000
     end
 
