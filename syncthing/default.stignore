@@ -1,0 +1,129 @@
+// =============================================================================
+// Universal Syncthing ignore patterns (safe for any folder)
+// =============================================================================
+
+// =============================================================================
+// OS-generated files
+// =============================================================================
+
+// macOS
+(?d).DS_Store
+(?d)._.DS_Store
+(?d)._*
+(?d).Spotlight-V100
+(?d).Trashes
+(?d).fseventsd
+(?d).com.apple.timemachine.donotpresent
+(?d).com.apple.timemachine.supported
+.DocumentRevisions-V100
+.TemporaryItems
+.VolumeIcon.icns
+.AppleDB
+.AppleDesktop
+.AppleDouble
+.LSOverride
+.apdisk
+.localized
+__MACOSX
+.PKInstallSandboxManager
+.PKInstallSandboxManager-SystemSoftware
+.HFS+ Private Directory Data?
+Icon?
+
+// Windows
+(?d)Thumbs.db
+(?d)Thumbs.db:encryptable
+(?d)ehthumbs.db
+(?d)ehthumbs_vista.db
+(?i)desktop.ini
+$RECYCLE.BIN
+$WINDOWS.~BT
+pagefile.sys
+hiberfil.sys
+swapfile.sys
+System Volume Information
+
+// Linux
+.Trash-*
+.directory
+.fuse_hidden*
+.nfs*
+nohup.out
+lost+found
+LOST.DIR
+
+// Network / remote filesystem trash
+Network Trash Folder
+Temporary Items
+
+// =============================================================================
+// Syncthing and other sync tools
+// =============================================================================
+.stfolder
+*.syncthing.*
+*~syncthing~*
+*sync-conflict-*
+
+// Resilio / BTSync
+*.!Sync
+*.bts
+.sync
+.SyncArchive
+.SyncID
+.SyncIgnore
+*.SyncPart
+*.SyncTemp
+*.SyncOld
+
+// Synology NAS
+@eaDir
+
+// iCloud
+*.icloud
+.iCloud*
+
+// =============================================================================
+// Editor and IDE temporary files
+// =============================================================================
+
+// Vim swap and session files
+**/*.swp
+**/*.swo
+**/.*.swp
+**/.*.swo
+**/[._]*.s[a-v][a-z]
+**/[._]*.sw[a-p]
+**/Session.vim
+**/Sessionx.vim
+**/.netrwhist
+**/[._]*.un~
+
+// Emacs
+**/.#*
+**/\#*\#
+**/*~undo-tree~
+
+// Generic editor backup/swap
+**/*~
+**/.*~
+
+// LibreOffice lock files
+**/.~lock.*
+
+// MS Office temp files
+**/~$*
+
+// =============================================================================
+// Version control
+// =============================================================================
+**/.git
+**/.svn
+**/.hg
+**/.bzr
+
+// =============================================================================
+// Temporary, cache, and thumbnail files
+// =============================================================================
+**/.thumbnails
+**/thumbnails
+**/.cache

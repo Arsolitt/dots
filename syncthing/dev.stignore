@@ -1,0 +1,214 @@
+// =============================================================================
+// Development-specific Syncthing ignore patterns
+// Include default patterns first, then add dev-specific ones
+// =============================================================================
+#include .stignore.default
+
+// =============================================================================
+// IDE and editor project files
+// =============================================================================
+**/.idea
+**/.vscode
+**/.fleet
+**/.project
+**/.classpath
+**/.settings
+**/*.sublime-project
+**/*.sublime-workspace
+
+// =============================================================================
+// Build artifacts and compiled output
+// =============================================================================
+
+// Generic build directories
+**/build
+**/.build
+**/dist
+**/out
+**/output
+**/bin
+**/obj
+
+// Compiled objects and libraries
+**/*.o
+**/*.a
+**/*.so
+**/*.so.*
+**/*.dylib
+**/*.dll
+**/*.lib
+**/*.lo
+**/*.slo
+**/*.lai
+**/*.la
+**/*.obj
+**/*.exe
+**/*.exe~
+**/*.pdb
+**/*.ilk
+**/*.gch
+**/*.pch
+**/*.dwo
+**/*.d
+**/*.class
+
+// CMake
+**/CMakeFiles
+**/CMakeCache.txt
+**/cmake_install.cmake
+**/compile_commands.json
+
+// =============================================================================
+// Language-specific dependencies and caches
+// =============================================================================
+
+// Node.js / Frontend
+**/node_modules
+**/.next
+**/.nuxt
+**/.output
+**/.turbo
+**/.parcel-cache
+**/.svelte-kit
+**/.astro
+**/.docusaurus
+**/.vite
+**/jspm_packages
+**/bower_components
+**/web_modules
+**/.eslintcache
+**/.stylelintcache
+**/.pnpm-store
+**/.yarn/*
+**/.bun
+
+// Go
+**/vendor
+
+// Rust
+**/target
+
+// Python
+**/.venv
+**/venv
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyz
+**/.mypy_cache
+**/.pytest_cache
+**/.ruff_cache
+**/.hypothesis
+**/.tox
+**/.nox
+**/.coverage
+**/.eggs
+**/*.egg-info
+**/.pybuilder
+**/pip-log.txt
+
+// Java / Kotlin / Gradle / Maven
+**/.gradle
+**/.m2
+**/*.jar
+**/*.war
+**/*.ear
+**/*.nar
+**/hs_err_pid*
+**/replay_pid*
+**/.mtj.tmp
+
+// Ruby
+**/.bundle
+**/vendor/bundle
+
+// Dart / Flutter
+**/.dart_tool
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.pub-cache
+
+// Swift / Xcode
+**/xcuserdata
+**/*.dSYM
+**/*.dSYM.zip
+**/*.ipa
+
+// C# / .NET
+**/packages
+**/TestResults
+
+// =============================================================================
+// Infrastructure / DevOps
+// =============================================================================
+
+// Terraform / OpenTofu
+**/.terraform
+**/*.tfstate
+**/*.tfstate.*
+**/.terraform.tfstate.lock.info
+
+// Docker
+**/.docker
+
+// Vagrant
+**/.vagrant
+
+// =============================================================================
+// Testing and coverage
+// =============================================================================
+**/coverage
+**/.nyc_output
+**/htmlcov
+**/*.lcov
+**/*.coverprofile
+
+// =============================================================================
+// AI / LLM tools local state
+// =============================================================================
+**/.claude
+**/.codex
+**/.copilot
+
+// =============================================================================
+// Logs, PIDs, and runtime files
+// =============================================================================
+**/*.log
+**/*.tmp
+**/*.temp
+**/*.bak
+**/*.old
+**/*.orig
+**/*.part
+**/*.crdownload
+**/*.stackdump
+**/*.pid
+**/*.pid.lock
+**/*.sock
+
+// SQLite journals and WAL
+**/*.sqlite-journal
+**/*.sqlite-wal
+**/*.sqlite-shm
+
+// =============================================================================
+// Archives (large, typically regenerable)
+// =============================================================================
+**/*.7z
+**/*.rar
+**/*.zip
+**/*.gz
+**/*.tgz
+**/*.bz2
+**/*.xz
+**/*.zst
+**/*.lzma
+**/*.tar
+**/*.iso
+**/*.dmg
+**/*.deb
+**/*.rpm
+**/*.msi
+**/*.cab
+**/*.gem
+**/*.egg

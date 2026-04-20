@@ -1,3 +1,5 @@
+#include .stignore.default
+
 // Caches
 cache
 paste-cache
@@ -22,6 +24,3 @@ todos
 
 // Memory (device-specific project paths and states)
 projects
-
-// OS-generated
-(?d).DS_Store

@@ -1,8 +1,7 @@
+#include .stignore.default
+
 // Dependencies
 node_modules
-
-// Version control
-.git
 
 // Lock files (regenerated per device)
 package-lock.json
@@ -10,6 +9,3 @@ bun.lock
 
 // Compiled binaries
 golem-proxy
-
-// OS-generated
-(?d).DS_Store

@@ -35,6 +35,7 @@ PROJECT_EXCLUDES=(
     --exclude="**/.build"
     --exclude="**/__pycache__"
     --exclude="**/*.pyc"
+    --exclude="**/.stignore.*"
 )
 
 # --- Функции ---

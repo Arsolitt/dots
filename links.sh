@@ -163,11 +163,19 @@ install_syncthing() {
         [pictures]="$HOME/Pictures"
     )
 
+    local -a DEV_FOLDERS=(projects)
+
     local name dest
     for name in "${!STIGNORE_MAP[@]}"; do
         dest="${STIGNORE_MAP[$name]}"
         ensure_dir "$dest"
+        link "$DOTFILES_DIR/syncthing/default.stignore" "$dest/.stignore.default"
         link "$DOTFILES_DIR/syncthing/${name}.stignore" "$dest/.stignore"
+    done
+
+    for name in "${DEV_FOLDERS[@]}"; do
+        dest="${STIGNORE_MAP[$name]}"
+        link "$DOTFILES_DIR/syncthing/dev.stignore" "$dest/.stignore.dev"
     done
 }
 
