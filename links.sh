@@ -153,6 +153,24 @@ install_linux() {
     done
 }
 
+install_syncthing() {
+    log_info "installing Syncthing .stignore files"
+
+    local -A STIGNORE_MAP=(
+        [projects]="$HOME/projects"
+        [claude]="$HOME/.claude"
+        [opencode]="$HOME/.config/opencode"
+        [pictures]="$HOME/Pictures"
+    )
+
+    local name dest
+    for name in "${!STIGNORE_MAP[@]}"; do
+        dest="${STIGNORE_MAP[$name]}"
+        ensure_dir "$dest"
+        link "$DOTFILES_DIR/syncthing/${name}.stignore" "$dest/.stignore"
+    done
+}
+
 install_gpg() {
     log_info "installing gpg-agent config"
     ensure_dir "$HOME/.gnupg"
@@ -175,6 +193,7 @@ main() {
     install_common
     install_linux
     install_gpg
+    install_syncthing
 
     log_ok "done"
 }

@@ -1,0 +1,27 @@
+// Caches
+cache
+paste-cache
+file-history
+stats-cache.json
+mcp-needs-auth-cache.json
+
+// Session and runtime state
+sessions
+session-env
+shell-snapshots
+history.jsonl
+backups
+
+// Credentials (sensitive, never sync)
+.credentials.json
+
+// Runtime state
+policy-limits.json
+statsig
+todos
+
+// Memory (device-specific project paths and states)
+projects
+
+// OS-generated
+(?d).DS_Store

@@ -1,0 +1,10 @@
+// OS-generated thumbnails and metadata
+(?d).DS_Store
+(?d)Thumbs.db
+(?d)desktop.ini
+(?d).Spotlight-V100
+(?d).Trashes
+
+// Thumbnail caches
+.thumbnails
+.cache

@@ -1,0 +1,80 @@
+// Build artifacts and compiled output
+**/build
+**/.build
+**/dist
+**/bin
+**/obj
+**/out
+**/*.o
+**/*.a
+**/*.so
+**/*.dylib
+
+// Node.js / Frontend
+**/node_modules
+**/.next
+**/.nuxt
+**/.output
+**/.turbo
+**/.parcel-cache
+**/.svelte-kit
+**/.astro
+
+// Go
+**/vendor
+
+// Rust
+**/target
+
+// Python
+**/.venv
+**/venv
+**/cpython
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/.mypy_cache
+**/.pytest_cache
+**/.ruff_cache
+
+// Java / Kotlin / Gradle
+**/.gradle
+**/.m2
+**/*.class
+**/*.jar
+
+// IDE and editor files
+**/.idea
+**/.vscode
+**/.fleet
+**/*.swp
+**/*.swo
+**/*~
+**/*.bak
+
+// Version control metadata
+**/.git
+
+// Claude / AI tool local state
+**/.claude
+
+// OS-generated files
+(?d).DS_Store
+(?d)Thumbs.db
+(?d).Spotlight-V100
+(?d).Trashes
+(?d)desktop.ini
+
+// Terraform / OpenTofu
+**/.terraform
+**/*.tfstate
+**/*.tfstate.backup
+
+// Docker
+**/.docker
+
+// Temporary and cache files
+**/.cache
+**/tmp
+**/*.tmp
+**/*.log
