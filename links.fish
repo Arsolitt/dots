@@ -3,7 +3,7 @@
 # Dotfiles installer. Symlinks configs into $HOME, skipping
 # Linux-only configs when running on macOS.
 
-set -g DOTFILES_DIR (path dirname (status filename))
+set -g DOTFILES_DIR (realpath (path dirname (status filename)))
 set -g OS (uname -s)
 set -g DRY_RUN 0
 set -g BACKUP 1
@@ -127,6 +127,12 @@ end
 function link --argument-names src dst
     if not test -e "$src"
         log_warn "source missing, skip: $src"
+        return 0
+    end
+
+    set -l real_src (realpath "$src")
+    if test "$real_src" = (realpath (path dirname "$dst"))/(path basename "$dst")
+        log_warn "source equals destination, skip: $dst"
         return 0
     end
 
