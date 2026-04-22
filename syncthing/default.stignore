@@ -63,6 +63,7 @@ Temporary Items
 *.syncthing.*
 *~syncthing~*
 *sync-conflict-*
+.stignore.*
 
 // Resilio / BTSync
 *.!Sync

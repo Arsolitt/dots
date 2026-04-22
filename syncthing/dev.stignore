@@ -7,208 +7,208 @@
 // =============================================================================
 // IDE and editor project files
 // =============================================================================
-**/.idea
-**/.vscode
-**/.fleet
-**/.project
-**/.classpath
-**/.settings
-**/*.sublime-project
-**/*.sublime-workspace
+(?d)**/.idea
+(?d)**/.vscode
+(?d)**/.fleet
+(?d)**/.project
+(?d)**/.classpath
+(?d)**/.settings
+(?d)**/*.sublime-project
+(?d)**/*.sublime-workspace
 
 // =============================================================================
 // Build artifacts and compiled output
 // =============================================================================
 
 // Generic build directories
-**/build
-**/.build
-**/dist
-**/out
-**/output
-**/bin
-**/obj
+(?d)**/build
+(?d)**/.build
+(?d)**/dist
+(?d)**/out
+(?d)**/output
+(?d)**/bin
+(?d)**/obj
 
 // Compiled objects and libraries
-**/*.o
-**/*.a
-**/*.so
-**/*.so.*
-**/*.dylib
-**/*.dll
-**/*.lib
-**/*.lo
-**/*.slo
-**/*.lai
-**/*.la
-**/*.obj
-**/*.exe
-**/*.exe~
-**/*.pdb
-**/*.ilk
-**/*.gch
-**/*.pch
-**/*.dwo
-**/*.d
-**/*.class
+(?d)**/*.o
+(?d)**/*.a
+(?d)**/*.so
+(?d)**/*.so.*
+(?d)**/*.dylib
+(?d)**/*.dll
+(?d)**/*.lib
+(?d)**/*.lo
+(?d)**/*.slo
+(?d)**/*.lai
+(?d)**/*.la
+(?d)**/*.obj
+(?d)**/*.exe
+(?d)**/*.exe~
+(?d)**/*.pdb
+(?d)**/*.ilk
+(?d)**/*.gch
+(?d)**/*.pch
+(?d)**/*.dwo
+(?d)**/*.d
+(?d)**/*.class
 
 // CMake
-**/CMakeFiles
-**/CMakeCache.txt
-**/cmake_install.cmake
-**/compile_commands.json
+(?d)**/CMakeFiles
+(?d)**/CMakeCache.txt
+(?d)**/cmake_install.cmake
+(?d)**/compile_commands.json
 
 // =============================================================================
 // Language-specific dependencies and caches
 // =============================================================================
 
 // Node.js / Frontend
-**/node_modules
-**/.next
-**/.nuxt
-**/.output
-**/.turbo
-**/.parcel-cache
-**/.svelte-kit
-**/.astro
-**/.docusaurus
-**/.vite
-**/jspm_packages
-**/bower_components
-**/web_modules
-**/.eslintcache
-**/.stylelintcache
-**/.pnpm-store
-**/.yarn/*
-**/.bun
+(?d)**/node_modules
+(?d)**/.next
+(?d)**/.nuxt
+(?d)**/.output
+(?d)**/.turbo
+(?d)**/.parcel-cache
+(?d)**/.svelte-kit
+(?d)**/.astro
+(?d)**/.docusaurus
+(?d)**/.vite
+(?d)**/jspm_packages
+(?d)**/bower_components
+(?d)**/web_modules
+(?d)**/.eslintcache
+(?d)**/.stylelintcache
+(?d)**/.pnpm-store
+(?d)**/.yarn/*
+(?d)**/.bun
 
 // Go
-**/vendor
+(?d)**/vendor
 
 // Rust
-**/target
+(?d)**/target
 
 // Python
-**/.venv
-**/venv
-**/__pycache__
-**/*.pyc
-**/*.pyo
-**/*.pyz
-**/.mypy_cache
-**/.pytest_cache
-**/.ruff_cache
-**/.hypothesis
-**/.tox
-**/.nox
-**/.coverage
-**/.eggs
-**/*.egg-info
-**/.pybuilder
-**/pip-log.txt
+(?d)**/.venv
+(?d)**/venv
+(?d)**/__pycache__
+(?d)**/*.pyc
+(?d)**/*.pyo
+(?d)**/*.pyz
+(?d)**/.mypy_cache
+(?d)**/.pytest_cache
+(?d)**/.ruff_cache
+(?d)**/.hypothesis
+(?d)**/.tox
+(?d)**/.nox
+(?d)**/.coverage
+(?d)**/.eggs
+(?d)**/*.egg-info
+(?d)**/.pybuilder
+(?d)**/pip-log.txt
 
 // Java / Kotlin / Gradle / Maven
-**/.gradle
-**/.m2
-**/*.jar
-**/*.war
-**/*.ear
-**/*.nar
-**/hs_err_pid*
-**/replay_pid*
-**/.mtj.tmp
+(?d)**/.gradle
+(?d)**/.m2
+(?d)**/*.jar
+(?d)**/*.war
+(?d)**/*.ear
+(?d)**/*.nar
+(?d)**/hs_err_pid*
+(?d)**/replay_pid*
+(?d)**/.mtj.tmp
 
 // Ruby
-**/.bundle
-**/vendor/bundle
+(?d)**/.bundle
+(?d)**/vendor/bundle
 
 // Dart / Flutter
-**/.dart_tool
-**/.flutter-plugins
-**/.flutter-plugins-dependencies
-**/.pub-cache
+(?d)**/.dart_tool
+(?d)**/.flutter-plugins
+(?d)**/.flutter-plugins-dependencies
+(?d)**/.pub-cache
 
 // Swift / Xcode
-**/xcuserdata
-**/*.dSYM
-**/*.dSYM.zip
-**/*.ipa
+(?d)**/xcuserdata
+(?d)**/*.dSYM
+(?d)**/*.dSYM.zip
+(?d)**/*.ipa
 
 // C# / .NET
-**/packages
-**/TestResults
+(?d)**/packages
+(?d)**/TestResults
 
 // =============================================================================
 // Infrastructure / DevOps
 // =============================================================================
 
 // Terraform / OpenTofu
-**/.terraform
-**/*.tfstate
-**/*.tfstate.*
-**/.terraform.tfstate.lock.info
+(?d)**/.terraform
+(?d)**/*.tfstate
+(?d)**/*.tfstate.*
+(?d)**/.terraform.tfstate.lock.info
 
 // Docker
-**/.docker
+(?d)**/.docker
 
 // Vagrant
-**/.vagrant
+(?d)**/.vagrant
 
 // =============================================================================
 // Testing and coverage
 // =============================================================================
-**/coverage
-**/.nyc_output
-**/htmlcov
-**/*.lcov
-**/*.coverprofile
+(?d)**/coverage
+(?d)**/.nyc_output
+(?d)**/htmlcov
+(?d)**/*.lcov
+(?d)**/*.coverprofile
 
 // =============================================================================
 // AI / LLM tools local state
 // =============================================================================
-**/.claude
-**/.codex
-**/.copilot
+(?d)**/.claude
+(?d)**/.codex
+(?d)**/.copilot
 
 // =============================================================================
 // Logs, PIDs, and runtime files
 // =============================================================================
-**/*.log
-**/*.tmp
-**/*.temp
-**/*.bak
-**/*.old
-**/*.orig
-**/*.part
-**/*.crdownload
-**/*.stackdump
-**/*.pid
-**/*.pid.lock
-**/*.sock
+(?d)**/*.log
+(?d)**/*.tmp
+(?d)**/*.temp
+(?d)**/*.bak
+(?d)**/*.old
+(?d)**/*.orig
+(?d)**/*.part
+(?d)**/*.crdownload
+(?d)**/*.stackdump
+(?d)**/*.pid
+(?d)**/*.pid.lock
+(?d)**/*.sock
 
 // SQLite journals and WAL
-**/*.sqlite-journal
-**/*.sqlite-wal
-**/*.sqlite-shm
+(?d)**/*.sqlite-journal
+(?d)**/*.sqlite-wal
+(?d)**/*.sqlite-shm
 
 // =============================================================================
 // Archives (large, typically regenerable)
 // =============================================================================
-**/*.7z
-**/*.rar
-**/*.zip
-**/*.gz
-**/*.tgz
-**/*.bz2
-**/*.xz
-**/*.zst
-**/*.lzma
-**/*.tar
-**/*.iso
-**/*.dmg
-**/*.deb
-**/*.rpm
-**/*.msi
-**/*.cab
-**/*.gem
-**/*.egg
+(?d)**/*.7z
+(?d)**/*.rar
+(?d)**/*.zip
+(?d)**/*.gz
+(?d)**/*.tgz
+(?d)**/*.bz2
+(?d)**/*.xz
+(?d)**/*.zst
+(?d)**/*.lzma
+(?d)**/*.tar
+(?d)**/*.iso
+(?d)**/*.dmg
+(?d)**/*.deb
+(?d)**/*.rpm
+(?d)**/*.msi
+(?d)**/*.cab
+(?d)**/*.gem
+(?d)**/*.egg
