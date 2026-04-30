@@ -18,7 +18,6 @@ function cc --description "Launch Claude Code with preferred defaults"
     end
 
     set -l model
-    set -l effort
     if test -n "$_flag_model"
         set model $_flag_model
     else if set --query _flag_zai
@@ -27,20 +26,30 @@ function cc --description "Launch Claude Code with preferred defaults"
         set model claude-opus-4-7
     end
 
-    if set --query _flag_long
-        set model $model"[1m]"
-    else
-        switch $model
-            case 'claude-opus-4-6'
-                set model $model"[1m]"
-                set effort max
-            case 'claude-opus-4-7'
-                set model $model"[1m]"
-                set effort xhigh
-        end
+    # Normalize: strip [1m] suffix so classification works regardless of how model was passed
+    set -l base_model (string replace --regex '\[1m\]$' '' -- $model)
+
+    set -l effort
+    set -l force_long
+    switch $base_model
+        case 'claude-opus-4-6'
+            set effort max
+            set force_long 1
+        case 'claude-opus-4-7'
+            set effort xhigh
+            set force_long 1
     end
 
-    set --local cmd claude --effort $effort --model $model
+    if set --query _flag_long; or test -n "$force_long"
+        set model $base_model"[1m]"
+    else
+        set model $base_model
+    end
+
+    set --local cmd claude --model $model
+    if test -n "$effort"
+        set --append cmd --effort $effort
+    end
 
     if set --query _flag_yolo
         set --append cmd --dangerously-skip-permissions
