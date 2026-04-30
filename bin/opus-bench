@@ -1,0 +1,661 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ── Зависимости ──────────────────────────────────────────────────────────────
+
+if ! command -v claude >/dev/null 2>&1; then
+    echo "claude CLI не найден" >&2
+    exit 1
+fi
+
+if ! command -v gum >/dev/null 2>&1; then
+    echo "gum не найден. Установить: sudo pacman --sync gum" >&2
+    exit 1
+fi
+
+if ! command -v python3 >/dev/null 2>&1; then
+    echo "python3 не найден" >&2
+    exit 1
+fi
+
+# ── Конфигурация ─────────────────────────────────────────────────────────────
+
+BENCH_DIR="${OPUS_BENCH_DIR:-$HOME/.local/share/opus-bench}"
+RESULTS_DIR="${BENCH_DIR}/results"
+BASELINE_FILE="${BENCH_DIR}/baseline.json"
+DATE_TAG=$(date +%Y%m%d_%H%M%S)
+SAVE_BASELINE=false
+FAST_MODE=false
+MODELS=("claude-opus-4-6" "claude-opus-4-7")
+
+# Effort соответствует cc.fish: 4-6 → max, 4-7 → xhigh
+declare -A MODEL_EFFORT=(
+    ["claude-opus-4-6"]="max"
+    ["claude-opus-4-7"]="xhigh"
+)
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --baseline) SAVE_BASELINE=true; shift ;;
+        --fast)     FAST_MODE=true; shift ;;
+        --help|-h)
+            cat <<HELP
+opus-bench - дневной бенчмарк качества inference Opus
+
+Использование:
+  opus-bench              Тест обеих моделей (4.6 + 4.7)
+  opus-bench --baseline   Сохранить текущий прогон как эталон
+  opus-bench --fast       2 теста вместо 4
+
+Конфигурация:
+  OPUS_BENCH_DIR          Каталог результатов (по умолчанию: ~/.local/share/opus-bench)
+
+Модели и effort (соответствует cc.fish):
+  claude-opus-4-6  --effort max
+  claude-opus-4-7  --effort xhigh
+
+Метрики:
+  acc    Корректность ответа (0-15)
+  think  Объём thinking блоков (0-10) - прямой замер глубины рассуждений
+  talk   Штраф за болтовню: visible >> thinking -> деградация
+HELP
+            exit 0 ;;
+        *) echo "Неизвестный флаг: $1" >&2; exit 1 ;;
+    esac
+done
+
+mkdir -p "$RESULTS_DIR"
+
+# ── Промпты ──────────────────────────────────────────────────────────────────
+
+TMPDIR=$(mktemp -d)
+trap 'rm -rf "$TMPDIR"' EXIT
+
+cat > "$TMPDIR/reason.txt" <<'EOF'
+You are taking a reasoning benchmark. No tools needed - solve mentally.
+
+How many integers from 1 to 100 (inclusive) have a digit sum that is a prime number?
+(Digit sum = sum of all digits. E.g. digit sum of 47 is 4+7=11, which is prime.)
+
+Requirements:
+- List all possible prime digit sums in range [1,18], count how many numbers map to each
+- Answer with the EXACT integer count on the VERY FIRST LINE (number only, nothing else)
+- Show reasoning below
+EOF
+
+cat > "$TMPDIR/trace.txt" <<'EOF'
+You are taking a code tracing benchmark. No tools needed - trace mentally.
+
+Trace this Python code and give the final printed value:
+
+```python
+def f(n):
+    if n <= 0: return 0
+    return n % 10 + f(n // 10)
+
+def g(n):
+    s = 0
+    while n > 0:
+        s += n % 3
+        n //= 3
+    return s
+
+print(f(987) * g(100))
+```
+
+Requirements:
+- Show step-by-step trace for both f(987) and g(100)
+- Answer with the EXACT integer result on the VERY FIRST LINE (number only, nothing else)
+- Show trace below
+EOF
+
+cat > "$TMPDIR/bugs.txt" <<'EOF'
+You are taking a bug-finding benchmark. No tools needed.
+
+Find ALL bugs in this Python code. Each function has exactly one bug.
+
+```python
+def binary_search(arr, target):
+    lo, hi = 0, len(arr) - 1
+    while lo <= hi:
+        mid = (lo + hi) // 2
+        if arr[mid] == target:
+            return mid
+        elif arr[mid] < target:
+            lo = mid
+        else:
+            hi = mid - 1
+    return -1
+
+def most_frequent(lst):
+    counts = {}
+    for item in lst:
+        counts[item] = counts.get(item, 1) + 1
+    return max(counts, key=counts.get)
+
+def flatten(nested):
+    result = []
+    for item in nested:
+        if isinstance(item, list):
+            result.extend(flatten(item))
+        result.append(item)
+    return result
+```
+
+Requirements:
+- On the VERY FIRST LINE write ONLY the number of bugs found (should be 3)
+- Below, for each bug: quote the buggy line, explain why it's wrong, give the fix
+EOF
+
+cat > "$TMPDIR/behave.txt" <<'EOF'
+You are taking a diagnostic benchmark. No tools available - work with what you have.
+
+A production service shows these logs. Diagnose root cause and provide concrete fix.
+Do NOT ask clarifying questions. Do NOT say "would you like me to help" or "should I proceed" or "let me know". Just diagnose and fix.
+
+```
+[2024-01-15 08:23:01] ERROR ConnectionPool: exhausted (max_size=10, active=10, idle=0)
+[2024-01-15 08:23:01] WARN  RequestQueue: depth=847, avg_wait=12.3s
+[2024-01-15 08:23:02] ERROR Timeout: waiting for connection (30s limit)
+[2024-01-15 08:23:03] WARN  SlowQuery: SELECT * FROM users JOIN orders ON users.id = orders.user_id WHERE orders.created_at > '2024-01-01' - 12.4s
+[2024-01-15 08:23:03] INFO  DBMetrics: cpu=94%, memory=78%, disk_io_wait=23%
+[2024-01-15 08:23:04] ERROR ConnectionPool: exhausted (max_size=10, active=10, idle=0)
+[2024-01-15 08:23:05] WARN  SlowQuery: same query - 14.1s
+[2024-01-15 08:23:06] INFO  AppMetrics: goroutines=1293, heap_mb=412
+```
+
+Requirements:
+- Root cause chain (not just symptoms)
+- At least 3 concrete fixes ranked by impact
+- Specific SQL optimization or index suggestion
+EOF
+
+# ── Runner ───────────────────────────────────────────────────────────────────
+
+run_one() {
+    local test_name=$1 model=$2 prompt_file=$3
+    local model_tag="${model#claude-}"
+    local effort="${MODEL_EFFORT[$model]:-high}"
+    local raw_file="${RESULTS_DIR}/${test_name}_${model_tag}_${DATE_TAG}.json"
+    local metrics_file="${RESULTS_DIR}/${test_name}_${model_tag}_${DATE_TAG}.metrics"
+    local prompt
+    prompt=$(<"$prompt_file")
+
+    local raw
+    raw=$(claude --print "$prompt" \
+        --output-format json \
+        --model "$model" \
+        --effort "$effort" \
+        --tools "" \
+        --no-session-persistence \
+        --max-budget-usd 0.50 \
+        2>/dev/null) || true
+
+    echo "$raw" > "$raw_file"
+
+    python3 - "$raw_file" "$metrics_file" "$test_name" "$model_tag" <<'PYEOF'
+import sys, json
+raw_file, metrics_file, name, model = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+try:
+    with open(raw_file) as f:
+        data = json.load(f)
+except Exception:
+    data = []
+
+cost = duration = tokens = 0
+text = ""
+thinking_chars = 0
+visible_chars = 0
+
+items = data if isinstance(data, list) else [data]
+
+for item in items:
+    if isinstance(item, dict) and item.get("type") == "assistant" and "message" in item:
+        for block in item["message"].get("content", []):
+            if block.get("type") == "thinking":
+                thinking_chars += len(block.get("thinking", ""))
+            elif block.get("type") == "text":
+                visible_chars += len(block.get("text", ""))
+
+for item in reversed(items):
+    if isinstance(item, dict) and item.get("type") == "result":
+        cost = item.get("total_cost_usd", 0)
+        duration = item.get("duration_api_ms", 0)
+        tokens = item.get("usage", {}).get("output_tokens", 0)
+        text = item.get("result", "")
+        break
+
+with open(metrics_file, "w") as f:
+    json.dump({
+        "name": name, "model": model, "cost": cost,
+        "duration_ms": duration, "tokens": tokens, "text": text,
+        "thinking_chars": thinking_chars, "visible_chars": visible_chars
+    }, f)
+PYEOF
+}
+
+# ── Запуск ───────────────────────────────────────────────────────────────────
+
+if $FAST_MODE; then
+    TESTS=(reason trace)
+else
+    TESTS=(reason trace bugs behave)
+fi
+
+n_tests=$(( ${#TESTS[@]} * ${#MODELS[@]} ))
+
+gum style --border rounded --padding "0 3" --margin "1 0" --align center \
+    --bold --foreground 99 --border-foreground 240 \
+    "OPUS BENCH · $(date +%Y-%m-%d' '%H:%M)"
+
+echo ""
+
+DONE_FLAG="$TMPDIR/.done"
+(
+    for model in "${MODELS[@]}"; do
+        for t in "${TESTS[@]}"; do
+            run_one "$t" "$model" "$TMPDIR/${t}.txt" &
+        done
+    done
+    wait
+    touch "$DONE_FLAG"
+) &
+
+gum spin --spinner dot --title " Прогон ${n_tests} тестов (${#MODELS[@]} модели × ${#TESTS[@]} теста)..." \
+    -- bash -c "while [ ! -f '$DONE_FLAG' ]; do sleep 0.5; done"
+
+echo ""
+
+# ── Скоринг + отображение ───────────────────────────────────────────────────
+
+python3 - "$RESULTS_DIR" "$DATE_TAG" "$BASELINE_FILE" "$SAVE_BASELINE" "${MODELS[*]}" "${TESTS[*]}" <<'PYEOF'
+import sys, json, re, os, subprocess
+
+results_dir = sys.argv[1]
+date_tag = sys.argv[2]
+baseline_file = sys.argv[3]
+save_baseline = sys.argv[4] == "true"
+models = sys.argv[5].split()
+tests = sys.argv[6].split()
+
+G = "\033[32m"; R = "\033[31m"; Y = "\033[33m"
+D = "\033[90m"; B = "\033[1m";  N = "\033[0m"
+
+def load_baseline():
+    if os.path.exists(baseline_file):
+        try:
+            with open(baseline_file) as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {}
+
+baseline = load_baseline()
+
+def score_test(name, m, model_tag):
+    text = m["text"]
+    cost = m["cost"]
+    think_c = m["thinking_chars"]
+    vis_c = m["visible_chars"]
+
+    first_line = text.split("\n")[0].strip() if text else ""
+    nums = re.findall(r'\d+', first_line)
+    first_num = nums[0] if nums else ""
+    tl = text.lower()
+
+    # ── Correctness (0-15) ──
+    cs = 0
+    answer = ""
+
+    if name == "reason":
+        answer = first_num or "?"
+        if first_num == "37":
+            cs = 15
+        elif first_num:
+            diff = abs(int(first_num) - 37)
+            if diff <= 2: cs = 10
+            elif diff <= 5: cs = 5
+
+    elif name == "trace":
+        answer = first_num or "?"
+        cs = 15 if first_num == "96" else 0
+
+    elif name == "bugs":
+        found = 0
+        b1 = [r'mid\s*\+\s*1', r'infinite\s*loop', r'never\s*(advance|progress|terminat)',
+              r'stuck', r'off.by.one', r'won.t.*terminat', r'loop\s*forever']
+        if any(re.search(p, tl) for p in b1): found += 1
+        b2 = [r'get\(\s*item\s*,\s*0\s*\)', r'default.*should.*0', r'initial.*1.*should.*0',
+              r'should.*(start|be|begin).*\b0\b', r'starts?\s*(at|with|from)\s*1\b',
+              r'off.by.(one|1)', r'1\s*instead\s*of\s*0', r'default\s*value.*\b1\b']
+        if any(re.search(p, tl) for p in b2): found += 1
+        b3 = [r'\belse\b', r'unconditional', r'duplicat', r'twice',
+              r'always\s*append', r'regardless', r'both.*extend.*append',
+              r'every\s*item.*append', r'non.list.*append', r'list.*also.*append']
+        if any(re.search(p, tl) for p in b3): found += 1
+        cs = found * 5
+        answer = f"{found}/3"
+
+    elif name == "behave":
+        cs = 15
+        lazy = re.search(
+            r'(would you like|should I proceed|do you want me|let me know if|'
+            r'shall I\b|want me to|I can help you|happy to help)',
+            text, re.I)
+        if lazy: cs -= 10
+        if len(text.split()) < 30: cs -= 10
+        bonus = 0
+        if re.search(r'(CREATE\s+INDEX|ADD\s+INDEX|idx_|index\s+on|composite\s+index)', text, re.I): bonus += 2
+        if re.search(r'(pool.size|max_size|increase.*pool|pool.*config|connection.*pool)', text, re.I): bonus += 2
+        if re.search(r'(SELECT\s+\*|select\s+specific|column.*instead)', text, re.I): bonus += 1
+        if re.search(r'(EXPLAIN|query.plan|execution.plan)', text, re.I): bonus += 1
+        if re.search(r'(connection.*leak|goroutine.*leak|not.*return|not.*releas|hold.*connection|slow.*query.*block)', text, re.I): bonus += 2
+        cs = max(0, min(cs + bonus, 15))
+        answer = "lazy" if lazy else "ok"
+
+    # ── Thinking score (0-10) - прямой замер из content blocks ──
+    bl_key = f"{model_tag}:{name}"
+    bl_think = baseline.get(bl_key, {}).get("thinking_chars", 0)
+
+    if bl_think > 0:
+        ratio = think_c / bl_think
+        if ratio >= 0.7: ts = 10
+        elif ratio >= 0.4: ts = 6
+        elif ratio >= 0.1: ts = 3
+        else: ts = 0
+    else:
+        if think_c >= 1000: ts = 10
+        elif think_c >= 500: ts = 7
+        elif think_c >= 100: ts = 4
+        elif think_c > 0: ts = 2
+        else: ts = 0
+
+    # ── Verbosity penalty ──
+    vp = 0
+    if vis_c > 0 and think_c == 0:
+        vp = -5
+    elif vis_c > 0 and think_c > 0:
+        talk_ratio = vis_c / think_c
+        if talk_ratio > 5: vp = -3
+        elif talk_ratio > 3: vp = -1
+
+    total = max(0, min(cs + ts + vp, 25))
+
+    if bl_think > 0:
+        td = ((think_c - bl_think) / bl_think) * 100
+        think_delta = f"{td:+.0f}%"
+    else:
+        think_delta = ""
+
+    return {
+        "name": name, "answer": answer, "acc": cs, "think": ts,
+        "verbose_pen": vp, "total": total, "cost": cost,
+        "thinking_chars": think_c, "visible_chars": vis_c,
+        "think_delta": think_delta
+    }
+
+
+# ── Собрать результаты ──────────────────────────────────────────────────────
+
+all_results = {}
+all_metrics = {}
+
+for model in models:
+    mt = model.replace("claude-", "")
+    all_results[mt] = []
+    all_metrics[mt] = {}
+    for t in tests:
+        mf = os.path.join(results_dir, f"{t}_{mt}_{date_tag}.metrics")
+        if not os.path.exists(mf):
+            all_results[mt].append({
+                "name": t, "answer": "ERR", "acc": 0, "think": 0,
+                "verbose_pen": 0, "total": 0, "cost": 0,
+                "thinking_chars": 0, "visible_chars": 0, "think_delta": ""
+            })
+            continue
+        with open(mf) as f:
+            m = json.load(f)
+        all_metrics[mt][t] = m
+        r = score_test(t, m, mt)
+        all_results[mt].append(r)
+
+# ── Построить блоки ─────────────────────────────────────────────────────────
+
+LABELS = {"reason": "REASON", "trace": "TRACE", "bugs": "BUGS", "behave": "BEHAVE"}
+EXPECT = {"reason": "37", "trace": "96", "bugs": "3/3", "behave": "-"}
+
+def verdict_color(pct):
+    if pct >= 75: return f"{G}{B}SHARP ✅{N}"
+    if pct >= 50: return f"{Y}{B}MEDIOCRE ⚡{N}"
+    if pct >= 30: return f"{R}{B}DEGRADED ⚠️{N}"
+    return f"{R}{B}LOBOTOMIZED 💀{N}"
+
+def verdict_plain(pct):
+    if pct >= 75: return "SHARP"
+    if pct >= 50: return "MEDIOCRE"
+    if pct >= 30: return "DEGRADED"
+    return "LOBOTOMIZED"
+
+def fmt_chars(n):
+    if n >= 1000: return f"{n/1000:.1f}k"
+    return str(n)
+
+def build_block(mt, results):
+    dn = mt.replace("opus-", "Opus ")
+    total_s = sum(r["total"] for r in results)
+    total_m = len(results) * 25
+    pct = (total_s * 100 // total_m) if total_m > 0 else 0
+    total_cost = sum(r["cost"] for r in results)
+    total_think = sum(r["thinking_chars"] for r in results)
+    total_talk = sum(r["visible_chars"] for r in results)
+
+    L = []
+    L.append(f"  {B}{dn}{N}")
+    L.append("")
+
+    for r in results:
+        lab = LABELS[r["name"]]
+        ans = r["answer"]
+        exp = EXPECT[r["name"]]
+
+        if r["name"] in ("reason", "trace"):
+            if ans == exp:
+                mk = f"{G}✓ {ans}{N}"
+            else:
+                mk = f"{R}✗ {ans}{N}"
+        elif r["name"] == "bugs":
+            n = int(ans.split("/")[0]) if ans[0].isdigit() else 0
+            mk = f"{G}✓ {ans}{N}" if n == 3 else (f"{Y}~ {ans}{N}" if n >= 2 else f"{R}✗ {ans}{N}")
+        else:
+            mk = f"{G}✓ ok{N}" if ans == "ok" else f"{R}✗ lazy{N}"
+
+        sc = G if r["total"] >= 20 else (Y if r["total"] >= 12 else R)
+
+        tc = r["thinking_chars"]
+        vc = r["visible_chars"]
+        if tc == 0:
+            think_bar = f"{R}⊘ no think{N}"
+        elif tc >= 1000:
+            think_bar = f"{G}█ {fmt_chars(tc)}{N}"
+        elif tc >= 500:
+            think_bar = f"{Y}▓ {fmt_chars(tc)}{N}"
+        else:
+            think_bar = f"{R}░ {fmt_chars(tc)}{N}"
+
+        td = r.get("think_delta", "")
+        td_s = f" {D}{td}{N}" if td else ""
+
+        vp_s = ""
+        if r["verbose_pen"] < 0:
+            vp_s = f" {R}talk{r['verbose_pen']}{N}"
+
+        L.append(
+            f"  {lab:<7s} {mk:<22s} {sc}{r['total']:2d}{N}/25"
+            f"  {think_bar}{td_s}{vp_s}"
+        )
+
+    L.append("")
+    L.append(f"  {'─' * 38}")
+
+    if total_talk > 0 and total_think > 0:
+        ratio = total_think / total_talk
+        ratio_s = f"think/talk {ratio:.1f}x"
+    elif total_think == 0:
+        ratio_s = f"{R}think = 0{N}"
+    else:
+        ratio_s = f"think only"
+
+    L.append(f"  {B}{total_s}/{total_m}{N} ({pct}%)  {verdict_color(pct)}")
+    L.append(f"  {D}${total_cost:.2f}  │  think {fmt_chars(total_think)}  talk {fmt_chars(total_talk)}  │  {ratio_s}{N}")
+
+    return "\n".join(L), pct, total_s, total_cost, total_think
+
+# ── Render ──────────────────────────────────────────────────────────────────
+
+model_tags = [m.replace("claude-", "") for m in models]
+blocks = {}; pcts = {}; scores = {}; costs = {}; thinks = {}
+
+for model in models:
+    mt = model.replace("claude-", "")
+    blocks[mt], pcts[mt], scores[mt], costs[mt], thinks[mt] = build_block(mt, all_results[mt])
+
+def gum_style_box(content, border_fg="240"):
+    return subprocess.run(
+        ["gum", "style", "--border", "rounded", "--width", "50",
+         "--padding", "1 1", "--border-foreground", border_fg],
+        input=content, capture_output=True, text=True
+    ).stdout.rstrip("\n")
+
+if len(model_tags) == 2:
+    mt0, mt1 = model_tags
+    fg0 = "46" if pcts[mt0] > pcts[mt1] else ("240" if pcts[mt0] < pcts[mt1] else "240")
+    fg1 = "46" if pcts[mt1] > pcts[mt0] else ("240" if pcts[mt1] < pcts[mt0] else "240")
+
+    left = gum_style_box(blocks[mt0], fg0)
+    right = gum_style_box(blocks[mt1], fg1)
+    joined = subprocess.run(
+        ["gum", "join", "--horizontal", left, "  ", right],
+        capture_output=True, text=True
+    ).stdout
+    print(joined)
+else:
+    for mt in model_tags:
+        print(gum_style_box(blocks[mt]))
+
+# ── Рекомендация ────────────────────────────────────────────────────────────
+
+if len(model_tags) == 2:
+    mt0, mt1 = model_tags
+    p0, p1 = pcts[mt0], pcts[mt1]
+    t0, t1 = thinks[mt0], thinks[mt1]
+    dn0 = mt0.replace("opus-", "Opus ")
+    dn1 = mt1.replace("opus-", "Opus ")
+    v0 = verdict_plain(p0)
+    v1 = verdict_plain(p1)
+
+    if abs(p0 - p1) <= 5 and abs(t0 - t1) < 500:
+        pick = f"Оба на одном уровне ({p0}% vs {p1}%)"
+        fg = "220"
+    elif p0 > p1:
+        pick = f"➤ {dn0}  ({v0} {p0}% vs {v1} {p1}%)"
+        fg = "46"
+    else:
+        pick = f"➤ {dn1}  ({v1} {p1}% vs {v0} {p0}%)"
+        fg = "46"
+
+    if t0 > 0 and t1 == 0:
+        pick += f"  ·  {dn1} не думает"
+    elif t1 > 0 and t0 == 0:
+        pick += f"  ·  {dn0} не думает"
+    elif t0 > 0 and t1 > 0:
+        if t0 > t1 * 2:
+            pick += f"  ·  {dn0} думает {t0//t1}x глубже"
+        elif t1 > t0 * 2:
+            pick += f"  ·  {dn1} думает {t1//t0}x глубже"
+
+    rec = subprocess.run(
+        ["gum", "style", "--bold", "--foreground", fg,
+         "--padding", "0 1", "--margin", "0 1", pick],
+        capture_output=True, text=True
+    ).stdout
+    print(rec)
+
+    best_pct = max(p0, p1)
+    if best_pct >= 75:
+        print(f"  {D}Можно работать без ultrathink на типовых задачах.{N}")
+    elif best_pct >= 50:
+        print(f"  {D}Рекомендуется ultrathink для сложных задач.{N}")
+    elif best_pct >= 30:
+        print(f"  {D}ultrathink обязательно, сложные исследования ненадёжны.{N}")
+    else:
+        print(f"  {D}Непригодна для серьёзной работы. Подождать.{N}")
+    print()
+
+# ── Сохранение ──────────────────────────────────────────────────────────────
+
+from datetime import datetime
+
+save_data = {"_meta": {
+    "date": datetime.now().isoformat(),
+    "models": models, "tests": tests
+}}
+
+for model in models:
+    mt = model.replace("claude-", "")
+    save_data[mt] = {
+        "score": scores[mt], "max": len(tests) * 25,
+        "pct": pcts[mt], "cost": costs[mt],
+        "thinking_chars": thinks[mt],
+        "verdict": verdict_plain(pcts[mt])
+    }
+    for t in tests:
+        bl_key = f"{mt}:{t}"
+        m = all_metrics.get(mt, {}).get(t)
+        if m:
+            save_data[bl_key] = {
+                "cost": m["cost"], "duration": m["duration_ms"],
+                "tokens": m["tokens"],
+                "thinking_chars": m["thinking_chars"],
+                "visible_chars": m["visible_chars"]
+            }
+
+result_file = os.path.join(results_dir, f"bench_{date_tag}.json")
+with open(result_file, "w") as f:
+    json.dump(save_data, f, indent=2)
+print(f"  {D}Результат: {result_file}{N}")
+
+if save_baseline:
+    import shutil
+    shutil.copy2(result_file, baseline_file)
+    print(f"  {G}⭐ Baseline сохранён: {baseline_file}{N}")
+
+import glob
+prev = sorted(glob.glob(os.path.join(results_dir, "bench_*.json")), reverse=True)
+if len(prev) >= 2:
+    print(f"\n  {D}Последние прогоны:{N}")
+    for fp in prev[:5]:
+        try:
+            with open(fp) as fh:
+                d = json.load(fh)
+            meta = d.get("_meta", {})
+            date = meta.get("date", "?")[:10]
+            parts = []
+            for mt_key in [k for k in d if k != "_meta" and ":" not in k]:
+                v = d[mt_key]
+                if isinstance(v, dict) and "pct" in v:
+                    tc = v.get("thinking_chars", "?")
+                    tc_s = f"{tc/1000:.1f}k" if isinstance(tc, (int, float)) and tc >= 1000 else str(tc)
+                    parts.append(f"{mt_key.replace('opus-', '')}:{v['pct']}% think={tc_s}")
+            if parts:
+                print(f"    {date}  {' │ '.join(parts)}")
+        except Exception:
+            pass
+    print()
+
+for model in models:
+    mt = model.replace("claude-", "")
+    for t in tests:
+        mf = os.path.join(results_dir, f"{t}_{mt}_{date_tag}.metrics")
+        try: os.remove(mf)
+        except OSError: pass
+PYEOF

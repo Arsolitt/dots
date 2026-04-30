@@ -18,24 +18,29 @@ function cc --description "Launch Claude Code with preferred defaults"
     end
 
     set -l model
+    set -l effort
     if test -n "$_flag_model"
         set model $_flag_model
     else if set --query _flag_zai
         set model glm-5-turbo
     else
-        set model claude-opus-4-6
+        set model claude-opus-4-7
     end
 
     if set --query _flag_long
         set model $model"[1m]"
     else
         switch $model
-            case 'claude-opus-4-6' 'claude-opus-4-7'
+            case 'claude-opus-4-6'
                 set model $model"[1m]"
+                set effort max
+            case 'claude-opus-4-7'
+                set model $model"[1m]"
+                set effort xhigh
         end
     end
 
-    set --local cmd claude --effort max --model $model
+    set --local cmd claude --effort $effort --model $model
 
     if set --query _flag_yolo
         set --append cmd --dangerously-skip-permissions
