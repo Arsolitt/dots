@@ -31,7 +31,7 @@ RUNS_EXPLICIT=false
 
 # Model groups
 CLAUDE_MODELS=("claude-opus-4-6" "claude-opus-4-7")
-GLM_MODELS=("glm-5-turbo" "glm-5-1")
+GLM_MODELS=("glm-5-turbo" "glm-5.1")
 
 # Flags for model group selection
 USE_CLAUDE=false
@@ -42,7 +42,7 @@ declare -A MODEL_EFFORT=(
     ["claude-opus-4-6"]="max"
     ["claude-opus-4-7"]="xhigh"
     ["glm-5-turbo"]="max"
-    ["glm-5-1"]="max"
+    ["glm-5.1"]="max"
 )
 
 # Display names per model tag
@@ -50,7 +50,7 @@ declare -A DISPLAY_NAMES=(
     ["opus-4-6"]="Opus 4.6"
     ["opus-4-7"]="Opus 4.7"
     ["glm-5-turbo"]="GLM 5 Turbo"
-    ["glm-5-1"]="GLM 5.1"
+    ["glm-5.1"]="GLM 5.1"
 )
 
 while [[ $# -gt 0 ]]; do
@@ -282,61 +282,66 @@ run_one() {
     local prompt
     prompt=$(<"$prompt_file")
 
-    local raw
     if [[ "$model" == glm-* ]]; then
-        raw=$(ANTHROPIC_AUTH_TOKEN="$ZAI_TOKEN" ANTHROPIC_BASE_URL="http://127.0.0.1:8889" \
+        ANTHROPIC_AUTH_TOKEN="$ZAI_TOKEN" ANTHROPIC_BASE_URL="http://127.0.0.1:8889" \
             claude --print "$prompt" \
-                --output-format json \
+                --output-format stream-json \
+                --verbose \
                 --model "$model" \
                 --effort "$effort" \
                 --tools "" \
                 --no-session-persistence \
                 --max-budget-usd 0.50 \
-                2>/dev/null) || true
+                > "$raw_file" 2>/dev/null || true
     else
-        raw=$(claude --print "$prompt" \
-            --output-format json \
+        claude --print "$prompt" \
+            --output-format stream-json \
+            --verbose \
             --model "$model" \
             --effort "$effort" \
             --tools "" \
             --no-session-persistence \
             --max-budget-usd 0.50 \
-            2>/dev/null) || true
+            > "$raw_file" 2>/dev/null || true
     fi
-
-    echo "$raw" > "$raw_file"
 
     python3 - "$raw_file" "$metrics_file" "$test_name" "$model_tag" <<'PYEOF'
 import sys, json
 raw_file, metrics_file, name, model = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
-try:
-    with open(raw_file) as f:
-        data = json.load(f)
-except Exception:
-    data = []
 
 cost = duration = tokens = 0
 text = ""
 thinking_chars = 0
 visible_chars = 0
 
-items = data if isinstance(data, list) else [data]
+try:
+    with open(raw_file) as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                item = json.loads(line)
+            except json.JSONDecodeError:
+                continue
 
-for item in items:
-    if isinstance(item, dict) and item.get("type") == "assistant" and "message" in item:
-        for block in item["message"].get("content", []):
-            if block.get("type") == "thinking":
-                thinking_chars += len(block.get("thinking", ""))
-            elif block.get("type") == "text":
-                visible_chars += len(block.get("text", ""))
+            t = item.get("type", "")
 
-for item in reversed(items):
-    if isinstance(item, dict) and item.get("type") == "result":
-        cost = item.get("total_cost_usd", 0)
-        duration = item.get("duration_api_ms", 0)
-        tokens = item.get("usage", {}).get("output_tokens", 0)
-        text = item.get("result", "")
-        break
+            if t == "content_block_delta":
+                delta = item.get("delta", {})
+                dt = delta.get("type", "")
+                if dt == "thinking_delta":
+                    thinking_chars += len(delta.get("thinking", ""))
+                elif dt == "text_delta":
+                    visible_chars += len(delta.get("text", ""))
+
+            elif t == "result":
+                cost = item.get("total_cost_usd", 0)
+                duration = item.get("duration_api_ms", 0)
+                tokens = item.get("usage", {}).get("output_tokens", 0)
+                text = item.get("result", "")
+except Exception:
+    pass
 
 with open(metrics_file, "w") as f:
     json.dump({
@@ -411,7 +416,7 @@ DISPLAY_NAMES = {
     "opus-4-6": "Opus 4.6",
     "opus-4-7": "Opus 4.7",
     "glm-5-turbo": "GLM 5 Turbo",
-    "glm-5-1": "GLM 5.1",
+    "glm-5.1": "GLM 5.1",
 }
 
 def load_baseline():
