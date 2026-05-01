@@ -5,6 +5,8 @@ function cc --description "Launch Claude Code with preferred defaults"
     set -lx CLAUDE_CODE_NO_FLICKER 1
     set -lx CLAUDE_CODE_NEW_INIT 1
     set -lx CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING 1
+    set -lx CLAUDE_CODE_INVESTIGATE_FIRST 1
+    set -lx CLAUDE_CODE_ALWAYS_ENABLE_EFFORT 1
 
     if set --query _flag_zai
         set -l zai_token (pass zai/api-key 2>/dev/null)
@@ -38,6 +40,8 @@ function cc --description "Launch Claude Code with preferred defaults"
         case 'claude-opus-4-7'
             set effort xhigh
             set force_long 1
+        case 'glm-*'
+            set effort max
     end
 
     if set --query _flag_long; or test -n "$force_long"
@@ -46,7 +50,7 @@ function cc --description "Launch Claude Code with preferred defaults"
         set model $base_model
     end
 
-    set --local cmd claude --model $model
+    set --local cmd claude --model $model --exclude-dynamic-system-prompt-sections
     if test -n "$effort"
         set --append cmd --effort $effort
     end

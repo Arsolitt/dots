@@ -327,13 +327,12 @@ try:
 
             t = item.get("type", "")
 
-            if t == "content_block_delta":
-                delta = item.get("delta", {})
-                dt = delta.get("type", "")
-                if dt == "thinking_delta":
-                    thinking_chars += len(delta.get("thinking", ""))
-                elif dt == "text_delta":
-                    visible_chars += len(delta.get("text", ""))
+            if t == "assistant":
+                for block in item.get("message", {}).get("content", []):
+                    if block.get("type") == "thinking":
+                        thinking_chars += len(block.get("thinking", ""))
+                    elif block.get("type") == "text":
+                        visible_chars += len(block.get("text", ""))
 
             elif t == "result":
                 cost = item.get("total_cost_usd", 0)
