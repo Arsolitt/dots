@@ -26,33 +26,75 @@ BASELINE_FILE="${BENCH_DIR}/baseline.json"
 DATE_TAG=$(date +%Y%m%d_%H%M%S)
 SAVE_BASELINE=false
 FAST_MODE=false
-MODELS=("claude-opus-4-6" "claude-opus-4-7")
+NUM_RUNS=3
+RUNS_EXPLICIT=false
 
-# Effort соответствует cc.fish: 4-6 → max, 4-7 → xhigh
+# Model groups
+CLAUDE_MODELS=("claude-opus-4-6" "claude-opus-4-7")
+GLM_MODELS=("glm-5-turbo" "glm-5-1")
+
+# Flags for model group selection
+USE_CLAUDE=false
+USE_GLM=false
+
+# Effort per model
 declare -A MODEL_EFFORT=(
     ["claude-opus-4-6"]="max"
     ["claude-opus-4-7"]="xhigh"
+    ["glm-5-turbo"]="max"
+    ["glm-5-1"]="max"
+)
+
+# Display names per model tag
+declare -A DISPLAY_NAMES=(
+    ["opus-4-6"]="Opus 4.6"
+    ["opus-4-7"]="Opus 4.7"
+    ["glm-5-turbo"]="GLM 5 Turbo"
+    ["glm-5-1"]="GLM 5.1"
 )
 
 while [[ $# -gt 0 ]]; do
     case $1 in
         --baseline) SAVE_BASELINE=true; shift ;;
         --fast)     FAST_MODE=true; shift ;;
+        --claude)   USE_CLAUDE=true; shift ;;
+        --glm)      USE_GLM=true; shift ;;
+        --runs)
+            if [[ -z "${2:-}" ]] || ! [[ "$2" =~ ^[0-9]+$ ]]; then
+                echo "Ошибка: --runs требует числовой аргумент (>=1)" >&2
+                exit 1
+            fi
+            NUM_RUNS=$2
+            if (( NUM_RUNS < 1 )); then
+                echo "Ошибка: --runs не может быть меньше 1" >&2
+                exit 1
+            fi
+            RUNS_EXPLICIT=true
+            shift 2 ;;
         --help|-h)
             cat <<HELP
-opus-bench - дневной бенчмарк качества inference Opus
+opus-bench - дневной бенчмарк качества inference
 
 Использование:
-  opus-bench              Тест обеих моделей (4.6 + 4.7)
+  opus-bench              Тест всех моделей (Claude + GLM)
+  opus-bench --claude     Только Claude модели (Opus 4.6, Opus 4.7)
+  opus-bench --glm        Только GLM модели (GLM 5 Turbo, GLM 5.1)
   opus-bench --baseline   Сохранить текущий прогон как эталон
-  opus-bench --fast       2 теста вместо 4
+  opus-bench --fast       2 теста вместо 4, 1 прогон (если --runs не задан)
+  opus-bench --runs N     Количество прогонов каждого теста (по умолчанию: 3, медиана)
+
+Флаги --claude и --glm комбинируются. Без них запускаются все 4 модели.
 
 Конфигурация:
   OPUS_BENCH_DIR          Каталог результатов (по умолчанию: ~/.local/share/opus-bench)
 
-Модели и effort (соответствует cc.fish):
+Модели и effort:
   claude-opus-4-6  --effort max
   claude-opus-4-7  --effort xhigh
+  glm-5-turbo      --effort max   (через ZAI прокси)
+  glm-5-1          --effort max   (через ZAI прокси)
+
+GLM модели требуют ZAI прокси (127.0.0.1:8889) и ключ в pass zai/api-key.
 
 Метрики:
   acc    Корректность ответа (0-15)
@@ -63,6 +105,59 @@ HELP
         *) echo "Неизвестный флаг: $1" >&2; exit 1 ;;
     esac
 done
+
+# --fast implies --runs 1 unless explicitly overridden
+if $FAST_MODE && ! $RUNS_EXPLICIT; then
+    NUM_RUNS=1
+fi
+
+# Build MODELS array from group flags
+MODELS=()
+if ! $USE_CLAUDE && ! $USE_GLM; then
+    # No flag = all models
+    MODELS+=("${CLAUDE_MODELS[@]}" "${GLM_MODELS[@]}")
+    USE_CLAUDE=true
+    USE_GLM=true
+else
+    if $USE_CLAUDE; then
+        MODELS+=("${CLAUDE_MODELS[@]}")
+    fi
+    if $USE_GLM; then
+        MODELS+=("${GLM_MODELS[@]}")
+    fi
+fi
+
+# ── ZAI token (fetch once, only if GLM models requested) ────────────────────
+
+ZAI_TOKEN=""
+if $USE_GLM; then
+    if ! command -v pass >/dev/null 2>&1; then
+        echo "⚠ pass не найден — GLM модели пропущены" >&2
+        # Remove GLM models from MODELS
+        NEW_MODELS=()
+        for m in "${MODELS[@]}"; do
+            [[ "$m" != glm-* ]] && NEW_MODELS+=("$m")
+        done
+        MODELS=("${NEW_MODELS[@]}")
+        USE_GLM=false
+    else
+        ZAI_TOKEN=$(pass zai/api-key 2>/dev/null) || true
+        if [[ -z "$ZAI_TOKEN" ]]; then
+            echo "⚠ Не удалось получить ZAI API ключ из pass — GLM модели пропущены" >&2
+            NEW_MODELS=()
+            for m in "${MODELS[@]}"; do
+                [[ "$m" != glm-* ]] && NEW_MODELS+=("$m")
+            done
+            MODELS=("${NEW_MODELS[@]}")
+            USE_GLM=false
+        fi
+    fi
+fi
+
+if [[ ${#MODELS[@]} -eq 0 ]]; then
+    echo "Нет доступных моделей для тестирования" >&2
+    exit 1
+fi
 
 mkdir -p "$RESULTS_DIR"
 
@@ -173,23 +268,41 @@ EOF
 # ── Runner ───────────────────────────────────────────────────────────────────
 
 run_one() {
-    local test_name=$1 model=$2 prompt_file=$3
-    local model_tag="${model#claude-}"
+    local test_name=$1 model=$2 prompt_file=$3 run_idx=$4
+    local model_tag
+    # GLM models don't have claude- prefix
+    if [[ "$model" == glm-* ]]; then
+        model_tag="$model"
+    else
+        model_tag="${model#claude-}"
+    fi
     local effort="${MODEL_EFFORT[$model]:-high}"
-    local raw_file="${RESULTS_DIR}/${test_name}_${model_tag}_${DATE_TAG}.json"
-    local metrics_file="${RESULTS_DIR}/${test_name}_${model_tag}_${DATE_TAG}.metrics"
+    local raw_file="${RESULTS_DIR}/${test_name}_${model_tag}_${DATE_TAG}_r${run_idx}.json"
+    local metrics_file="${RESULTS_DIR}/${test_name}_${model_tag}_${DATE_TAG}_r${run_idx}.metrics"
     local prompt
     prompt=$(<"$prompt_file")
 
     local raw
-    raw=$(claude --print "$prompt" \
-        --output-format json \
-        --model "$model" \
-        --effort "$effort" \
-        --tools "" \
-        --no-session-persistence \
-        --max-budget-usd 0.50 \
-        2>/dev/null) || true
+    if [[ "$model" == glm-* ]]; then
+        raw=$(ANTHROPIC_AUTH_TOKEN="$ZAI_TOKEN" ANTHROPIC_BASE_URL="http://127.0.0.1:8889" \
+            claude --print "$prompt" \
+                --output-format json \
+                --model "$model" \
+                --effort "$effort" \
+                --tools "" \
+                --no-session-persistence \
+                --max-budget-usd 0.50 \
+                2>/dev/null) || true
+    else
+        raw=$(claude --print "$prompt" \
+            --output-format json \
+            --model "$model" \
+            --effort "$effort" \
+            --tools "" \
+            --no-session-persistence \
+            --max-budget-usd 0.50 \
+            2>/dev/null) || true
+    fi
 
     echo "$raw" > "$raw_file"
 
@@ -242,7 +355,7 @@ else
     TESTS=(reason trace bugs behave)
 fi
 
-n_tests=$(( ${#TESTS[@]} * ${#MODELS[@]} ))
+n_tests=$(( ${#TESTS[@]} * ${#MODELS[@]} * NUM_RUNS ))
 
 gum style --border rounded --padding "0 3" --margin "1 0" --align center \
     --bold --foreground 99 --border-foreground 240 \
@@ -254,22 +367,28 @@ DONE_FLAG="$TMPDIR/.done"
 (
     for model in "${MODELS[@]}"; do
         for t in "${TESTS[@]}"; do
-            run_one "$t" "$model" "$TMPDIR/${t}.txt" &
+            for (( r=1; r<=NUM_RUNS; r++ )); do
+                run_one "$t" "$model" "$TMPDIR/${t}.txt" "$r" &
+            done
         done
     done
     wait
     touch "$DONE_FLAG"
 ) &
 
-gum spin --spinner dot --title " Прогон ${n_tests} тестов (${#MODELS[@]} модели × ${#TESTS[@]} теста)..." \
+runs_label=""
+if (( NUM_RUNS > 1 )); then
+    runs_label=" × ${NUM_RUNS} прогонов"
+fi
+gum spin --spinner dot --title " Прогон ${n_tests} тестов (${#MODELS[@]} модели × ${#TESTS[@]} теста${runs_label})..." \
     -- bash -c "while [ ! -f '$DONE_FLAG' ]; do sleep 0.5; done"
 
 echo ""
 
 # ── Скоринг + отображение ───────────────────────────────────────────────────
 
-python3 - "$RESULTS_DIR" "$DATE_TAG" "$BASELINE_FILE" "$SAVE_BASELINE" "${MODELS[*]}" "${TESTS[*]}" <<'PYEOF'
-import sys, json, re, os, subprocess
+python3 - "$RESULTS_DIR" "$DATE_TAG" "$BASELINE_FILE" "$SAVE_BASELINE" "${MODELS[*]}" "${TESTS[*]}" "$NUM_RUNS" <<'PYEOF'
+import sys, json, re, os, subprocess, statistics
 
 results_dir = sys.argv[1]
 date_tag = sys.argv[2]
@@ -277,9 +396,23 @@ baseline_file = sys.argv[3]
 save_baseline = sys.argv[4] == "true"
 models = sys.argv[5].split()
 tests = sys.argv[6].split()
+num_runs = int(sys.argv[7])
 
 G = "\033[32m"; R = "\033[31m"; Y = "\033[33m"
 D = "\033[90m"; B = "\033[1m";  N = "\033[0m"
+
+def model_tag(model):
+    """Get display tag: strip claude- prefix for Claude models, keep as-is for GLM."""
+    if model.startswith("glm-"):
+        return model
+    return model.replace("claude-", "")
+
+DISPLAY_NAMES = {
+    "opus-4-6": "Opus 4.6",
+    "opus-4-7": "Opus 4.7",
+    "glm-5-turbo": "GLM 5 Turbo",
+    "glm-5-1": "GLM 5.1",
+}
 
 def load_baseline():
     if os.path.exists(baseline_file):
@@ -292,7 +425,7 @@ def load_baseline():
 
 baseline = load_baseline()
 
-def score_test(name, m, model_tag):
+def score_test(name, m, mt):
     text = m["text"]
     cost = m["cost"]
     think_c = m["thinking_chars"]
@@ -313,12 +446,32 @@ def score_test(name, m, model_tag):
             cs = 15
         elif first_num:
             diff = abs(int(first_num) - 37)
-            if diff <= 2: cs = 10
-            elif diff <= 5: cs = 5
+            if diff <= 1: cs = 12
+            elif diff <= 2: cs = 8
+            elif diff <= 3: cs = 5
+            elif diff <= 5: cs = 2
+            else: cs = 0
 
     elif name == "trace":
         answer = first_num or "?"
-        cs = 15 if first_num == "96" else 0
+        if first_num == "96":
+            cs = 15
+        else:
+            # Partial credit for intermediate values
+            has_f987 = bool(re.search(r'\bf\s*\(\s*987\s*\)\s*=?\s*24\b', tl) or
+                           re.search(r'\b24\b.*f\s*\(\s*987', tl) or
+                           re.search(r'f\(987\).*?24', text) or
+                           re.search(r'9\s*\+\s*8\s*\+\s*7\s*=\s*24', text))
+            has_g100 = bool(re.search(r'\bg\s*\(\s*100\s*\)\s*=?\s*4\b', tl) or
+                           re.search(r'\b4\b.*g\s*\(\s*100', tl) or
+                           re.search(r'g\(100\).*?4\b', text) or
+                           re.search(r'1\s*\+\s*0\s*\+\s*2\s*\+\s*1\s*=\s*4', text))
+            if has_f987 and has_g100:
+                cs = 10
+            elif has_f987 or has_g100:
+                cs = 5
+            else:
+                cs = 0
 
     elif name == "bugs":
         found = 0
@@ -354,7 +507,7 @@ def score_test(name, m, model_tag):
         answer = "lazy" if lazy else "ok"
 
     # ── Thinking score (0-10) - прямой замер из content blocks ──
-    bl_key = f"{model_tag}:{name}"
+    bl_key = f"{mt}:{name}"
     bl_think = baseline.get(bl_key, {}).get("thinking_chars", 0)
 
     if bl_think > 0:
@@ -395,29 +548,75 @@ def score_test(name, m, model_tag):
     }
 
 
-# ── Собрать результаты ──────────────────────────────────────────────────────
+# ── Собрать результаты с учётом множественных прогонов ─────────────────────
 
 all_results = {}
 all_metrics = {}
 
 for model in models:
-    mt = model.replace("claude-", "")
+    mt = model_tag(model)
     all_results[mt] = []
     all_metrics[mt] = {}
+
     for t in tests:
-        mf = os.path.join(results_dir, f"{t}_{mt}_{date_tag}.metrics")
-        if not os.path.exists(mf):
+        run_scores = []
+        run_data = []
+
+        for r_idx in range(1, num_runs + 1):
+            mf = os.path.join(results_dir, f"{t}_{mt}_{date_tag}_r{r_idx}.metrics")
+            if not os.path.exists(mf):
+                run_scores.append(None)
+                run_data.append(None)
+                continue
+            with open(mf) as f:
+                m = json.load(f)
+            scored = score_test(t, m, mt)
+            run_scores.append(scored)
+            run_data.append(m)
+
+        # Filter out failed runs
+        valid = [(s, d) for s, d in zip(run_scores, run_data) if s is not None]
+
+        if not valid:
             all_results[mt].append({
                 "name": t, "answer": "ERR", "acc": 0, "think": 0,
                 "verbose_pen": 0, "total": 0, "cost": 0,
-                "thinking_chars": 0, "visible_chars": 0, "think_delta": ""
+                "thinking_chars": 0, "visible_chars": 0, "think_delta": "",
+                "variance": ""
             })
             continue
-        with open(mf) as f:
-            m = json.load(f)
-        all_metrics[mt][t] = m
-        r = score_test(t, m, mt)
-        all_results[mt].append(r)
+
+        if len(valid) == 1:
+            best = valid[0][0]
+            best["variance"] = ""
+            all_results[mt].append(best)
+            all_metrics[mt][t] = valid[0][1]
+            continue
+
+        # Multiple runs: find median by total score
+        totals = [s["total"] for s, _ in valid]
+        median_val = statistics.median(totals)
+
+        # Find the run closest to median; prefer higher thinking_chars on tie
+        best_idx = 0
+        best_diff = abs(valid[0][0]["total"] - median_val)
+        for i, (s, d) in enumerate(valid):
+            diff = abs(s["total"] - median_val)
+            if diff < best_diff or (diff == best_diff and s["thinking_chars"] > valid[best_idx][0]["thinking_chars"]):
+                best_diff = diff
+                best_idx = i
+
+        best = valid[best_idx][0]
+
+        # Compute variance indicator
+        if len(set(totals)) > 1:
+            spread = max(totals) - min(totals)
+            best["variance"] = f"±{spread // 2}" if spread > 0 else ""
+        else:
+            best["variance"] = ""
+
+        all_results[mt].append(best)
+        all_metrics[mt][t] = valid[best_idx][1]
 
 # ── Построить блоки ─────────────────────────────────────────────────────────
 
@@ -428,7 +627,7 @@ def verdict_color(pct):
     if pct >= 75: return f"{G}{B}SHARP ✅{N}"
     if pct >= 50: return f"{Y}{B}MEDIOCRE ⚡{N}"
     if pct >= 30: return f"{R}{B}DEGRADED ⚠️{N}"
-    return f"{R}{B}LOBOTOMIZED 💀{N}"
+    return f"{R}{B}LOBOTOMIZED \U0001f480{N}"
 
 def verdict_plain(pct):
     if pct >= 75: return "SHARP"
@@ -441,7 +640,7 @@ def fmt_chars(n):
     return str(n)
 
 def build_block(mt, results):
-    dn = mt.replace("opus-", "Opus ")
+    dn = DISPLAY_NAMES.get(mt, mt)
     total_s = sum(r["total"] for r in results)
     total_m = len(results) * 25
     pct = (total_s * 100 // total_m) if total_m > 0 else 0
@@ -451,6 +650,8 @@ def build_block(mt, results):
 
     L = []
     L.append(f"  {B}{dn}{N}")
+    if num_runs > 1:
+        L.append(f"  {D}медиана из {num_runs} прогонов{N}")
     L.append("")
 
     for r in results:
@@ -489,8 +690,12 @@ def build_block(mt, results):
         if r["verbose_pen"] < 0:
             vp_s = f" {R}talk{r['verbose_pen']}{N}"
 
+        var_s = ""
+        if r.get("variance"):
+            var_s = f" {D}{r['variance']}{N}"
+
         L.append(
-            f"  {lab:<7s} {mk:<22s} {sc}{r['total']:2d}{N}/25"
+            f"  {lab:<7s} {mk:<22s} {sc}{r['total']:2d}{N}/25{var_s}"
             f"  {think_bar}{td_s}{vp_s}"
         )
 
@@ -512,11 +717,11 @@ def build_block(mt, results):
 
 # ── Render ──────────────────────────────────────────────────────────────────
 
-model_tags = [m.replace("claude-", "") for m in models]
+model_tags = [model_tag(m) for m in models]
 blocks = {}; pcts = {}; scores = {}; costs = {}; thinks = {}
 
 for model in models:
-    mt = model.replace("claude-", "")
+    mt = model_tag(model)
     blocks[mt], pcts[mt], scores[mt], costs[mt], thinks[mt] = build_block(mt, all_results[mt])
 
 def gum_style_box(content, border_fg="240"):
@@ -526,52 +731,92 @@ def gum_style_box(content, border_fg="240"):
         input=content, capture_output=True, text=True
     ).stdout.rstrip("\n")
 
-if len(model_tags) == 2:
-    mt0, mt1 = model_tags
-    fg0 = "46" if pcts[mt0] > pcts[mt1] else ("240" if pcts[mt0] < pcts[mt1] else "240")
-    fg1 = "46" if pcts[mt1] > pcts[mt0] else ("240" if pcts[mt1] < pcts[mt0] else "240")
+def best_border(mt_list):
+    """Return dict of model_tag -> border color, highlighting best score."""
+    if not mt_list:
+        return {}
+    best = max(pcts[mt] for mt in mt_list)
+    result = {}
+    for mt in mt_list:
+        if pcts[mt] == best and sum(1 for m in mt_list if pcts[m] == best) < len(mt_list):
+            result[mt] = "46"
+        else:
+            result[mt] = "240"
+    return result
 
-    left = gum_style_box(blocks[mt0], fg0)
-    right = gum_style_box(blocks[mt1], fg1)
+n_models = len(model_tags)
+borders = best_border(model_tags)
+
+if n_models == 1:
+    mt = model_tags[0]
+    print(gum_style_box(blocks[mt], borders[mt]))
+elif n_models == 2:
+    mt0, mt1 = model_tags
+    left = gum_style_box(blocks[mt0], borders[mt0])
+    right = gum_style_box(blocks[mt1], borders[mt1])
     joined = subprocess.run(
         ["gum", "join", "--horizontal", left, "  ", right],
         capture_output=True, text=True
     ).stdout
     print(joined)
-else:
-    for mt in model_tags:
-        print(gum_style_box(blocks[mt]))
+elif n_models >= 3:
+    # 2xN grid: top row first two, bottom row rest
+    top_tags = model_tags[:2]
+    bot_tags = model_tags[2:]
+
+    top_boxes = [gum_style_box(blocks[mt], borders[mt]) for mt in top_tags]
+    top_row = subprocess.run(
+        ["gum", "join", "--horizontal"] + [top_boxes[0], "  ", top_boxes[1]],
+        capture_output=True, text=True
+    ).stdout.rstrip("\n")
+
+    if len(bot_tags) == 1:
+        bot_row = gum_style_box(blocks[bot_tags[0]], borders[bot_tags[0]])
+    else:
+        bot_boxes = [gum_style_box(blocks[mt], borders[mt]) for mt in bot_tags]
+        bot_row = subprocess.run(
+            ["gum", "join", "--horizontal"] + [bot_boxes[0], "  ", bot_boxes[1]],
+            capture_output=True, text=True
+        ).stdout.rstrip("\n")
+
+    grid = subprocess.run(
+        ["gum", "join", "--vertical", top_row, bot_row],
+        capture_output=True, text=True
+    ).stdout
+    print(grid)
 
 # ── Рекомендация ────────────────────────────────────────────────────────────
 
-if len(model_tags) == 2:
-    mt0, mt1 = model_tags
-    p0, p1 = pcts[mt0], pcts[mt1]
-    t0, t1 = thinks[mt0], thinks[mt1]
-    dn0 = mt0.replace("opus-", "Opus ")
-    dn1 = mt1.replace("opus-", "Opus ")
-    v0 = verdict_plain(p0)
-    v1 = verdict_plain(p1)
+if len(model_tags) >= 2:
+    # Find best and second-best
+    sorted_mts = sorted(model_tags, key=lambda mt: (pcts[mt], thinks[mt]), reverse=True)
+    best_mt = sorted_mts[0]
+    runner_mt = sorted_mts[1]
 
-    if abs(p0 - p1) <= 5 and abs(t0 - t1) < 500:
-        pick = f"Оба на одном уровне ({p0}% vs {p1}%)"
+    dn_best = DISPLAY_NAMES.get(best_mt, best_mt)
+    dn_runner = DISPLAY_NAMES.get(runner_mt, runner_mt)
+    v_best = verdict_plain(pcts[best_mt])
+    v_runner = verdict_plain(pcts[runner_mt])
+
+    if abs(pcts[best_mt] - pcts[runner_mt]) <= 5 and abs(thinks[best_mt] - thinks[runner_mt]) < 500:
+        pick = f"Все на одном уровне ({pcts[best_mt]}% vs {pcts[runner_mt]}%)"
         fg = "220"
-    elif p0 > p1:
-        pick = f"➤ {dn0}  ({v0} {p0}% vs {v1} {p1}%)"
-        fg = "46"
     else:
-        pick = f"➤ {dn1}  ({v1} {p1}% vs {v0} {p0}%)"
+        pick = f"➤ {dn_best}  ({v_best} {pcts[best_mt]}% vs {v_runner} {pcts[runner_mt]}%)"
         fg = "46"
 
-    if t0 > 0 and t1 == 0:
-        pick += f"  ·  {dn1} не думает"
-    elif t1 > 0 and t0 == 0:
-        pick += f"  ·  {dn0} не думает"
-    elif t0 > 0 and t1 > 0:
-        if t0 > t1 * 2:
-            pick += f"  ·  {dn0} думает {t0//t1}x глубже"
-        elif t1 > t0 * 2:
-            pick += f"  ·  {dn1} думает {t1//t0}x глубже"
+    # Add thinking comparison for top two
+    t_best = thinks[best_mt]
+    t_runner = thinks[runner_mt]
+    if t_best > 0 and t_runner == 0:
+        pick += f"  ·  {dn_runner} не думает"
+    elif t_runner > 0 and t_best == 0:
+        pick += f"  ·  {dn_best} не думает"
+    elif t_best > 0 and t_runner > 0:
+        if t_best > t_runner * 2:
+            pick += f"  ·  {dn_best} думает {t_best // t_runner}x глубже"
+        elif t_runner > t_best * 2:
+            pick += f"  ·  {dn_runner} думает {t_runner // t_best}x глубже"
 
     rec = subprocess.run(
         ["gum", "style", "--bold", "--foreground", fg,
@@ -580,7 +825,7 @@ if len(model_tags) == 2:
     ).stdout
     print(rec)
 
-    best_pct = max(p0, p1)
+    best_pct = pcts[best_mt]
     if best_pct >= 75:
         print(f"  {D}Можно работать без ultrathink на типовых задачах.{N}")
     elif best_pct >= 50:
@@ -597,11 +842,11 @@ from datetime import datetime
 
 save_data = {"_meta": {
     "date": datetime.now().isoformat(),
-    "models": models, "tests": tests
+    "models": models, "tests": tests, "runs": num_runs
 }}
 
 for model in models:
-    mt = model.replace("claude-", "")
+    mt = model_tag(model)
     save_data[mt] = {
         "score": scores[mt], "max": len(tests) * 25,
         "pct": pcts[mt], "cost": costs[mt],
@@ -639,23 +884,28 @@ if len(prev) >= 2:
                 d = json.load(fh)
             meta = d.get("_meta", {})
             date = meta.get("date", "?")[:10]
+            runs_info = meta.get("runs", 1)
             parts = []
             for mt_key in [k for k in d if k != "_meta" and ":" not in k]:
                 v = d[mt_key]
                 if isinstance(v, dict) and "pct" in v:
                     tc = v.get("thinking_chars", "?")
                     tc_s = f"{tc/1000:.1f}k" if isinstance(tc, (int, float)) and tc >= 1000 else str(tc)
-                    parts.append(f"{mt_key.replace('opus-', '')}:{v['pct']}% think={tc_s}")
+                    dn = mt_key.replace('opus-', '')
+                    parts.append(f"{dn}:{v['pct']}% think={tc_s}")
             if parts:
-                print(f"    {date}  {' │ '.join(parts)}")
+                runs_s = f" x{runs_info}" if runs_info > 1 else ""
+                print(f"    {date}{runs_s}  {' │ '.join(parts)}")
         except Exception:
             pass
     print()
 
+# Cleanup metrics files
 for model in models:
-    mt = model.replace("claude-", "")
+    mt = model_tag(model)
     for t in tests:
-        mf = os.path.join(results_dir, f"{t}_{mt}_{date_tag}.metrics")
-        try: os.remove(mf)
-        except OSError: pass
+        for r_idx in range(1, num_runs + 1):
+            mf = os.path.join(results_dir, f"{t}_{mt}_{date_tag}_r{r_idx}.metrics")
+            try: os.remove(mf)
+            except OSError: pass
 PYEOF
