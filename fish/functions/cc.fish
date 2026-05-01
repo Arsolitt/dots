@@ -23,7 +23,7 @@ function cc --description "Launch Claude Code with preferred defaults"
     if test -n "$_flag_model"
         set model $_flag_model
     else if set --query _flag_zai
-        set model glm-5-turbo
+        set model glm-5.1
     else
         set model claude-opus-4-7
     end
