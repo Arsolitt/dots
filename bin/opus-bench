@@ -37,22 +37,6 @@ GLM_MODELS=("glm-5-turbo" "glm-5.1")
 USE_CLAUDE=false
 USE_GLM=false
 
-# Effort per model
-declare -A MODEL_EFFORT=(
-    ["claude-opus-4-6"]="max"
-    ["claude-opus-4-7"]="xhigh"
-    ["glm-5-turbo"]="max"
-    ["glm-5.1"]="max"
-)
-
-# Display names per model tag
-declare -A DISPLAY_NAMES=(
-    ["opus-4-6"]="Opus 4.6"
-    ["opus-4-7"]="Opus 4.7"
-    ["glm-5-turbo"]="GLM 5 Turbo"
-    ["glm-5.1"]="GLM 5.1"
-)
-
 while [[ $# -gt 0 ]]; do
     case $1 in
         --baseline) SAVE_BASELINE=true; shift ;;
@@ -92,7 +76,7 @@ opus-bench - дневной бенчмарк качества inference
   claude-opus-4-6  --effort max
   claude-opus-4-7  --effort xhigh
   glm-5-turbo      --effort max   (через ZAI прокси)
-  glm-5-1          --effort max   (через ZAI прокси)
+  glm-5.1          --effort max   (через ZAI прокси)
 
 GLM модели требуют ZAI прокси (127.0.0.1:8889) и ключ в pass zai/api-key.
 
@@ -125,38 +109,6 @@ else
     if $USE_GLM; then
         MODELS+=("${GLM_MODELS[@]}")
     fi
-fi
-
-# ── ZAI token (fetch once, only if GLM models requested) ────────────────────
-
-ZAI_TOKEN=""
-if $USE_GLM; then
-    if ! command -v pass >/dev/null 2>&1; then
-        echo "⚠ pass не найден — GLM модели пропущены" >&2
-        # Remove GLM models from MODELS
-        NEW_MODELS=()
-        for m in "${MODELS[@]}"; do
-            [[ "$m" != glm-* ]] && NEW_MODELS+=("$m")
-        done
-        MODELS=("${NEW_MODELS[@]}")
-        USE_GLM=false
-    else
-        ZAI_TOKEN=$(pass zai/api-key 2>/dev/null) || true
-        if [[ -z "$ZAI_TOKEN" ]]; then
-            echo "⚠ Не удалось получить ZAI API ключ из pass — GLM модели пропущены" >&2
-            NEW_MODELS=()
-            for m in "${MODELS[@]}"; do
-                [[ "$m" != glm-* ]] && NEW_MODELS+=("$m")
-            done
-            MODELS=("${NEW_MODELS[@]}")
-            USE_GLM=false
-        fi
-    fi
-fi
-
-if [[ ${#MODELS[@]} -eq 0 ]]; then
-    echo "Нет доступных моделей для тестирования" >&2
-    exit 1
 fi
 
 mkdir -p "$RESULTS_DIR"
@@ -265,12 +217,58 @@ Requirements:
 - Specific SQL optimization or index suggestion
 EOF
 
+# ── Env vars from cc.fish (mirrored for --print mode) ────────────────────────
+
+export CLAUDE_CODE_NO_FLICKER=1
+export CLAUDE_CODE_NEW_INIT=1
+export CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING=1
+export CLAUDE_CODE_INVESTIGATE_FIRST=1
+export CLAUDE_CODE_ALWAYS_ENABLE_EFFORT=1
+
+declare -A MODEL_EFFORT=(
+    ["claude-opus-4-6"]="max"
+    ["claude-opus-4-7"]="xhigh"
+    ["glm-5-turbo"]="max"
+    ["glm-5.1"]="max"
+)
+
+# ── ZAI token (fetch once, only if GLM models requested) ────────────────────
+
+ZAI_TOKEN=""
+fetch_zai_token() {
+    if [[ -n "$ZAI_TOKEN" ]]; then return; fi
+    if ! command -v pass >/dev/null 2>&1; then
+        echo "⚠ pass не найден — GLM модели пропущены" >&2
+        return 1
+    fi
+    ZAI_TOKEN=$(pass zai/api-key 2>/dev/null) || true
+    if [[ -z "$ZAI_TOKEN" ]]; then
+        echo "⚠ Не удалось получить ZAI API ключ из pass — GLM модели пропущены" >&2
+        return 1
+    fi
+}
+
+if $USE_GLM; then
+    if ! fetch_zai_token; then
+        NEW_MODELS=()
+        for m in "${MODELS[@]}"; do
+            [[ "$m" != glm-* ]] && NEW_MODELS+=("$m")
+        done
+        MODELS=("${NEW_MODELS[@]}")
+        USE_GLM=false
+    fi
+fi
+
+if [[ ${#MODELS[@]} -eq 0 ]]; then
+    echo "Нет доступных моделей для тестирования" >&2
+    exit 1
+fi
+
 # ── Runner ───────────────────────────────────────────────────────────────────
 
 run_one() {
     local test_name=$1 model=$2 prompt_file=$3 run_idx=$4
     local model_tag
-    # GLM models don't have claude- prefix
     if [[ "$model" == glm-* ]]; then
         model_tag="$model"
     else
@@ -283,16 +281,18 @@ run_one() {
     prompt=$(<"$prompt_file")
 
     if [[ "$model" == glm-* ]]; then
-        ANTHROPIC_AUTH_TOKEN="$ZAI_TOKEN" ANTHROPIC_BASE_URL="http://127.0.0.1:8889" \
-            claude --print "$prompt" \
-                --output-format stream-json \
-                --verbose \
-                --model "$model" \
-                --effort "$effort" \
-                --tools "" \
-                --no-session-persistence \
-                --max-budget-usd 0.50 \
-                > "$raw_file" 2>/dev/null || true
+        ANTHROPIC_AUTH_TOKEN="$ZAI_TOKEN" \
+        ANTHROPIC_BASE_URL="http://127.0.0.1:8889" \
+        API_TIMEOUT_MS=3000000 \
+        claude --print "$prompt" \
+            --output-format stream-json \
+            --verbose \
+            --model "$model" \
+            --effort "$effort" \
+            --tools "" \
+            --no-session-persistence \
+            --max-budget-usd 0.50 \
+            > "$raw_file" 2>/dev/null || true
     else
         claude --print "$prompt" \
             --output-format stream-json \
