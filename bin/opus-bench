@@ -312,6 +312,7 @@ raw_file, metrics_file, name, model = sys.argv[1], sys.argv[2], sys.argv[3], sys
 cost = duration = tokens = 0
 text = ""
 thinking_chars = 0
+thinking_hidden = False
 visible_chars = 0
 
 try:
@@ -330,7 +331,11 @@ try:
             if t == "assistant":
                 for block in item.get("message", {}).get("content", []):
                     if block.get("type") == "thinking":
-                        thinking_chars += len(block.get("thinking", ""))
+                        tc = len(block.get("thinking", ""))
+                        if tc > 0:
+                            thinking_chars += tc
+                        elif block.get("signature"):
+                            thinking_hidden = True
                     elif block.get("type") == "text":
                         visible_chars += len(block.get("text", ""))
 
@@ -342,11 +347,18 @@ try:
 except Exception:
     pass
 
+# Estimate hidden thinking chars from output_tokens minus visible text tokens
+if thinking_hidden and thinking_chars == 0 and tokens > 0:
+    text_tokens_est = visible_chars // 4
+    think_tokens_est = max(0, tokens - text_tokens_est)
+    thinking_chars = int(think_tokens_est * 1.28)
+
 with open(metrics_file, "w") as f:
     json.dump({
         "name": name, "model": model, "cost": cost,
         "duration_ms": duration, "tokens": tokens, "text": text,
-        "thinking_chars": thinking_chars, "visible_chars": visible_chars
+        "thinking_chars": thinking_chars, "thinking_hidden": thinking_hidden,
+        "visible_chars": visible_chars
     }, f)
 PYEOF
 }
@@ -434,6 +446,7 @@ def score_test(name, m, mt):
     cost = m["cost"]
     think_c = m["thinking_chars"]
     vis_c = m["visible_chars"]
+    think_hidden = m.get("thinking_hidden", False)
 
     first_line = text.split("\n")[0].strip() if text else ""
     nums = re.findall(r'\d+', first_line)
@@ -529,7 +542,7 @@ def score_test(name, m, mt):
 
     # ── Verbosity penalty ──
     vp = 0
-    if vis_c > 0 and think_c == 0:
+    if vis_c > 0 and think_c == 0 and not think_hidden:
         vp = -5
     elif vis_c > 0 and think_c > 0:
         talk_ratio = vis_c / think_c
@@ -547,8 +560,8 @@ def score_test(name, m, mt):
     return {
         "name": name, "answer": answer, "acc": cs, "think": ts,
         "verbose_pen": vp, "total": total, "cost": cost,
-        "thinking_chars": think_c, "visible_chars": vis_c,
-        "think_delta": think_delta
+        "thinking_chars": think_c, "thinking_hidden": think_hidden,
+        "visible_chars": vis_c, "think_delta": think_delta
     }
 
 
@@ -585,7 +598,8 @@ for model in models:
             all_results[mt].append({
                 "name": t, "answer": "ERR", "acc": 0, "think": 0,
                 "verbose_pen": 0, "total": 0, "cost": 0,
-                "thinking_chars": 0, "visible_chars": 0, "think_delta": "",
+                "thinking_chars": 0, "thinking_hidden": False,
+                "visible_chars": 0, "think_delta": "",
                 "variance": ""
             })
             continue
@@ -678,8 +692,11 @@ def build_block(mt, results):
 
         tc = r["thinking_chars"]
         vc = r["visible_chars"]
-        if tc == 0:
+        hidden = r.get("thinking_hidden", False)
+        if tc == 0 and not hidden:
             think_bar = f"{R}⊘ no think{N}"
+        elif hidden:
+            think_bar = f"{Y}◆ ~{fmt_chars(tc)}{N}"
         elif tc >= 1000:
             think_bar = f"{G}█ {fmt_chars(tc)}{N}"
         elif tc >= 500:
@@ -706,6 +723,8 @@ def build_block(mt, results):
     L.append("")
     L.append(f"  {'─' * 38}")
 
+    any_hidden = any(r.get("thinking_hidden", False) for r in results)
+
     if total_talk > 0 and total_think > 0:
         ratio = total_think / total_talk
         ratio_s = f"think/talk {ratio:.1f}x"
@@ -714,8 +733,10 @@ def build_block(mt, results):
     else:
         ratio_s = f"think only"
 
+    think_label = f"~{fmt_chars(total_think)}" if any_hidden else fmt_chars(total_think)
+
     L.append(f"  {B}{total_s}/{total_m}{N} ({pct}%)  {verdict_color(pct)}")
-    L.append(f"  {D}${total_cost:.2f}  │  think {fmt_chars(total_think)}  talk {fmt_chars(total_talk)}  │  {ratio_s}{N}")
+    L.append(f"  {D}${total_cost:.2f}  │  think {think_label}  talk {fmt_chars(total_talk)}  │  {ratio_s}{N}")
 
     return "\n".join(L), pct, total_s, total_cost, total_think
 
