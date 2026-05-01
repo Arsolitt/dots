@@ -789,57 +789,6 @@ elif n_models >= 3:
     ).stdout
     print(grid)
 
-# ── Рекомендация ────────────────────────────────────────────────────────────
-
-if len(model_tags) >= 2:
-    # Find best and second-best
-    sorted_mts = sorted(model_tags, key=lambda mt: (pcts[mt], thinks[mt]), reverse=True)
-    best_mt = sorted_mts[0]
-    runner_mt = sorted_mts[1]
-
-    dn_best = DISPLAY_NAMES.get(best_mt, best_mt)
-    dn_runner = DISPLAY_NAMES.get(runner_mt, runner_mt)
-    v_best = verdict_plain(pcts[best_mt])
-    v_runner = verdict_plain(pcts[runner_mt])
-
-    if abs(pcts[best_mt] - pcts[runner_mt]) <= 5 and abs(thinks[best_mt] - thinks[runner_mt]) < 500:
-        pick = f"Все на одном уровне ({pcts[best_mt]}% vs {pcts[runner_mt]}%)"
-        fg = "220"
-    else:
-        pick = f"➤ {dn_best}  ({v_best} {pcts[best_mt]}% vs {v_runner} {pcts[runner_mt]}%)"
-        fg = "46"
-
-    # Add thinking comparison for top two
-    t_best = thinks[best_mt]
-    t_runner = thinks[runner_mt]
-    if t_best > 0 and t_runner == 0:
-        pick += f"  ·  {dn_runner} не думает"
-    elif t_runner > 0 and t_best == 0:
-        pick += f"  ·  {dn_best} не думает"
-    elif t_best > 0 and t_runner > 0:
-        if t_best > t_runner * 2:
-            pick += f"  ·  {dn_best} думает {t_best // t_runner}x глубже"
-        elif t_runner > t_best * 2:
-            pick += f"  ·  {dn_runner} думает {t_runner // t_best}x глубже"
-
-    rec = subprocess.run(
-        ["gum", "style", "--bold", "--foreground", fg,
-         "--padding", "0 1", "--margin", "0 1", pick],
-        capture_output=True, text=True
-    ).stdout
-    print(rec)
-
-    best_pct = pcts[best_mt]
-    if best_pct >= 75:
-        print(f"  {D}Можно работать без ultrathink на типовых задачах.{N}")
-    elif best_pct >= 50:
-        print(f"  {D}Рекомендуется ultrathink для сложных задач.{N}")
-    elif best_pct >= 30:
-        print(f"  {D}ultrathink обязательно, сложные исследования ненадёжны.{N}")
-    else:
-        print(f"  {D}Непригодна для серьёзной работы. Подождать.{N}")
-    print()
-
 # ── Сохранение ──────────────────────────────────────────────────────────────
 
 from datetime import datetime
