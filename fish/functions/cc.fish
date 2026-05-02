@@ -7,6 +7,7 @@ function cc --description "Launch Claude Code with preferred defaults"
     set -lx CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING 1
     set -lx CLAUDE_CODE_INVESTIGATE_FIRST 1
     set -lx CLAUDE_CODE_ALWAYS_ENABLE_EFFORT 1
+    set -lx CLAUDE_CODE_SUBAGENT_MODEL claude-sonnet-4-6
 
     if set --query _flag_zai
         set -l zai_token (pass zai/api-key 2>/dev/null)
@@ -16,7 +17,7 @@ function cc --description "Launch Claude Code with preferred defaults"
         end
         set -fx ANTHROPIC_AUTH_TOKEN $zai_token
         set -fx ANTHROPIC_BASE_URL http://127.0.0.1:8889
-        set -fx API_TIMEOUT_MS 3000000
+        set -fx API_TIMEOUT_MS 30000000
     end
 
     set -l model
@@ -24,8 +25,9 @@ function cc --description "Launch Claude Code with preferred defaults"
         set model $_flag_model
     else if set --query _flag_zai
         set model glm-5.1
+        
     else
-        set model claude-opus-4-7
+        set model claude-opus-4-6
     end
 
     # Normalize: strip [1m] suffix so classification works regardless of how model was passed
@@ -48,6 +50,10 @@ function cc --description "Launch Claude Code with preferred defaults"
         set model $base_model"[1m]"
     else
         set model $base_model
+    end
+
+    if set --query _flag_zai
+        set -lx CLAUDE_CODE_SUBAGENT_MODEL $base_model
     end
 
     set --local cmd claude --model $model --exclude-dynamic-system-prompt-sections
