@@ -191,6 +191,9 @@ set -g LINUX_FILES \
     mimeapps.list \
     electron-flags.conf
 
+set -g MACOS_CONFIGS \
+    rift
+
 # --- Installers ---
 
 function install_common
@@ -211,6 +214,18 @@ function install_linux
         link "$DOTFILES_DIR/$name" "$HOME/.config/$name"
     end
     for name in $LINUX_FILES
+        link "$DOTFILES_DIR/$name" "$HOME/.config/$name"
+    end
+end
+
+function install_macos
+    if test "$OS" != Darwin
+        log_skip "skipping macOS-only configs (OS: $OS)"
+        return 0
+    end
+
+    log_info "installing macOS-only configs"
+    for name in $MACOS_CONFIGS
         link "$DOTFILES_DIR/$name" "$HOME/.config/$name"
     end
 end
@@ -266,6 +281,7 @@ test $BACKUP -eq 0; and log_warn "backup disabled — existing files will be ove
 ensure_dir "$HOME/.config"
 install_common
 install_linux
+install_macos
 install_gpg
 install_syncthing
 
@@ -274,7 +290,7 @@ log_ok done
 # --- Cleanup globals so sourcing doesn't pollute the shell ---
 
 set --erase DOTFILES_DIR OS DRY_RUN BACKUP
-set --erase COMMON_CONFIGS LINUX_CONFIGS LINUX_FILES
+set --erase COMMON_CONFIGS LINUX_CONFIGS LINUX_FILES MACOS_CONFIGS
 functions --erase _use_color log_info log_ok log_skip log_warn log_err usage
 functions --erase ensure_dir link
-functions --erase install_common install_linux install_syncthing install_gpg
+functions --erase install_common install_linux install_macos install_syncthing install_gpg
