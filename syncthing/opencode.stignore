@@ -3,9 +3,5 @@
 // Dependencies
 node_modules
 
-// Lock files (regenerated per device)
-package-lock.json
-bun.lock
-
 // Compiled binaries
 golem-proxy
