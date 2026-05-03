@@ -24,3 +24,6 @@ todos
 
 // Memory (device-specific project paths and states)
 projects
+
+//
+settings.json
