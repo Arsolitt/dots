@@ -16,7 +16,7 @@ animation_fps = 100.0
 #   and you must toggle activation via a keybind (toggle_space_activated).
 # - If false, spaces are managed by default and you can disable specific ones.
 # Default is true; uncomment to change.
-#default_disable = false
+default_disable = false
 
 # Mouse/Focus behavior
 # - focus_follows_mouse: moving the mouse into a window focuses it
@@ -104,16 +104,12 @@ alignment = "center"
 focus_navigation_style = "niri"
 # the scrolling layout tends to function better without animations,
 # so you can disable them if you like
-# animate = false
+animate = true
 
 [settings.layout.scrolling.gestures]
-# Enable horizontal scroll gestures to switch columns
-enabled = false
-# Invert horizontal direction (swap left/right)
+enabled = true
 invert_horizontal = false
-# Number of fingers required for gesture
 fingers = 3
-# If true, scrolling past the end of the strip will trigger a workspace switch
 propagate_to_workspace_swipe = false
 
 [settings.layout.stack]
@@ -142,7 +138,7 @@ default_orientation = "perpendicular"
 top = 0
 left = 0
 bottom = 0
-right = 0
+right = 59
 
 [settings.layout.gaps.inner]
 horizontal = 0
@@ -195,17 +191,11 @@ fade_duration_ms = 180.0
 
 # Trackpad gestures
 [settings.gestures]
-# Enable horizontal swipes to switch virtual workspaces
-enabled = false
-# Invert horizontal direction (swap next/prev)
+enabled = true
 invert_horizontal_swipe = false
-# Maximum vertical travel allowed for the horizontal swipe to register.
-# Accepts normalized fraction (0..1) or percent (0..100). Example: 0.4 or 40.0
 swipe_vertical_tolerance = 0.4
-# Skip empty workspaces when swiping
 skip_empty = true
-# Number of fingers required for swipe
-fingers = 3
+fingers = 4
 # Normalized horizontal distance (0..1) to trigger swipe for NSTouch-based detection
 distance_pct = 0.08
 # Haptic feedback on commit (generic | alignment | level_change)
@@ -231,7 +221,7 @@ drag_swap_fraction = 0.3
 #   that's already active, it will switch to the last workspace instead
 # - reapply_app_rules_on_title_change: if true, app rules are re-evaluated when a window's title changes
 enabled = true
-default_workspace_count = 4
+default_workspace_count = 6
 auto_assign_windows = true
 preserve_focus_per_workspace = true
 workspace_auto_back_and_forth = false
@@ -257,7 +247,11 @@ workspace_rules = []
 # Do not provide more names than default_workspace_count.
 workspace_names = [
 	"first",
-	"second"
+	"second",
+	"third",
+	"fourth",
+	"fifth",
+	"sixth"
 ]
 
 # App rules (automatic assignment)
@@ -330,7 +324,9 @@ app_rules = []
 # Example usage: with `comb1 = "Alt + Shift"`, you can write:
 #   "comb1 + H" = { move_node = "left" }
 [modifier_combinations]
-comb1 = "Alt + Shift"
+mod = "Alt"
+mod_shift = "Alt + Shift"
+mod_ctrl = "Alt + Ctrl"
 
 [keys]
 # Key binding syntax
@@ -375,77 +371,73 @@ comb1 = "Alt + Shift"
 # - scroll_strip = { delta = 0.5 }
 # - snap_strip / center_selection
 
-"Alt + Z" = "toggle_space_activated"
+# Rift-specific
+"mod + Z" = "toggle_space_activated"
+"mod_ctrl + Q" = "save_and_exit"
+"mod_ctrl + S" = "serialize"
 
-"Alt + H" = { move_focus = "left" }
-"Alt + J" = { move_focus = "down" }
-"Alt + K" = { move_focus = "up" }
-"Alt + L" = { move_focus = "right" }
+# Window management (matches Hyprland SUPER+Q/F/Space/J)
+"mod + F" = "toggle_fullscreen"
+"mod_shift + F" = "toggle_fullscreen_within_gaps"
+"mod + Space" = "toggle_window_floating"
+"mod + J" = "toggle_orientation"
 
-"comb1 + H" = { move_node = "left" }
-"comb1 + J" = { move_node = "down" }
-"comb1 + K" = { move_node = "up" }
-"comb1 + L" = { move_node = "right" }
+# Column/window movement (matches Hyprland SUPER+A/D column navigation)
+# Meta + A/D: move window between columns (matches hy3:move -col/+col)
+"mod + A" = { move_node = "left" }
+"mod + D" = { move_node = "right" }
+# Meta + Shift + A/D: resize column (matches hy3 colresize)
+"mod_shift + A" = "resize_window_shrink"
+"mod_shift + D" = "resize_window_grow"
+# Meta + Ctrl + A/D: scroll strip (closest to hy3 swapcol)
+"mod_ctrl + A" = { scroll_strip = { delta = -0.5 } }
+"mod_ctrl + D" = { scroll_strip = { delta = 0.5 } }
 
-"Alt + 0" = { switch_to_workspace = 0 }
-"Alt + 1" = { switch_to_workspace = 1 }
-"Alt + 2" = { switch_to_workspace = 2 }
-"Alt + 3" = { switch_to_workspace = 3 }
+# Focus navigation (vim-style, supplementary to focus-follows-mouse)
+"mod + H" = { move_focus = "left" }
+"mod + K" = { move_focus = "up" }
+"mod + L" = { move_focus = "right" }
 
-"comb1 + 0" = { move_window_to_workspace = 0 }
-"comb1 + 1" = { move_window_to_workspace = 1 }
-"comb1 + 2" = { move_window_to_workspace = 2 }
-"comb1 + 3" = { move_window_to_workspace = 3 }
+# Move windows (vim-style vertical)
+"mod_shift + H" = { move_node = "left" }
+"mod_shift + J" = { move_node = "down" }
+"mod_shift + K" = { move_node = "up" }
+"mod_shift + L" = { move_node = "right" }
 
-"Alt + Tab" = "switch_to_last_workspace"
+# Workspace switching (Meta+1 → workspace 0, up to Meta+6 → workspace 5)
+"mod + 1" = { switch_to_workspace = 0 }
+"mod + 2" = { switch_to_workspace = 1 }
+"mod + 3" = { switch_to_workspace = 2 }
+"mod + 4" = { switch_to_workspace = 3 }
+"mod + 5" = { switch_to_workspace = 4 }
+"mod + 6" = { switch_to_workspace = 5 }
+"mod + Tab" = "switch_to_last_workspace"
 
-# commands to change the layout engine of the active workspace
-# "Alt + Ctrl + 1" = { set_workspace_layout = { mode = "traditional" } }
-# "Alt + Ctrl + 2" = { set_workspace_layout = { mode = "bsp" } }
-# "Alt + Ctrl + 3" = { set_workspace_layout = { mode = "master_stack" } }
-# "Alt + Ctrl + 4" = { set_workspace_layout = { mode = "scrolling" } }
+# Move window to workspace (Meta+Shift+1 → workspace 0, etc.)
+"mod_shift + 1" = { move_window_to_workspace = 0 }
+"mod_shift + 2" = { move_window_to_workspace = 1 }
+"mod_shift + 3" = { move_window_to_workspace = 2 }
+"mod_shift + 4" = { move_window_to_workspace = 3 }
+"mod_shift + 5" = { move_window_to_workspace = 4 }
+"mod_shift + 6" = { move_window_to_workspace = 5 }
 
-"Alt + Shift + Left" = { join_window = "left" }
-"Alt + Shift + Right" = { join_window = "right" }
-"Alt + Shift + Up" = { join_window = "up" }
-"Alt + Shift + Down" = { join_window = "down" }
-"Alt + Comma" = "toggle_stack"
-"Alt + Slash" = "toggle_orientation"
-"Alt + Ctrl + E" = "unjoin_windows"
+# Container management
+"mod + Comma" = "toggle_stack"
+"mod + Slash" = "toggle_orientation"
+"mod_ctrl + E" = "unjoin_windows"
+"mod_shift + Left" = { join_window = "left" }
+"mod_shift + Right" = { join_window = "right" }
+"mod_shift + Up" = { join_window = "up" }
+"mod_shift + Down" = { join_window = "down" }
 
-"Alt + Shift + Space" = "toggle_window_floating"
-"Alt + F" = "toggle_fullscreen"
-"Alt + Shift + F" = "toggle_fullscreen_within_gaps"
-"comb1 + Ctrl + Space" = "toggle_focus_floating" # briefly bring focus to floating window
+# Focus float toggle
+"mod_shift + Space" = "toggle_focus_floating"
 
-# smartly resize windows
-"Alt + Shift + Equal" = "resize_window_grow"
-"Alt + Shift + Minus" = "resize_window_shrink"
+# Scrolling layout specific
+"mod + C" = "center_selection"
 
-# Move mouse cursor to display by index (0-based) or UUID
-# Examples:
-# "Alt + Shift + A" = { move_mouse_to_display = 0 }
-# "Alt + Shift + S" = { move_mouse_to_display = 1 }
-# "Alt + Shift + D" = { move_mouse_to_display = "e9a4f5a1-2f8b-45c1-9f4e-5a6b7c8d9e0f" }
-# Focus another display (direction/index/uuid)
-# "Alt + Shift + F" = { focus_display = "right" }
+# Launch terminal (kitty, matches SUPER+F2 from Hyprland)
+"mod + Enter" = { exec = ["open", "-a", "kitty"] }
 
-# Move a window to a display (by index, UUID, or direction)
-# "Alt + Ctrl + Up" = { move_window_to_display = { selector = "up" } }
-# "Alt + Ctrl + Down" = { move_window_to_display = { selector = "down" } }
-# "Alt + Ctrl + Left" = { move_window_to_display = { selector = "left" } }
-# "Alt + Ctrl + Right" = { move_window_to_display = { selector = "right" } }
-# "Alt + Ctrl + A" = { move_window_to_display = { selector = 0 } }
-
-# if mission control is enabled
-# this will show an exploded view of the windows in the active workspace
-# "Alt + Ctrl + Shift + M" = "show_mission_control_current"
-# this will show the mission control view shown in the readme
-# "Alt + Ctrl + M" = "show_mission_control_all"
-
-"Alt + Enter" = { "exec" = ["/bin/bash", "-c", "open -a \"/System/Applications/Utilities/Terminal.app\""] }
-
-"Alt + Shift + D" = "debug" # prints layout tree
-
-"Alt + Ctrl + S" = "serialize"
-"Alt + Ctrl + Q" = "save_and_exit"
+# Debug
+"mod_shift + P" = "debug"
