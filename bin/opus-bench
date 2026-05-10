@@ -786,6 +786,8 @@ for model in models:
                 continue
             visible_tok  = max(1, len(resp["text"]) / 3.5)
             think_proxy  = max(0, resp["output_tokens"] - visible_tok)
+            if think_proxy == 0 and resp["thinking_chars"] > 0:
+                think_proxy = resp["thinking_chars"] / 3.5
             runs.append({
                 "thinking_tokens":  think_proxy,
                 "thinking_chars":   resp["thinking_chars"],
