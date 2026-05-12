@@ -39,11 +39,15 @@ function cc --description "Launch Claude Code with preferred defaults"
         case 'claude-opus-4-6'
             set effort max
             set force_long 1
+            set -lx ANTHROPIC_DEFAULT_OPUS_MODEL claude-opus-4-6
         case 'claude-opus-4-7'
             set effort xhigh
             set force_long 1
         case 'glm-*'
             set effort max
+            set -lx ANTHROPIC_DEFAULT_OPUS_MODEL glm-5.1
+            set -lx ANTHROPIC_DEFAULT_SONNET_MODEL glm-5.1
+            set -lx ANTHROPIC_DEFAULT_HAIKU_MODEL glm-turbo
     end
 
     if set --query _flag_long; or test -n "$force_long"
