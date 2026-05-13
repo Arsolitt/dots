@@ -27,7 +27,7 @@ function cc --description "Launch Claude Code with preferred defaults"
         set model glm-5.1
         
     else
-        set model claude-opus-4-6
+        set model claude-opus-4-7
     end
 
     # Normalize: strip [1m] suffix so classification works regardless of how model was passed
