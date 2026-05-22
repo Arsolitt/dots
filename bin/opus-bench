@@ -32,7 +32,7 @@ FAST_MODE=false
 VERBOSE=false
 NUM_RUNS=3
 RUNS_EXPLICIT=false
-CLAUDE_MODELS=("claude-opus-4-6" "claude-opus-4-7")
+CLAUDE_MODELS=("claude-opus-4-6" "claude-opus-4-7" "claude-opus-4-8")
 GLM_MODELS=("glm-5-turbo" "glm-5.1")
 USE_CLAUDE=false
 USE_GLM=false
@@ -72,6 +72,7 @@ opus-bench - бенчмарк качества inference + Sonnet polyrubric
 Модели и effort:
   claude-opus-4-6  --effort max
   claude-opus-4-7  --effort xhigh
+  claude-opus-4-8  --effort xhigh
   glm-5-turbo      --effort max   (через ZAI прокси)
   glm-5.1          --effort max   (через ZAI прокси)
 
@@ -256,6 +257,7 @@ export CLAUDE_CODE_ALWAYS_ENABLE_EFFORT=1
 declare -A MODEL_EFFORT=(
     ["claude-opus-4-6"]="max"
     ["claude-opus-4-7"]="xhigh"
+    ["claude-opus-4-8"]="xhigh"
     ["glm-5-turbo"]="max"
     ["glm-5.1"]="max"
 )
@@ -411,6 +413,7 @@ LABELS = {"reason": "REASON", "trace": "TRACE", "code": "CODE",
 DISPLAY_NAMES = {
     "opus-4-6":   "Opus 4.6",
     "opus-4-7":   "Opus 4.7",
+    "opus-4-8":   "Opus 4.8",
     "glm-5-turbo": "GLM 5 Turbo",
     "glm-5.1":    "GLM 5.1",
 }
@@ -1012,37 +1015,30 @@ blocks = {}; scores = {}
 for mt in model_tags:
     blocks[mt], scores[mt] = build_block(mt)
 
-borders  = best_border(model_tags, scores)
-n_models = len(model_tags)
+borders = best_border(model_tags, scores)
 
-if n_models == 1:
-    mt = model_tags[0]
-    print(gum_style_box(blocks[mt], borders[mt]))
-elif n_models == 2:
-    left  = gum_style_box(blocks[model_tags[0]], borders[model_tags[0]])
-    right = gum_style_box(blocks[model_tags[1]], borders[model_tags[1]])
-    print(subprocess.run(
-        ["gum", "join", "--horizontal", left, "  ", right],
-        capture_output=True, text=True
-    ).stdout)
-elif n_models >= 3:
-    top_tags = model_tags[:2]
-    bot_tags = model_tags[2:]
-    top_boxes = [gum_style_box(blocks[mt], borders[mt]) for mt in top_tags]
-    top_row = subprocess.run(
-        ["gum", "join", "--horizontal"] + [top_boxes[0], "  ", top_boxes[1]],
+# Render model boxes in rows of 2, stacked vertically (handles any model count).
+def join_horizontal(box_list):
+    if len(box_list) == 1:
+        return box_list[0]
+    args = []
+    for i, b in enumerate(box_list):
+        if i > 0:
+            args.append("  ")
+        args.append(b)
+    return subprocess.run(
+        ["gum", "join", "--horizontal"] + args,
         capture_output=True, text=True
     ).stdout.rstrip("\n")
-    if len(bot_tags) == 1:
-        bot_row = gum_style_box(blocks[bot_tags[0]], borders[bot_tags[0]])
-    else:
-        bot_boxes = [gum_style_box(blocks[mt], borders[mt]) for mt in bot_tags]
-        bot_row = subprocess.run(
-            ["gum", "join", "--horizontal"] + [bot_boxes[0], "  ", bot_boxes[1]],
-            capture_output=True, text=True
-        ).stdout.rstrip("\n")
+
+boxes = [gum_style_box(blocks[mt], borders[mt]) for mt in model_tags]
+rows  = [join_horizontal(boxes[i:i + 2]) for i in range(0, len(boxes), 2)]
+
+if len(rows) == 1:
+    print(rows[0])
+else:
     print(subprocess.run(
-        ["gum", "join", "--vertical", top_row, bot_row],
+        ["gum", "join", "--vertical"] + rows,
         capture_output=True, text=True
     ).stdout)
 
