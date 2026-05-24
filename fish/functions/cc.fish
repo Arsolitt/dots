@@ -6,7 +6,6 @@ function cc --description "Launch Claude Code with preferred defaults"
     set -lx CLAUDE_CODE_NEW_INIT 1
     set -lx CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING 1
     set -lx CLAUDE_CODE_INVESTIGATE_FIRST 1
-    set -lx CLAUDE_CODE_ALWAYS_ENABLE_EFFORT 1
     set -lx CLAUDE_CODE_SUBAGENT_MODEL claude-sonnet-4-6
 
     if set --query _flag_zai
@@ -27,7 +26,7 @@ function cc --description "Launch Claude Code with preferred defaults"
         set model glm-5.1
         
     else
-        set model claude-opus-4-7
+        set model claude-opus-4-8
     end
 
     # Normalize: strip [1m] suffix so classification works regardless of how model was passed
@@ -43,6 +42,11 @@ function cc --description "Launch Claude Code with preferred defaults"
         case 'claude-opus-4-7'
             set effort xhigh
             set force_long 1
+            set -lx ANTHROPIC_DEFAULT_OPUS_MODEL claude-opus-4-7
+        case 'claude-opus-4-8'
+            set effort xhigh
+            set force_long 1
+            set -lx ANTHROPIC_DEFAULT_OPUS_MODEL claude-opus-4-8
         case 'glm-*'
             set effort max
             set -lx ANTHROPIC_DEFAULT_OPUS_MODEL glm-5.1
