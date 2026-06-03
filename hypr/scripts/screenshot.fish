@@ -111,16 +111,6 @@ function save_geometry
     end
 end
 
-function check_running
-    sleep 1
-    while true
-        if test (pgrep slurp | wc -m) -eq 0
-            pkill hyprpicker
-            exit
-        end
-    end
-end
-
 function begin_grab
     if test "$FREEZE" -eq 1; and command -q hyprpicker
         hyprpicker -r -z &
@@ -149,6 +139,14 @@ function begin_grab
                 set geometry (grab_window)
             end
             set geometry (trim_geometry "$geometry")
+    end
+
+    if test "$FREEZE" -eq 1
+        pkill hyprpicker
+    end
+
+    if test -z "$geometry"
+        exit 1
     end
 
     if test "$DELAY" -gt 0 2>/dev/null
@@ -285,5 +283,4 @@ if test "$CLIPBOARD" -eq 0
     dbg "Saving in: %s\n" $SAVE_FULLPATH
 end
 
-begin_grab $OPTION &
-check_running
+begin_grab $OPTION
