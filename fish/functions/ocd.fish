@@ -1,4 +1,4 @@
-function oc --description "OpenCode with wiki auto-capture on exit"
+function ocd --description "OpenCode with wiki auto-capture on exit"
     set --local cwd (pwd)
     command opencode $argv
     set --local exit_code $status
