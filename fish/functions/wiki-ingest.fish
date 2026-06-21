@@ -3,6 +3,7 @@ function wiki-ingest --description "Compile wiki sources into knowledge base"
     if test -z "$model"
         set model (wiki config model)
     end
+    set prompt ~/.omp/agent/wiki/agents/wiki-compile.md
     if test (count $argv) -eq 0
         set pending (wiki state pending)
         if test "$pending" = "nothing to ingest"
@@ -11,9 +12,13 @@ function wiki-ingest --description "Compile wiki sources into knowledge base"
         end
         for source in $pending
             echo "ingesting: $source"
-            opencode run --agent wiki-compile --model $model "compile /home/arsolitt/Documents/obsidian/main/wiki/$source"
+            omp -p --no-session --no-extensions --model $model \
+                --system-prompt (cat $prompt) \
+                "compile /home/arsolitt/Documents/obsidian/main/wiki/$source"
         end
     else
-        opencode run --agent wiki-compile --model $model "compile $argv[1]"
+        omp -p --no-session --no-extensions --model $model \
+            --system-prompt (cat $prompt) \
+            "compile $argv[1]"
     end
 end

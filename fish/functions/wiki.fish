@@ -1,3 +1,3 @@
 function wiki --description "Wiki CLI"
-    ~/.config/opencode/wiki/bin/wiki $argv
+    ~/.omp/agent/wiki/bin/wiki $argv
 end

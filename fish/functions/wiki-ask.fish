@@ -3,5 +3,8 @@ function wiki-ask --description "Query the personal wiki"
     if test -z "$model"
         set model (wiki config model)
     end
-    opencode run --agent wiki-query --model $model $argv
+    set prompt ~/.omp/agent/wiki/agents/wiki-query.md
+    omp -p --no-session --no-extensions --model $model \
+        --system-prompt (cat $prompt) \
+        $argv
 end

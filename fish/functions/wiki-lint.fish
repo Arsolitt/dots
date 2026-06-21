@@ -3,5 +3,8 @@ function wiki-lint --description "Run wiki health checks"
     if test -z "$model"
         set model (wiki config model)
     end
-    opencode run --agent wiki-lint --model $model $argv
+    set prompt ~/.omp/agent/wiki/agents/wiki-lint.md
+    omp -p --no-session --no-extensions --model $model \
+        --system-prompt (cat $prompt) \
+        $argv
 end
