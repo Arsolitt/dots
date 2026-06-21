@@ -3,8 +3,8 @@ function wiki-ask --description "Query the personal wiki"
     if test -z "$model"
         set model (wiki config model)
     end
-    set prompt ~/.omp/agent/wiki/agents/wiki-query.md
+    set -l prompt (cat ~/.omp/agent/wiki/agents/wiki-query.md | string collect)
     omp -p --no-session --no-extensions --model $model \
-        --system-prompt (cat $prompt) \
+        --system-prompt "$prompt" \
         $argv
 end
