@@ -1,7 +1,7 @@
 #!/usr/bin/env fish
 
 # --- Зависимости ---
-for cmd in restic pass
+for cmd in restic pass jq
     if not command --query $cmd
         echo "Ошибка: $cmd не найден. Установите его сначала."
         exit 1
@@ -66,33 +66,54 @@ function run_backup
     end
 end
 
-# --- Основной блок ---
+# --- Реестр целей (единый источник истины для бэкапа и cleanup) ---
+# path | source_tag | category_tag ("" если нет) | excludes (строка через пробел, БЕЗ пробелов внутри значений)
 
-function main
+function _t
+    set -g -a T_PATHS  $argv[1]
+    set -g -a T_SRCTAG $argv[2]
+    set -g -a T_CATTAG $argv[3]
+    set -g -a T_EXCL   $argv[4]
+end
+
+function define_targets
+    set -g T_PATHS
+    set -g T_SRCTAG
+    set -g T_CATTAG
+    set -g T_EXCL
+
+    _t "$HOME/projects/"        projects       data    (string join ' ' -- $PROJECT_EXCLUDES)
+    _t "$HOME/.kube"            kube           configs "--exclude=cache"
+    _t "$HOME/.talos"           talos          configs ""
+    _t "$HOME/.ssh"             ssh            configs ""
+    _t "$HOME/.docker"          docker         configs ""
+    _t "$HOME/.gpg"             gpg            configs ""
+    _t "$HOME/.password-store"  password-store configs ""
+    _t "$HOME/.omp/agent"       omp            configs ""
+    _t "$HOME/Pictures"         media          ""      ""
+    # _t "$ZEN_DIR"              zen            configs ""
+end
+
+# --- Бэкап ---
+
+function main_backup
     echo "Запуск скрипта бэкапа Restic..."
-
     init_repo
+    define_targets
 
     set -l error_count 0
 
-    # Бэкап проектов (тег: projects + группа data для prune)
-    run_backup "$HOME/projects/" --tag projects --tag data $PROJECT_EXCLUDES; or set error_count (math $error_count + 1)
-
-    # Бэкап конфигов (тег: уникальный + группа configs для prune)
-    run_backup "$HOME/.kube" --tag kube --tag configs --exclude="cache"; or set error_count (math $error_count + 1)
-    run_backup "$HOME/.talos" --tag talos --tag configs; or set error_count (math $error_count + 1)
-    run_backup "$HOME/.ssh" --tag ssh --tag configs; or set error_count (math $error_count + 1)
-    run_backup "$HOME/.docker" --tag docker --tag configs; or set error_count (math $error_count + 1)
-    run_backup "$HOME/.gpg" --tag gpg --tag configs; or set error_count (math $error_count + 1)
-    run_backup "$HOME/.password-store" --tag password-store --tag configs; or set error_count (math $error_count + 1)
-    # run_backup "$ZEN_DIR" --tag zen --tag configs; or set error_count (math $error_count + 1)
-    run_backup "$HOME/.omp/agent" --tag omp --tag configs; or set error_count (math $error_count + 1)
-
-    # Бэкап медиа
-    run_backup "$HOME/Pictures" --tag media; or set error_count (math $error_count + 1)
+    for i in (seq (count $T_PATHS))
+        set -l path $T_PATHS[$i]
+        set -l tag_args --tag $T_SRCTAG[$i]
+        test -n "$T_CATTAG[$i]"; and set -a tag_args --tag $T_CATTAG[$i]
+        # восстановить excludes-массив из склеенной строки; пустая строка → без аргументов
+        set -l excl
+        test -n "$T_EXCL[$i]"; and set excl (string split ' ' -- $T_EXCL[$i])
+        run_backup "$path" $tag_args $excl; or set error_count (math $error_count + 1)
+    end
 
     echo "=== Выполнение задач завершено ==="
-
     echo "Запуск очистки (forget/prune)..."
     restic forget --prune --group-by tag --keep-last 3 --tag data
     restic forget --prune --group-by tag --keep-last 3 --tag configs
@@ -107,4 +128,74 @@ function main
     end
 end
 
-main
+# --- Cleanup устаревших снимков ---
+
+function main_cleanup
+    set -l apply false
+    if contains -- --apply $argv
+        set apply true
+    end
+
+    define_targets
+
+    # Активные тег-множества как JSON-массив массивов: [["projects","data"],["kube","configs"],...,["media"]]
+    set -l quoted
+    for i in (seq (count $T_SRCTAG))
+        set -l tags $T_SRCTAG[$i]
+        test -n "$T_CATTAG[$i]"; and set -a tags $T_CATTAG[$i]
+        set -l qtags
+        for t in $tags
+            set -a qtags '"'$t'"'
+        end
+        set -a quoted '['(string join ',' -- $qtags)']'
+    end
+    set -l active_json '['(string join ',' -- $quoted)']'
+
+    echo "Поиск устаревших снимков (host: "(hostname)")..."
+    set -l stale_ids (restic snapshots --json --host (hostname) $RESTIC_COMMON_ARGS \
+        | jq --argjson sets "$active_json" -r '
+            ($sets | map(sort)) as $ss
+            | .[]
+            | select((.tags | sort) as $ts | ($ss | any(. == $ts)) | not)
+            | .short_id
+          ')
+
+    if test (count $stale_ids) -eq 0
+        echo "✅ Устаревших снимков не найдено."
+        return 0
+    end
+
+    echo "Найдено "(count $stale_ids)" устаревших снимков:"
+    printf '  %s\n' $stale_ids
+
+    if not $apply
+        echo ""
+        echo "🔍 DRY-RUN (ничего не удаляется). Превью forget:"
+        restic forget $stale_ids --dry-run --prune $RESTIC_COMMON_ARGS
+        echo ""
+        echo "Для реального удаления запустите: "(status current-command)" cleanup --apply"
+        return 0
+    end
+
+    echo ""
+    echo "⏳ forget + prune..."
+    restic forget $stale_ids --prune $RESTIC_COMMON_ARGS
+    or begin; echo "❌ ОШИБКА при forget/prune"; return 1; end
+
+    echo ""
+    echo "🔍 Проверка целостности репозитория (restic check)..."
+    restic check $RESTIC_COMMON_ARGS
+    or begin; echo "❌ ОШИБКА: restic check не прошёл"; return 1; end
+
+    echo "🎉 Cleanup завершён."
+    return 0
+end
+
+# --- Диспетчер ---
+
+switch $argv[1]
+    case cleanup
+        main_cleanup $argv[2..]
+    case '*'
+        main_backup
+end
