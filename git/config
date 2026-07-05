@@ -10,6 +10,7 @@
   autocrlf = input
   compression = 9 
   fsync = none
+	excludesfile = /home/arsolitt/.gitignore
 
 [init]
   defaultBranch = main
