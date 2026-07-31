@@ -115,9 +115,9 @@ function main_backup
 
     echo "=== Выполнение задач завершено ==="
     echo "Запуск очистки (forget/prune)..."
-    restic forget --prune --group-by tag --keep-last 3 --tag data
-    restic forget --prune --group-by tag --keep-last 3 --tag configs
-    restic forget --prune --group-by tag --keep-last 3 --tag media
+    restic forget --prune --group-by tag --keep-last 2 --tag data
+    restic forget --prune --group-by tag --keep-last 2 --tag configs
+    restic forget --prune --group-by tag --keep-last 2 --tag media
 
     if test $error_count -gt 0
         echo "⚠️ Всего ошибок: $error_count"
