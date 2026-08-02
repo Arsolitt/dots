@@ -9,7 +9,7 @@ DOTFILES_DIR="${0:A:h}"
 OS="$(uname -s)"
 DRY_RUN=0
 BACKUP=1
-
+_CLEANUP_ONLY=0
 # --- Color helpers (noop when not a tty) ---
 
 _use_color() {
@@ -60,13 +60,14 @@ log_err() {
 
 usage() {
     local script="$0"
-    printf 'Usage: %s [--dry-run] [--no-backup] [--help]\n' "${script:t}"
+    printf 'Usage: %s [--dry-run] [--no-backup] [--cleanup] [--help]\n' "${script:t}"
     printf '\n'
     printf 'Symlinks dotfiles into $HOME. Skips Linux-only configs on macOS.\n'
     printf '\n'
     printf 'Options:\n'
     printf '  --dry-run     Print what would be done without making changes.\n'
     printf '  --no-backup   Overwrite existing files/links instead of backing them up.\n'
+    printf '  --cleanup     Remove broken dotfiles symlinks, then exit (skip install).\n'
     printf '  --help        Show this message.\n'
     printf '\n'
     printf 'Detected:\n'
@@ -82,6 +83,7 @@ while [[ $# -gt 0 ]]; do
         -h|--help)    _help=1; shift ;;
         --dry-run)    DRY_RUN=1; shift ;;
         --no-backup)  BACKUP=0; shift ;;
+        --cleanup)    _CLEANUP_ONLY=1; shift ;;
         --)           shift; break ;;
         -*)           log_err "unknown option: $1"; usage >&2; exit 2 ;;
         *)            break ;;
@@ -156,6 +158,22 @@ link() {
         ln -s "$src" "$dst"
         log_ok "linked $dst"
     fi
+}
+
+# Checks if a symlink is broken AND points into $DOTFILES_DIR.
+# Returns 0 (removed) or 1 (skipped — not ours, or still working).
+_try_remove_link() {
+    local link="$1" target
+    target="$(readlink "$link")"
+    [[ "$target" == "$DOTFILES_DIR"/* ]] || return 1
+    [[ -e "$link" ]] && return 1
+    if [[ $DRY_RUN -eq 1 ]]; then
+        log_info "would remove broken link: $link"
+    else
+        rm "$link"
+        log_warn "removed broken link: $link"
+    fi
+    return 0
 }
 
 # --- Config lists ---
@@ -277,24 +295,53 @@ install_gpg() {
 
 # --- Main ---
 
+cleanup_broken_links() {
+    log_info "scanning for broken dotfiles symlinks"
+
+    # Directories where installers create symlinks (add new locations here).
+    local -a SCAN_DIRS=("$HOME/.config" "$HOME/.gnupg")
+    local extra
+    for extra in "$HOME/projects" "$HOME/.claude" "$HOME/Pictures"; do
+        [[ -d "$extra" ]] && SCAN_DIRS+=("$extra")
+    done
+
+    local dir link count=0
+    # Recursive scan of config dirs + syncthing target locations
+    for dir in $SCAN_DIRS; do
+        [[ -d "$dir" ]] || continue
+        while IFS= read -r -d '' link; do
+            _try_remove_link "$link" && ((count++))
+        done < <(find "$dir" -type l -print0)
+    done
+    # Shallow scan: $HOME top-level files (e.g. mimeapps.list, electron-flags.conf)
+    while IFS= read -r -d '' link; do
+        _try_remove_link "$link" && ((count++))
+    done < <(find "$HOME" -maxdepth 1 -type l -print0)
+
+    ((count == 0)) && log_skip "no broken dotfiles symlinks found"
+    ((count > 0)) && log_ok "cleaned up $count broken link(s)"
+}
+
 log_info "OS: $OS"
 log_info "dotfiles: $DOTFILES_DIR"
 [[ $DRY_RUN -eq 1 ]] && log_info "dry-run mode — no changes will be applied"
 [[ $BACKUP -eq 0 ]] && log_warn "backup disabled — existing files will be overwritten"
 
 ensure_dir "$HOME/.config"
-install_common
-install_linux
-install_macos
-install_gpg
-install_syncthing
+cleanup_broken_links
 
-log_ok done
+if [[ $_CLEANUP_ONLY -eq 0 ]]; then
+    install_common
+    install_linux
+    install_macos
+    install_gpg
+    install_syncthing
+fi
 
 # --- Cleanup globals so sourcing doesn't pollute the shell ---
 
-unset DOTFILES_DIR OS DRY_RUN BACKUP
+unset DOTFILES_DIR OS DRY_RUN BACKUP _CLEANUP_ONLY
 unset COMMON_CONFIGS LINUX_CONFIGS LINUX_FILES MACOS_CONFIGS
 unset -f _use_color log_info log_ok log_skip log_warn log_err usage
-unset -f ensure_dir link
-unset -f install_common install_linux install_macos install_syncthing install_gpg
+unset -f ensure_dir link _try_remove_link
+unset -f install_common install_linux install_macos install_syncthing install_gpg cleanup_broken_links
