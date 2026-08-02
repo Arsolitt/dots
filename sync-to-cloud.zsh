@@ -39,6 +39,10 @@ PROJECT_EXCLUDES=(
     --exclude="**/__pycache__"
     --exclude="**/*.pyc"
     --exclude="**/.stignore.*"
+    # крупные бэкапы/дампы/горячие БД — нецелевые для restic
+    --exclude="**/*.dump"
+    --exclude="**/minecraft/*.tar.gz"
+    --exclude="**/StellarProtect.db*"
 )
 
 # --- Функции ---
