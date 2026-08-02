@@ -250,37 +250,6 @@ install_macos() {
     done
 }
 
-install_syncthing() {
-    log_info "installing Syncthing .stignore files"
-
-    local -a ST_NAMES=(projects claude opencode pictures)
-    local -a ST_DESTS=(
-        "$HOME/projects"
-        "$HOME/.claude"
-        "$HOME/.config/opencode"
-        "$HOME/Pictures"
-    )
-    local -a DEV_FOLDERS=(projects)
-
-    local i name dest dev
-    for ((i = 1; i <= ${#ST_NAMES[@]}; i++)); do
-        name="${ST_NAMES[$i]}"
-        dest="${ST_DESTS[$i]}"
-        ensure_dir "$dest"
-        link "$DOTFILES_DIR/syncthing/default.stignore" "$dest/.stignore.default"
-        link "$DOTFILES_DIR/syncthing/$name.stignore" "$dest/.stignore"
-    done
-
-    for dev in $DEV_FOLDERS; do
-        for ((i = 1; i <= ${#ST_NAMES[@]}; i++)); do
-            if [[ "${ST_NAMES[$i]}" == "$dev" ]]; then
-                link "$DOTFILES_DIR/syncthing/dev.stignore" "${ST_DESTS[$i]}/.stignore.dev"
-                break
-            fi
-        done
-    done
-}
-
 install_gpg() {
     log_info "installing gpg-agent config"
     ensure_dir "$HOME/.gnupg"
@@ -335,7 +304,6 @@ if [[ $_CLEANUP_ONLY -eq 0 ]]; then
     install_linux
     install_macos
     install_gpg
-    install_syncthing
 fi
 
 # --- Cleanup globals so sourcing doesn't pollute the shell ---
@@ -344,4 +312,4 @@ unset DOTFILES_DIR OS DRY_RUN BACKUP _CLEANUP_ONLY
 unset COMMON_CONFIGS LINUX_CONFIGS LINUX_FILES MACOS_CONFIGS
 unset -f _use_color log_info log_ok log_skip log_warn log_err usage
 unset -f ensure_dir link _try_remove_link
-unset -f install_common install_linux install_macos install_syncthing install_gpg cleanup_broken_links
+unset -f install_common install_linux install_macos install_gpg cleanup_broken_links

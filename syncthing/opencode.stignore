@@ -1,7 +1,0 @@
-#include .stignore.default
-
-// Dependencies
-node_modules
-
-// Compiled binaries
-golem-proxy
