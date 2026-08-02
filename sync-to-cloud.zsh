@@ -103,16 +103,16 @@ main_backup() {
     define_targets
 
     local error_count=0
-    local i path tag_args excl
+    local i src_path tag_args excl
 
     for ((i = 1; i <= ${#T_PATHS[@]}; i++)); do
-        path=${T_PATHS[$i]}
+        src_path=${T_PATHS[$i]}
         tag_args=(--tag ${T_SRCTAG[$i]})
         [[ -n ${T_CATTAG[$i]} ]] && tag_args+=(--tag ${T_CATTAG[$i]})
         # восстановить excludes-массив из склеенной строки; пустая строка → без аргументов
         excl=()
         [[ -n ${T_EXCL[$i]} ]] && excl=(${(z)T_EXCL[$i]})
-        run_backup "$path" $tag_args $excl || ((error_count++))
+        run_backup "$src_path" $tag_args $excl || ((error_count++))
     done
 
     echo "=== Выполнение задач завершено ==="
