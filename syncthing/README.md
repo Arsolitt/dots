@@ -30,9 +30,9 @@ Syncthing Web UI opens at `http://127.0.0.1:8384`.
 
 Run the dotfiles installer to symlink `.stignore` files:
 
-```fish
+```zsh
 cd ~/.config/dots
-fish links.fish
+zsh links.zsh
 ```
 
 This creates the following symlinks in each synced folder:
@@ -123,28 +123,29 @@ All `#include` paths are relative to the folder root — no absolute paths, work
 
    Add folder-specific patterns below the `#include` line if needed.
 
-2. Register the folder in `links.fish` — add to `STIGNORE_MAP`:
+2. Register the folder in `links.zsh` — add to `STIGNORE_MAP`:
 
-   ```fish
-   set -l ST_NAMES projects claude opencode pictures newfolder  # ← add this
-   set -l ST_DESTS \
-       "$HOME/projects" \
-       "$HOME/.claude" \
-       "$HOME/.config/opencode" \
-       "$HOME/Pictures" \
+   ```zsh
+   local -a ST_NAMES=(projects claude opencode pictures newfolder)  # ← add this
+   local -a ST_DESTS=(
+       "$HOME/projects"
+       "$HOME/.claude"
+       "$HOME/.config/opencode"
+       "$HOME/Pictures"
        "$HOME/newfolder"  # ← add this
+   )
    ```
 
    If it's a dev folder, also add to `DEV_FOLDERS`:
 
-   ```fish
-   set -l DEV_FOLDERS projects newfolder
+   ```zsh
+   local -a DEV_FOLDERS=(projects newfolder)
    ```
 
 3. Re-run the installer:
 
-   ```fish
-   fish ~/.config/dots/links.fish
+   ```zsh
+   zsh ~/.config/dots/links.zsh
    ```
 
 4. Add the folder in Syncthing Web UI on all devices.
@@ -172,7 +173,7 @@ brew services restart syncthing
 
 ### Missing include file causes high CPU / memory
 
-If `.stignore` references a file that doesn't exist (e.g., `.stignore.default` symlink is broken), Syncthing may spin and consume excessive resources. Fix: re-run `links.fish` to recreate symlinks.
+If `.stignore` references a file that doesn't exist (e.g., `.stignore.default` symlink is broken), Syncthing may spin and consume excessive resources. Fix: re-run `links.zsh` to recreate symlinks.
 
 ### Patterns not applied after editing
 

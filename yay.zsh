@@ -1,7 +1,7 @@
-#!/usr/bin/env fish
+#!/usr/bin/env zsh
 
-cd /tmp; or exit 1
+cd /tmp || exit 1
 
 git clone https://aur.archlinux.org/yay.git
-cd yay; or exit 1
+cd yay || exit 1
 makepkg --syncdeps --install

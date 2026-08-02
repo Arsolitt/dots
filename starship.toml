@@ -1,0 +1,70 @@
+# starship.toml — Kanagawa two-line prompt recreating tide layout.
+# Left:  directory → git_branch → git_status → (newline) → character
+# Right: status → cmd_duration → kubernetes → language versions
+# Symlinked to ~/.config/starship.toml (starship default location).
+
+format = """
+$directory\
+$git_branch\
+$git_status\
+$line_break\
+$character"""
+right_format = """$status$cmd_duration$kubernetes$python$nodejs$golang$rust"""
+add_newline = true
+palette = "kanagawa"
+
+[palettes.kanagawa]
+fg       = "#DCD7BA"
+cyan     = "#7AA89F"
+green    = "#76946A"
+red      = "#C34043"
+yellow   = "#C0A36E"
+purple   = "#957FB8"
+orange   = "#FF9E64"
+pink     = "#D27E99"
+comment  = "#727169"
+blue     = "#7E9CD8"  # Kanagawa crystalBlue — for kubernetes module
+
+[character]
+success_symbol = "[❯](green)"
+error_symbol = "[❯](red)"
+
+[directory]
+truncation_length = 3
+truncate_to_repo = true
+style = "cyan"
+
+[git_branch]
+symbol = ""
+style = "green"
+
+[git_status]
+style = "yellow"
+
+[status]
+disabled = false
+format = '[$symbol]($style) '
+symbol = "✘"
+success_symbol = ""
+
+[cmd_duration]
+min_time = 3000
+format = "[$duration](comment) "
+show_milliseconds = false
+
+[kubernetes]
+disabled = false
+symbol = "󱃾 "
+format = '[$symbol$context](blue) '
+
+[python]
+format = '[${symbol}${pyenv_prefix}(${version} )]($style) '
+
+[nodejs]
+format = '[$symbol($version )]($style) '
+
+[golang]
+format = '[$symbol($version )]($style) '
+
+[rust]
+format = '[$symbol($version )]($style) '

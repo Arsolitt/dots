@@ -1,0 +1,8 @@
+# antidote plugin list — load order matters.
+# zsh-syntax-highlighting MUST be last: its ZLE widget wrapping must be
+# applied after autosuggestions and fzf-tab register their own widgets.
+zsh-users/zsh-autosuggestions
+olets/zsh-abbr
+Aloxaf/fzf-tab
+wfxr/forgit
+zsh-users/zsh-syntax-highlighting
