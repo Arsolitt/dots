@@ -20,4 +20,7 @@ set --export PATH $BUN_INSTALL/bin $PATH
 # cargo
 set --export PATH ~/.cargo/bin $PATH
 source ~/.config/fish/themes/kanagawa.fish
-export PATH="$HOME/.local/bin:$PATH"
+fish_add_path $HOME/.local/bin
+
+# starship prompt (replaces tide) — must init last
+starship init fish | source

@@ -1,17 +1,13 @@
-#!/usr/bin/env zsh
-
-# fish's `for file in "$dir"/*.asc` silently iterates zero times when no
-# files match; zsh aborts with "no matches found" by default. Match fish.
-setopt NULL_GLOB
+#!/usr/bin/env fish
 
 # Директория для сохранения ключей
-typeset export_dir="$HOME/.gpg"
+set -l export_dir "$HOME/.gpg"
 
 # --- Проверки ---
-if ! command -v gpg >/dev/null; then
+if not command --query gpg
     echo "Ошибка: утилита gpg не найдена. Установите её сначала."
     exit 1
-fi
+end
 
 # Создаем директорию для экспорта, если она не существует
 mkdir -p "$export_dir"
@@ -25,44 +21,38 @@ echo "------------------------------------------------"
 # --- Экспорт публичных ключей ---
 echo "Экспорт публичных ключей..."
 # Получаем список всех ID публичных ключей
-typeset -a public_keys
-public_keys=("${(f)$(gpg --list-public-keys --keyid-format LONG 2>/dev/null | grep '^pub' | awk '{print $2}' | cut -d'/' -f2)}")
-# "${(f)$(...)}" yields a 1-element array holding an empty string when the
-# command outputs nothing; normalize to empty so the count check works.
-(( ${#public_keys[@]} == 1 )) && [[ -z "${public_keys[1]}" ]] && public_keys=()
+set -l public_keys (gpg --list-public-keys --keyid-format LONG 2>/dev/null | string match --regex '^pub' | awk '{print $2}' | cut -d'/' -f2)
 
-if (( ${#public_keys[@]} == 0 )); then
+if test -z "$public_keys"
     echo "  Не найдено публичных ключей для экспорта."
 else
-    for key_id in "${public_keys[@]}"; do
+    for key_id in $public_keys
         echo "  -> Экспортирую публичный ключ: $key_id"
         # Экспортируем ключ в ASCII-формате в файл
         gpg --armor --output "$export_dir/public_$key_id.asc" --export "$key_id"
         # Устанавливаем безопасные права на файл
         chmod 600 "$export_dir/public_$key_id.asc"
-    done
-fi
+    end
+end
 echo "Публичные ключи экспортированы."
 
 # --- Экспорт секретных (приватных) ключей ---
 echo ""
 echo "Экспорт секретных ключей..."
 # Получаем список всех ID секретных ключей
-typeset -a secret_keys
-secret_keys=("${(f)$(gpg --list-secret-keys --keyid-format LONG 2>/dev/null | grep '^sec' | awk '{print $2}' | cut -d'/' -f2)}")
-(( ${#secret_keys[@]} == 1 )) && [[ -z "${secret_keys[1]}" ]] && secret_keys=()
+set -l secret_keys (gpg --list-secret-keys --keyid-format LONG 2>/dev/null | string match --regex '^sec' | awk '{print $2}' | cut -d'/' -f2)
 
-if (( ${#secret_keys[@]} == 0 )); then
+if test -z "$secret_keys"
     echo "  Не найдено секретных ключей для экспорта."
 else
-    for key_id in "${secret_keys[@]}"; do
+    for key_id in $secret_keys
         echo "  -> Экспортирую секретный ключ: $key_id"
         # Экспортируем секретный ключ в ASCII-формате в файл
         gpg --armor --output "$export_dir/secret_$key_id.asc" --export-secret-keys "$key_id"
         # Устанавливаем безопасные права на файл
         chmod 600 "$export_dir/secret_$key_id.asc"
-    done
-fi
+    end
+end
 echo "Секретные ключи экспортированы."
 
 # --- Экспорт trust database ---

@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env fish
 
 killall waybar
 sleep 0.2

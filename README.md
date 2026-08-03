@@ -9,10 +9,9 @@
 - Nemo
 - Kitty
 - Kitty theme: Kanagawa
-- Zsh
+- Fish
 - Starship prompt (Kanagawa two-line)
-- Zsh plugins: antidote (zsh-autosuggestions, zsh-abbr, fzf-tab, forgit, zsh-syntax-highlighting)
-- Zsh theme: Kanagawa
+- Fish theme: Kanagawa
 - Screenshots: Grim + Slurp + Swappy
 - Cursor: vimix Kanagawa Lotus
 - GTK: Kanagawa Orange Dark

@@ -1,6 +1,0 @@
-# bootstrap: redirect all zsh config into ~/.config/zsh
-# This file is symlinked to ~/.zshenv — the ONLY zsh file in $HOME.
-# zsh reads ~/.zshenv first (ZDOTDIR not yet set), so we set ZDOTDIR here
-# and manually source the real .zshenv from $ZDOTDIR.
-export ZDOTDIR="$HOME/.config/zsh"
-source "$ZDOTDIR/.zshenv"
