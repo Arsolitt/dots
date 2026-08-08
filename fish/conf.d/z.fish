@@ -1,4 +1,4 @@
-if test -z "$Z_DATA"
+if test -z "$Z_DATA"; or not test -d "$Z_DATA_DIR"
     if test -z "$XDG_DATA_HOME"
         set -U Z_DATA_DIR "$HOME/.local/share/z"
     else
