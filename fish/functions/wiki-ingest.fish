@@ -14,7 +14,7 @@ function wiki-ingest --description "Compile wiki sources into knowledge base"
             echo "ingesting: $source"
             omp -p --no-session --no-extensions --model $model \
                 --system-prompt "$prompt" \
-                "compile /home/arsolitt/Documents/obsidian/main/wiki/$source"
+                "compile $HOME/Documents/obsidian/main/wiki/$source"
         end
     else
         omp -p --no-session --no-extensions --model $model \
