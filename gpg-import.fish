@@ -21,26 +21,29 @@ echo "------------------------------------------------"
 # --- Импорт публичных ключей ---
 echo "Импорт публичных ключей..."
 # Находим все файлы публичных ключей и импортируем их
-for file in "$import_dir"/public_*.asc
-    if test -f "$file"
+set -l pub_files "$import_dir"/public_*.asc
+if test (count $pub_files) -eq 0
+    echo "  Не найдено файлов публичных ключей для импорта."
+else
+    for file in $pub_files
         echo "  -> Импортирую файл: "(basename "$file")
         gpg --import "$file"
     end
+    echo "Публичные ключи импортированы."
 end
-echo "Публичные ключи импортированы."
 
-# --- Импорт секретных (приватных) ключей ---
-echo ""
-echo "Импорт секретных ключей..."
 # Находим все файлы секретных ключей и импортируем их
 # GPG запросит парольную фразу для каждого ключа
-for file in "$import_dir"/secret_*.asc
-    if test -f "$file"
+set -l sec_files "$import_dir"/secret_*.asc
+if test (count $sec_files) -eq 0
+    echo "  Не найдено файлов секретных ключей для импорта."
+else
+    for file in $sec_files
         echo "  -> Импортирую файл: "(basename "$file")
         gpg --import "$file"
     end
+    echo "Секретные ключи импортированы."
 end
-echo "Секретные ключи импортированы."
 
 # --- Импорт trust database ---
 echo ""

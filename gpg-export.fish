@@ -21,7 +21,7 @@ echo "------------------------------------------------"
 # --- Экспорт публичных ключей ---
 echo "Экспорт публичных ключей..."
 # Получаем список всех ID публичных ключей
-set -l public_keys (gpg --list-public-keys --keyid-format LONG 2>/dev/null | string match --regex '^pub' | awk '{print $2}' | cut -d'/' -f2)
+set -l public_keys (gpg --list-public-keys --with-colons 2>/dev/null | awk -F: '/^pub:/ {print $5}')
 
 if test -z "$public_keys"
     echo "  Не найдено публичных ключей для экспорта."
@@ -40,8 +40,7 @@ echo "Публичные ключи экспортированы."
 echo ""
 echo "Экспорт секретных ключей..."
 # Получаем список всех ID секретных ключей
-set -l secret_keys (gpg --list-secret-keys --keyid-format LONG 2>/dev/null | string match --regex '^sec' | awk '{print $2}' | cut -d'/' -f2)
-
+set -l secret_keys (gpg --list-secret-keys --with-colons 2>/dev/null | awk -F: '/^sec:/ {print $5}')
 if test -z "$secret_keys"
     echo "  Не найдено секретных ключей для экспорта."
 else
