@@ -46,75 +46,75 @@
 
 [filter "sops_homelab"]
 	required = true
-  clean=sops --input-type yaml --output-type yaml --indent 2 --encrypt -p 7A31FF8DBF6055680E9EA3DB6D65D8CF3B037901 --encrypted-regex '^(data|stringData)$' --output /dev/stdout /dev/stdin
-	smudge=sops --input-type yaml --output-type yaml --indent 2 --decrypt -p 7A31FF8DBF6055680E9EA3DB6D65D8CF3B037901 --unencrypted-regex '^(data|stringData)$' --output /dev/stdout /dev/stdin
+  clean=sops --input-type yaml --output-type yaml --indent 2 --encrypt -p 7A31FF8DBF6055680E9EA3DB6D65D8CF3B037901 --encrypted-regex '^(data|stringData)$' /dev/stdin
+	smudge=sops --input-type yaml --output-type yaml --indent 2 --decrypt -p 7A31FF8DBF6055680E9EA3DB6D65D8CF3B037901 --unencrypted-regex '^(data|stringData)$' /dev/stdin
 [filter "sops_full_homelab"]
 	required = true
-  clean=sops --encrypt -p 7A31FF8DBF6055680E9EA3DB6D65D8CF3B037901 --output /dev/stdout /dev/stdin
-	smudge=sops --decrypt -p 7A31FF8DBF6055680E9EA3DB6D65D8CF3B037901 --output /dev/stdout /dev/stdin
+  clean=sops --encrypt -p 7A31FF8DBF6055680E9EA3DB6D65D8CF3B037901 /dev/stdin
+	smudge=sops --decrypt -p 7A31FF8DBF6055680E9EA3DB6D65D8CF3B037901 /dev/stdin
 
 [filter "sops_psclp_infra"]
 	required = true
-  clean=sops --input-type yaml --output-type yaml --indent 2 --encrypt -p 99579EC8377A9A4F3DBFFE90A2D87A2F9AECEEE2 --encrypted-regex '^(data|stringData)$' --output /dev/stdout /dev/stdin
-	smudge=sops --input-type yaml --output-type yaml --indent 2 --decrypt -p 99579EC8377A9A4F3DBFFE90A2D87A2F9AECEEE2 --unencrypted-regex '^(data|stringData)$' --output /dev/stdout /dev/stdin
+  clean=sops --input-type yaml --output-type yaml --indent 2 --encrypt -p 99579EC8377A9A4F3DBFFE90A2D87A2F9AECEEE2 --encrypted-regex '^(data|stringData)$' /dev/stdin
+	smudge=sops --input-type yaml --output-type yaml --indent 2 --decrypt -p 99579EC8377A9A4F3DBFFE90A2D87A2F9AECEEE2 --unencrypted-regex '^(data|stringData)$' /dev/stdin
 [filter "sops_full_psclp_infra"]
 	required = true
-  clean=sops --encrypt -p 99579EC8377A9A4F3DBFFE90A2D87A2F9AECEEE2 --output /dev/stdout /dev/stdin
-	smudge=sops --decrypt -p 99579EC8377A9A4F3DBFFE90A2D87A2F9AECEEE2 --output /dev/stdout /dev/stdin
+  clean=sops --encrypt -p 99579EC8377A9A4F3DBFFE90A2D87A2F9AECEEE2 /dev/stdin
+	smudge=sops --decrypt -p 99579EC8377A9A4F3DBFFE90A2D87A2F9AECEEE2 /dev/stdin
 
 [filter "sops_psc_prod"]
 	required = true
-  clean = sops --input-type yaml --output-type yaml --indent 2 --encrypt -p 7D3130FE408B6BDD22E800C19027DAE169152A24 --encrypted-regex '^(data|stringData)$' --output /dev/stdout /dev/stdin
-	smudge = sops --input-type yaml --output-type yaml --indent 2 --decrypt -p 7D3130FE408B6BDD22E800C19027DAE169152A24 --unencrypted-regex '^(data|stringData)$' --output /dev/stdout /dev/stdin
+  clean = sops --input-type yaml --output-type yaml --indent 2 --encrypt -p 7D3130FE408B6BDD22E800C19027DAE169152A24 --encrypted-regex '^(data|stringData)$' /dev/stdin
+	smudge = sops --input-type yaml --output-type yaml --indent 2 --decrypt -p 7D3130FE408B6BDD22E800C19027DAE169152A24 --unencrypted-regex '^(data|stringData)$' /dev/stdin
 [filter "sops_full_psc_prod"]
 	required = true
-  clean=sops --encrypt -p 7D3130FE408B6BDD22E800C19027DAE169152A24 --output /dev/stdout /dev/stdin
-	smudge=sops --decrypt -p 7D3130FE408B6BDD22E800C19027DAE169152A24 --output /dev/stdout /dev/stdin
+  clean=sops --encrypt -p 7D3130FE408B6BDD22E800C19027DAE169152A24 /dev/stdin
+	smudge=sops --decrypt -p 7D3130FE408B6BDD22E800C19027DAE169152A24 /dev/stdin
 
 [filter "sops_psclp_dev"]
 	required = true
-  clean=sops --input-type yaml --output-type yaml --indent 2 --encrypt -p 3C285BEFAE008E2C40DF559B2A6D32441DC2BE4F --encrypted-regex '^(data|stringData)$' --output /dev/stdout /dev/stdin
-	smudge=sops --input-type yaml --output-type yaml --indent 2 --decrypt -p 3C285BEFAE008E2C40DF559B2A6D32441DC2BE4F --unencrypted-regex '^(data|stringData)$' --output /dev/stdout /dev/stdin
+  clean=sops --input-type yaml --output-type yaml --indent 2 --encrypt -p 3C285BEFAE008E2C40DF559B2A6D32441DC2BE4F --encrypted-regex '^(data|stringData)$' /dev/stdin
+	smudge=sops --input-type yaml --output-type yaml --indent 2 --decrypt -p 3C285BEFAE008E2C40DF559B2A6D32441DC2BE4F --unencrypted-regex '^(data|stringData)$' /dev/stdin
 [filter "sops_full_psclp_dev"]
 	required = true
-  clean=sops --encrypt -p 3C285BEFAE008E2C40DF559B2A6D32441DC2BE4F --output /dev/stdout /dev/stdin
-	smudge=sops --decrypt -p 3C285BEFAE008E2C40DF559B2A6D32441DC2BE4F --output /dev/stdout /dev/stdin
+  clean=sops --encrypt -p 3C285BEFAE008E2C40DF559B2A6D32441DC2BE4F /dev/stdin
+	smudge=sops --decrypt -p 3C285BEFAE008E2C40DF559B2A6D32441DC2BE4F /dev/stdin
 
 [filter "sops_gh_prod"]
 	required = true
-  clean=sops --input-type yaml --output-type yaml --indent 2 --encrypt -p 7A048E8C0785CBAB60228CBE826E9FB7C7452ECC --encrypted-regex '^(data|stringData)$' --output /dev/stdout /dev/stdin
-	smudge=sops --input-type yaml --output-type yaml --indent 2 --decrypt -p 7A048E8C0785CBAB60228CBE826E9FB7C7452ECC --unencrypted-regex '^(data|stringData)$' --output /dev/stdout /dev/stdin
+  clean=sops --input-type yaml --output-type yaml --indent 2 --encrypt -p 7A048E8C0785CBAB60228CBE826E9FB7C7452ECC --encrypted-regex '^(data|stringData)$' /dev/stdin
+	smudge=sops --input-type yaml --output-type yaml --indent 2 --decrypt -p 7A048E8C0785CBAB60228CBE826E9FB7C7452ECC --unencrypted-regex '^(data|stringData)$' /dev/stdin
 [filter "sops_full_gh_prod"]
 	required = true
-  clean=sops --encrypt -p 7A048E8C0785CBAB60228CBE826E9FB7C7452ECC --output /dev/stdout /dev/stdin
-	smudge=sops --decrypt -p 7A048E8C0785CBAB60228CBE826E9FB7C7452ECC --output /dev/stdout /dev/stdin
+  clean=sops --encrypt -p 7A048E8C0785CBAB60228CBE826E9FB7C7452ECC /dev/stdin
+	smudge=sops --decrypt -p 7A048E8C0785CBAB60228CBE826E9FB7C7452ECC /dev/stdin
 
 [filter "sops_lp_prod"]
 	required = true
-  clean=sops --input-type yaml --output-type yaml --indent 2 --encrypt -p B3480D6537E039BB9CB87CBE9D9491F944F7D04E --encrypted-regex '^(data|stringData)$' --output /dev/stdout /dev/stdin
-	smudge=sops --input-type yaml --output-type yaml --indent 2 --decrypt -p B3480D6537E039BB9CB87CBE9D9491F944F7D04E --unencrypted-regex '^(data|stringData)$' --output /dev/stdout /dev/stdin
+  clean=sops --input-type yaml --output-type yaml --indent 2 --encrypt -p B3480D6537E039BB9CB87CBE9D9491F944F7D04E --encrypted-regex '^(data|stringData)$' /dev/stdin
+	smudge=sops --input-type yaml --output-type yaml --indent 2 --decrypt -p B3480D6537E039BB9CB87CBE9D9491F944F7D04E --unencrypted-regex '^(data|stringData)$' /dev/stdin
 [filter "sops_full_lp_prod"]
 	required = true
-  clean=sops --encrypt -p B3480D6537E039BB9CB87CBE9D9491F944F7D04E --output /dev/stdout /dev/stdin
-	smudge=sops --decrypt -p B3480D6537E039BB9CB87CBE9D9491F944F7D04E --output /dev/stdout /dev/stdin
+  clean=sops --encrypt -p B3480D6537E039BB9CB87CBE9D9491F944F7D04E /dev/stdin
+	smudge=sops --decrypt -p B3480D6537E039BB9CB87CBE9D9491F944F7D04E /dev/stdin
 
 [filter "sops_pcr_prod"]
 	required = true
-  clean=sops --input-type yaml --output-type yaml --indent 2 --encrypt -p F431C200D643AE82D9D9493D5113F0524C1FB44A --encrypted-regex '^(data|stringData)$' --output /dev/stdout /dev/stdin
-	smudge=sops --input-type yaml --output-type yaml --indent 2 --decrypt -p F431C200D643AE82D9D9493D5113F0524C1FB44A --unencrypted-regex '^(data|stringData)$' --output /dev/stdout /dev/stdin
+  clean=sops --input-type yaml --output-type yaml --indent 2 --encrypt -p F431C200D643AE82D9D9493D5113F0524C1FB44A --encrypted-regex '^(data|stringData)$' /dev/stdin
+	smudge=sops --input-type yaml --output-type yaml --indent 2 --decrypt -p F431C200D643AE82D9D9493D5113F0524C1FB44A --unencrypted-regex '^(data|stringData)$' /dev/stdin
 [filter "sops_full_pcr_prod"]
 	required = true
-  clean=sops --encrypt -p F431C200D643AE82D9D9493D5113F0524C1FB44A --output /dev/stdout /dev/stdin
-	smudge=sops --decrypt -p F431C200D643AE82D9D9493D5113F0524C1FB44A --output /dev/stdout /dev/stdin
+  clean=sops --encrypt -p F431C200D643AE82D9D9493D5113F0524C1FB44A /dev/stdin
+	smudge=sops --decrypt -p F431C200D643AE82D9D9493D5113F0524C1FB44A /dev/stdin
 
 [filter "sops_ock_prod"]
 	required = true
-  clean=sops --input-type yaml --output-type yaml --indent 2 --encrypt -p B7C3FFEE97A2AE4A4AD399C2C871B09230CBB5EC --encrypted-regex '^(data|stringData)$' --output /dev/stdout /dev/stdin
-	smudge=sops --input-type yaml --output-type yaml --indent 2 --decrypt -p B7C3FFEE97A2AE4A4AD399C2C871B09230CBB5EC --unencrypted-regex '^(data|stringData)$' --output /dev/stdout /dev/stdin
+  clean=sops --input-type yaml --output-type yaml --indent 2 --encrypt -p B7C3FFEE97A2AE4A4AD399C2C871B09230CBB5EC --encrypted-regex '^(data|stringData)$' /dev/stdin
+	smudge=sops --input-type yaml --output-type yaml --indent 2 --decrypt -p B7C3FFEE97A2AE4A4AD399C2C871B09230CBB5EC --unencrypted-regex '^(data|stringData)$' /dev/stdin
 [filter "sops_full_ock_prod"]
 	required = true
-  clean=sops --encrypt -p B7C3FFEE97A2AE4A4AD399C2C871B09230CBB5EC --output /dev/stdout /dev/stdin
-	smudge=sops --decrypt -p B7C3FFEE97A2AE4A4AD399C2C871B09230CBB5EC --output /dev/stdout /dev/stdin
+  clean=sops --encrypt -p B7C3FFEE97A2AE4A4AD399C2C871B09230CBB5EC /dev/stdin
+	smudge=sops --decrypt -p B7C3FFEE97A2AE4A4AD399C2C871B09230CBB5EC /dev/stdin
 
 [credential "https://github.com"]
 	helper =
