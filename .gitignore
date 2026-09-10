@@ -7,3 +7,6 @@ banks
 fish/completions/docker.fish
 fish/completions/kubectl.fish
 fish/completions/orbctl.fish
+
+# machine-local: TPM plugin clones (installed to ~/.tmux/plugins by install.fish)
+tmux/plugins/

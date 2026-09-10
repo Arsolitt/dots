@@ -125,6 +125,8 @@ function _phase1_packages
         case '*'
             _log_err "unsupported OS: $OS"
     end
+    # TPM (tmux plugin manager) — same on both OSes
+    _install_tpm
 end
 
 function _install_packages_macos
@@ -138,7 +140,7 @@ function _install_packages_macos
     # both install and the list-check so the idempotency probe never false-misses.
     # `rustup` (not the oldname rustup-init) installs the rustup-init binary.
     set -l formulas starship zoxide eza bat fd fzf git jq cloc fnm kubernetes-cli \
-        go gnupg restic pass rsync rust cilium-cli kubecm pinentry-mac
+        go gnupg restic pass rsync rust cilium-cli kubecm pinentry-mac tmux
     set -l missing
     for pkg in $formulas
         if brew list --formula "$pkg" >/dev/null 2>&1
@@ -174,11 +176,70 @@ function _install_packages_macos
             _log_err "brew: flux install failed"
         end
     end
+    _install_casks_macos
+end
+
+function _install_casks_macos
+    set -l casks ghostty font-fantasque-sans-mono-nerd-font
+    set -l missing_casks
+    for pkg in $casks
+        if brew list --cask "$pkg" >/dev/null 2>&1
+            _log_skip "brew cask: $pkg already installed"
+        else
+            set -a missing_casks $pkg
+        end
+    end
+    if test (count $missing_casks) -gt 0
+        if test $DRY_RUN -eq 1
+            _log_info "would brew install --cask: $missing_casks"
+        else
+            brew install --cask $missing_casks
+            if test $status -eq 0
+                for pkg in $missing_casks; _log_ok "brew cask: installed $pkg"; end
+            else
+                _log_err "brew cask install failed: $missing_casks"
+            end
+        end
+    end
+
+    # sketchybar — formula behind its own tap (not a cask)
+    if brew list --formula sketchybar >/dev/null 2>&1
+        _log_skip "brew: sketchybar already installed"
+    else if test $DRY_RUN -eq 1
+        _log_info "would brew tap FelixKratz/formulae && brew install FelixKratz/formulae/sketchybar"
+    else
+        brew tap FelixKratz/formulae
+        and brew install FelixKratz/formulae/sketchybar
+        if test $status -eq 0
+            _log_ok "brew: installed sketchybar"
+        else
+            _log_err "brew: sketchybar install failed"
+        end
+    end
+end
+
+function _install_tpm
+    # TPM (tmux plugin manager) — plain git clone, idempotent by dir check.
+    set -l tpm_dir "$HOME/.tmux/plugins/tpm"
+    if test -d "$tpm_dir"
+        _log_skip "tpm: already installed"
+        return 0
+    end
+    if test $DRY_RUN -eq 1
+        _log_info "would clone tpm to $tpm_dir"
+        return 0
+    end
+    git clone --quiet https://github.com/tmux-plugins/tpm "$tpm_dir"
+    if test $status -eq 0
+        _log_ok "tpm: installed"
+    else
+        _log_err "tpm: clone failed"
+    end
 end
 
 function _install_packages_linux
     set -l repo_pkgs starship zoxide eza bat fd fzf git jq cloc fnm kubectl \
-        go gnupg restic pass rsync rust cilium-cli
+        go gnupg restic pass rsync rust cilium-cli tmux
     set -l missing
     for pkg in $repo_pkgs
         if pacman -Q "$pkg" >/dev/null 2>&1
@@ -459,5 +520,5 @@ end
 
 set --erase DOTFILES OS DRY_RUN ERRORS
 functions --erase _use_color _log_info _log_ok _log_skip _log_warn _log_err _have
-functions --erase _phase1_packages _install_packages_macos _install_packages_linux _install_kubecm_linux
+functions --erase _phase1_packages _install_packages_macos _install_packages_linux _install_kubecm_linux _install_casks_macos _install_tpm
 functions --erase _phase2_links _phase3_fisher _phase4_fnm _phase5_krew _phase6_shell

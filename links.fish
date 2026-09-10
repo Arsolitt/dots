@@ -193,7 +193,8 @@ set -g COMMON_CONFIGS \
     fish \
     git \
     kitty \
-    btop
+    btop \
+    tmux
 
 set -g LINUX_CONFIGS \
     hypr \
@@ -212,7 +213,9 @@ set -g LINUX_FILES \
     electron-flags.conf
 
 set -g MACOS_CONFIGS \
-    rift
+    rift \
+    ghostty \
+    sketchybar
 
 # --- Installers ---
 

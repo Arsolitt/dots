@@ -1,6 +1,6 @@
-<h1 align="center">CachyOS + Hyprland</h1>
+<h1 align="center">dots</h1>
 
-## Overview
+## Linux (CachyOS + Hyprland)
 - Hyprland
 - Hyprpaper
 - Hyprlock
@@ -17,6 +17,14 @@
 - GTK: Kanagawa Orange Dark
 - Icons: Kanagawa
 - Font: FantasqueSansM
+
+## macOS
+- Ghostty (Kanagawa palette inlined)
+- Font: JetBrainsMono Nerd Font
+- tmux + TPM (resurrect/continuum, Kanagawa powerline status)
+- Sketchy-bar (Kanagawa)
+- Fish + Starship (Kanagawa two-line)
+- Raycast
 
 ## Screenshots
 

@@ -1,0 +1,137 @@
+#!/bin/bash
+
+# Kanagawa-themed sketchybar configuration.
+
+CONFIG_DIR="$HOME/.config/sketchybar"
+PLUGIN_DIR="$CONFIG_DIR/plugins"
+
+source "$CONFIG_DIR/colors.sh"
+
+# --- Bar: floating pill at the top ---
+sketchybar --bar position=top \
+  height=34 \
+  color=$BACKGROUND_DEEP \
+  border_width=2 \
+  border_color=$SURFACE_1 \
+  corner_radius=14 \
+  margin=8 \
+  padding_left=8 \
+  padding_right=8 \
+  shadow=off \
+  blur_radius=0 \
+  sticky=on \
+  topmost=on
+
+# --- Global defaults ---
+sketchybar --default updates=when_shown \
+  icon.font="$FONT:Bold:15.0" \
+  icon.color=$FOREGROUND \
+  label.font="$FONT:Regular:13.0" \
+  label.color=$FOREGROUND \
+  icon.padding_left=6 \
+  icon.padding_right=3 \
+  label.padding_left=3 \
+  label.padding_right=6 \
+  background.height=28 \
+  background.corner_radius=9 \
+  background.padding_left=5 \
+  background.padding_right=5
+
+# --- Left: apple logo (U+F179) ---
+sketchybar --add item apple left \
+  --set apple icon="" \
+  icon.color=$ACCENT \
+  label.drawing=off \
+  click_script='sketchybar --set $NAME popup.drawing=toggle' \
+  popup.height=30 \
+  popup.y_offset=4 \
+  popup.align=center \
+  popup.background.color=$BACKGROUND_DEEP \
+  popup.background.border_width=1 \
+  popup.background.border_color=$SURFACE_1 \
+  popup.background.corner_radius=10
+
+# Apple popup menu entries.
+sketchybar --add item apple.settings popup.apple \
+  --set apple.settings label="Settings" \
+  icon.drawing=off \
+  click_script="open -a 'System Settings'; sketchybar --set apple popup.drawing=off"
+sketchybar --add item apple.activity popup.apple \
+  --set apple.activity label="Activity Monitor" \
+  icon.drawing=off \
+  click_script="open -a 'Activity Monitor'; sketchybar --set apple popup.drawing=off"
+sketchybar --add item apple.lock popup.apple \
+  --set apple.lock label="Lock Screen" \
+  icon.drawing=off \
+  click_script="pmset displaysleepnow; sketchybar --set apple popup.drawing=off"
+sketchybar --add item apple.sleep popup.apple \
+  --set apple.sleep label="Sleep" \
+  icon.drawing=off \
+  click_script="pmset sleepnow; sketchybar --set apple popup.drawing=off"
+
+# --- Left: space indicators ---
+# yabai is optional: spaces highlight on space_change without it,
+# clicking only focuses when yabai is installed.
+for i in $(seq 1 6); do
+  sketchybar --add item space.$i left \
+    --subscribe space.$i space_change \
+    --set space.$i associated_space=$i \
+    icon=$i \
+    icon.highlight_color=$CRYSTAL_BLUE \
+    label.drawing=off \
+    background.drawing=off \
+    icon.padding_left=4 \
+    icon.padding_right=4 \
+    click_script="yabai -m space --focus $i 2>/dev/null || true"
+done
+
+# Small spacer between spaces and front_app.
+sketchybar --add item space_sep left \
+  --set space_sep width=8 \
+  icon.drawing=off \
+  label.drawing=off \
+  background.drawing=off
+
+# --- Left: front application name (icon U+F120 terminal) ---
+sketchybar --add item front_app left \
+  --set front_app script=$PLUGIN_DIR/front_app.sh \
+  icon="" \
+  icon.color=$DIM \
+  label.color=$FOREGROUND \
+  --subscribe front_app front_app_switched
+
+# --- Right: tray aliases (menu bar extras folded into Control Center) ---
+# Requires Screen Recording permission for sketchybar.
+for tray_item in "Item-0(4)" "Item-0(5)" "Item-0(6)" "Item-0(7)"; do
+  sketchybar --add alias "Control Center,$tray_item" right
+done
+
+# --- Right: wifi, icon only (icon U+F1EB) ---
+sketchybar --add item wifi right \
+  --set wifi script=$PLUGIN_DIR/wifi.sh \
+  icon="" \
+  label.drawing=off \
+  click_script='open "x-apple.systempreferences:com.apple.wifi-settings"' \
+  --subscribe wifi wifi_change system_woke
+
+# --- Right: volume ---
+sketchybar --add item volume right \
+  --set volume script=$PLUGIN_DIR/volume.sh \
+  --subscribe volume volume_change mouse.clicked mouse.scrolled
+
+# --- Right: battery ---
+sketchybar --add item battery right \
+  --set battery script=$PLUGIN_DIR/battery.sh \
+  update_freq=60 \
+  click_script='open "x-apple.systempreferences:com.apple.Battery-Settings.continuous"' \
+  --subscribe battery system_woke
+
+# --- Right: clock (icon U+F017 clock face) ---
+sketchybar --add item clock right \
+  --set clock script=$PLUGIN_DIR/clock.sh \
+  update_freq=15 \
+  click_script='open -a Calendar' \
+  icon="" \
+  icon.color=$DIM
+
+sketchybar --update

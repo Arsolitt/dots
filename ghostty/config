@@ -1,0 +1,64 @@
+# ghostty/config — Kanagawa-themed terminal configuration
+# Theme: Kanagawa. The palette is inlined below because Ghostty ships no
+# built-in plain "Kanagawa" theme (only the kanagawa-dragon variant).
+
+font-family = FantasqueSansM Nerd Font Mono
+font-size = 14
+
+# Kanagawa base colors
+background = #1f1f28
+foreground = #dcd7ba
+cursor-color = #c8c093
+selection-background = #2d4f67
+selection-foreground = #c8c093
+
+# Normal colors (0-7)
+palette = 0=#16161d
+palette = 1=#c34043
+palette = 2=#76946a
+palette = 3=#c0a36e
+palette = 4=#7e9cd8
+palette = 5=#957fb8
+palette = 6=#6a9589
+palette = 7=#c8c093
+# Bright colors (8-15)
+palette = 8=#727169
+palette = 9=#e82424
+palette = 10=#98bb6c
+palette = 11=#e6c384
+palette = 12=#7fb4ca
+palette = 13=#938aa9
+palette = 14=#7aa89f
+palette = 15=#dcd7ba
+# Extended colors (16-17)
+palette = 16=#ffa066
+palette = 17=#ff5d62
+
+window-padding-x = 10
+window-padding-y = 8
+
+# macOS integration
+macos-option-as-alt = true
+macos-titlebar-style = transparent
+copy-on-select = clipboard
+
+# Quake-style dropdown terminal
+keybind = global:cmd+grave_accent=toggle_quick_terminal
+quick-terminal-position = top
+
+# Shift+Enter sends LF: works inside tmux, which does not forward the
+# kitty keyboard protocol (outside tmux apps got Shift+Enter natively).
+keybind = shift+enter=text:\n
+
+# Taste options — uncomment to suit
+
+# Scroll speed for wheel/trackpad (default 3). Lower = fewer, smaller
+# scroll events — smoother inside tmux (fewer redraws), slower natively.
+# mouse-scroll-multiplier = 2
+# background-opacity = 0.95
+
+# Remote hosts usually lack the xterm-ghostty terminfo entry, which breaks
+# TERM inside SSH sessions. Fix the remote host once with:
+#   infocmp -x xterm-ghostty | ssh <host> tic -x -
+# or uncomment the fallback below to advertise a widely known TERM instead:
+# term = xterm-256color
