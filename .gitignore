@@ -2,3 +2,8 @@ hyprpanel
 hyprland.conf
 hyprpaper.conf
 banks
+
+# machine-local: OrbStack completion symlinks (absolute paths into /Applications)
+fish/completions/docker.fish
+fish/completions/kubectl.fish
+fish/completions/orbctl.fish
