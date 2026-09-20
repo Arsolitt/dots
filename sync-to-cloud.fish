@@ -94,6 +94,7 @@ function define_targets
     _t "$HOME/.docker"          docker         configs ""
     _t "$HOME/.gpg"             gpg            configs ""
     _t "$HOME/.password-store"  password-store configs ""
+    _t "$HOME/.config/sops/age" sops-age       configs ""
     _t "$HOME/.omp/agent"       omp            configs ""
     _t "$HOME/Pictures"         media          ""      ""
     # _t "$ZEN_DIR"              zen            configs ""

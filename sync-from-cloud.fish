@@ -107,6 +107,7 @@ function main
     run_restore docker "$HOME/.docker"; or set error_count (math $error_count + 1)
     run_restore gpg "$HOME/.gpg"; or set error_count (math $error_count + 1)
     run_restore password-store "$HOME/.password-store"; or set error_count (math $error_count + 1)
+    run_restore sops-age "$HOME/.config/sops/age"; or set error_count (math $error_count + 1)
     # run_restore zen "$ZEN_DIR"; or set error_count (math $error_count + 1)
     run_restore omp,configs "$HOME/.omp/agent"; or set error_count (math $error_count + 1)
 

@@ -124,3 +124,7 @@
 	helper = !gh auth git-credential
 [protocol "file"]
 	allow = always
+[filter "sops_age_homelab"]
+	smudge = SOPS_AGE_KEY_FILE=/Users/arsolitt/.config/sops/age/homelab.agekey sops --input-type yaml --output-type yaml --indent 2 --decrypt /dev/stdin
+	required = true
+	clean = sops --input-type yaml --output-type yaml --indent 2 --encrypt --filename-override secrets.sops.yaml /dev/stdin
