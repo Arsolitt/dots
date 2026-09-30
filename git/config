@@ -115,7 +115,9 @@
 	required = true
   clean=sops --encrypt -p B7C3FFEE97A2AE4A4AD399C2C871B09230CBB5EC /dev/stdin
 	smudge=sops --decrypt -p B7C3FFEE97A2AE4A4AD399C2C871B09230CBB5EC /dev/stdin
-
+	
+[credential "https://git.arsolitt.dev"]
+   username = arsolitt
 [credential "https://github.com"]
 	helper =
 	helper = !gh auth git-credential
