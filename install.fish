@@ -494,6 +494,34 @@ function _phase6_shell
 end
 
 # ---------------------------------------------------------------------------
+# Phase 7: backup CLI
+# ---------------------------------------------------------------------------
+
+function _phase7_backup
+    _log_info "phase 7: backup CLI"
+    if not _have go
+        _log_err "go not found — cannot build the backup CLI"
+        return 0
+    end
+    if not test -d "$HOME/.local/bin"
+        if test $DRY_RUN -eq 1
+            _log_info "would create dir $HOME/.local/bin"
+        else
+            mkdir -p "$HOME/.local/bin"
+        end
+    end
+    if test $DRY_RUN -eq 1
+        _log_info "would build: go build -C $DOTFILES/backup -o $HOME/.local/bin/backup ."
+        return 0
+    end
+    if go build -C "$DOTFILES/backup" -o "$HOME/.local/bin/backup" .
+        _log_ok "backup CLI installed: $HOME/.local/bin/backup"
+    else
+        _log_err "backup CLI build failed"
+    end
+end
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -507,6 +535,7 @@ _phase3_fisher
 _phase4_fnm
 _phase5_krew
 _phase6_shell
+_phase7_backup
 
 # ---------------------------------------------------------------------------
 # Summary & cleanup
@@ -521,4 +550,4 @@ end
 set --erase DOTFILES OS DRY_RUN ERRORS
 functions --erase _use_color _log_info _log_ok _log_skip _log_warn _log_err _have
 functions --erase _phase1_packages _install_packages_macos _install_packages_linux _install_kubecm_linux _install_casks_macos _install_tpm
-functions --erase _phase2_links _phase3_fisher _phase4_fnm _phase5_krew _phase6_shell
+functions --erase _phase2_links _phase3_fisher _phase4_fnm _phase5_krew _phase6_shell _phase7_backup

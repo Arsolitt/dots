@@ -226,6 +226,9 @@ function install_common
     end
     # starship prompt config — top-level file in .config
     link "$DOTFILES_DIR/starship.toml" "$HOME/.config/starship.toml"
+    # backup CLI registry — single file in its own .config dir
+    ensure_dir "$HOME/.config/backup"
+    link "$DOTFILES_DIR/backup/config.toml" "$HOME/.config/backup/config.toml"
 end
 
 function install_linux

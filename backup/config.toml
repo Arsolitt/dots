@@ -1,0 +1,102 @@
+# config.toml — backup registry and policies for the `backup` CLI.
+# Single source of truth for targets, excludes, retention and schedule.
+# Shared by macOS and Linux — use ~ so one file works on both.
+
+repository       = "sftp:pbackup:/mnt/backup/restic"
+password_command = "pass restic/backup-repo"
+# Non-interactive password source for scheduled runs (gpg-agent's cache may be cold):
+#   macOS:  security add-generic-password -a "$USER" -s backup-restic -w '<password>' -U
+#           password_command_darwin = "security find-generic-password -a $USER -s backup-restic -w"
+#   Linux:  secret-tool store --label backup-restic service backup-restic
+#           password_command_linux = "secret-tool lookup service backup-restic"
+notify           = "failures"   # failures | always | off
+compression      = "auto"       # restic repo format v2: auto | off | fastest | better | max
+# host           = ""           # defaults to "mac" (darwin) / "linux" (linux); stable snapshot identity
+# limit_upload_kib = 0          # 0 = unlimited
+# cache_dir      = "~/.cache/backup"
+# state_dir      = "~/.local/state/backup"
+
+[schedule]
+push_time     = "12:00"
+prune_weekday = "sunday"
+prune_time    = "13:00"
+
+[exclude_sets]
+# project: build artifacts and caches
+project = [
+    "**/node_modules", "**/.next", "**/.nuxt", "**/target", "**/.venv",
+    "**/venv", "**/cpython", "**/dist", "**/.build", "**/__pycache__",
+    "**/*.pyc", "**/.stignore.*",
+]
+# project_large: big dumps / hot databases — poor fit for restic
+project_large = ["**/*.dump", "**/minecraft/*.tar.gz", "**/StellarProtect.db*"]
+
+[retention.data]        # e.g. ~/projects
+keep_daily   = 7
+keep_weekly  = 4
+keep_monthly = 6
+
+[retention.configs]     # small files, keep a long history
+keep_daily   = 14
+keep_monthly = 12
+
+[retention.media]       # ~/Pictures
+keep_last    = 3
+keep_monthly = 6
+
+[[targets]]
+name         = "projects"
+path         = "~/projects"
+tags         = ["projects", "data"]
+exclude_sets = ["project", "project_large"]
+
+[[targets]]
+name    = "kube"
+path    = "~/.kube"
+tags    = ["kube", "configs"]
+exclude = ["cache"]
+
+[[targets]]
+name = "talos"
+path = "~/.talos"
+tags = ["talos", "configs"]
+
+[[targets]]
+name = "ssh"
+path = "~/.ssh"
+tags = ["ssh", "configs"]
+
+[[targets]]
+name = "docker"
+path = "~/.docker"
+tags = ["docker", "configs"]
+
+[[targets]]
+name = "gpg"
+path = "~/.gpg"
+tags = ["gpg", "configs"]
+
+[[targets]]
+name = "password-store"
+path = "~/.password-store"
+tags = ["password-store", "configs"]
+
+[[targets]]
+name = "sops-age"
+path = "~/.config/sops/age"
+tags = ["sops-age", "configs"]
+
+[[targets]]
+name = "omp"
+path = "~/.omp/agent"
+tags = ["omp", "configs"]
+
+[[targets]]
+name = "media"
+path = "~/Pictures"
+tags = ["media"]
+
+# [[targets]]
+# name = "zen"
+# path = "~/Library/Application Support/zen"   # macOS; on Linux: ~/.zen
+# tags = ["zen", "configs"]
