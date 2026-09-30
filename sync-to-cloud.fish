@@ -158,10 +158,13 @@ function main_cleanup
     set -l active_json '['(string join ',' -- $quoted)']'
 
     echo "Поиск устаревших снимков (host: "(hostname)")..."
+    # Не устаревшие: снапшоты без тегов (ручные/спасательные) и с зарезервированным тегом manual.
     set -l stale_ids (restic snapshots --json --host (hostname) $RESTIC_COMMON_ARGS \
         | jq --argjson sets "$active_json" -r '
             ($sets | map(sort)) as $ss
             | .[]
+            | select(((.tags // []) | length) > 0)
+            | select((.tags | index("manual")) == null)
             | select((.tags | sort) as $ts | ($ss | any(. == $ts)) | not)
             | .short_id
           ')
