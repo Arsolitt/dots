@@ -10,12 +10,12 @@ import (
 )
 
 const (
-	statusUsage = `Использование: backup status
+	statusUsage = `Использование: pbackup status
 
 Показывает состояние последних запусков и сводку по репозиторию.
 `
 
-	snapshotsUsage = `Использование: backup snapshots [--all]
+	snapshotsUsage = `Использование: pbackup snapshots [--all]
 
 Список снапшотов (по умолчанию только текущей машины).
 

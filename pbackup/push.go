@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-const pushUsage = `Использование: backup push [--dry-run] [--no-forget] [--no-lint] [цель...]
+const pushUsage = `Использование: pbackup push [--dry-run] [--no-forget] [--no-lint] [цель...]
 
 Создаёт снапшоты всех (или указанных) целей и применяет политику хранения.
 

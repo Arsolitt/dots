@@ -7,10 +7,10 @@ Critical-path rule: recovery uses **plain `restic` + `ssh` only** — nothing in
 
 - Repository: `sftp:pbackup:/pbackup/restic` (restic, format v2)
 - Access: `ssh pbackup` — host/port/user live in `~/.ssh/config` on a live machine and in the Bitwarden item `pbackup/console`; key `~/.ssh/laptop` (copy attached to Bitwarden).
-- The repository is also the machine-to-machine transfer medium: `backup push` on one machine, `backup pull` on the other.
-- Day-to-day operations use the `backup` CLI (`dots/backup`) — see `backup/README.md` for the cheat sheet; this runbook deliberately sticks to raw `restic`.
+- The repository is also the machine-to-machine transfer medium: `pbackup push` on one machine, `pbackup pull` on the other.
+- Day-to-day operations use the `pbackup` CLI (`dots/pbackup`) — see `pbackup/README.md` for the cheat sheet; this runbook deliberately sticks to raw `restic`.
 - Snapshot tags (`source,category`): `projects,data` · `media` · `kube|talos|ssh|docker|gpg|password-store|sops-age|omp,configs`. Untagged and `manual`-tagged snapshots are never pruned by `cleanup`.
-- Runtime repository password: `pass restic/backup-repo` (interactive) or the per-OS non-interactive command in `backup/config.toml` (Keychain / secret-tool) — needed for unattended scheduled runs.
+- Runtime repository password: `pass restic/backup-repo` (interactive) or the per-OS non-interactive command in `pbackup/config.toml` (Keychain / secret-tool) — needed for unattended scheduled runs.
 
 ## Bitwarden items to create (keep current)
 
@@ -72,6 +72,6 @@ Confirms the password works, the repository decrypts, and data is readable — b
 ## Known gotchas
 
 - `pass`/GPG chain is circular by design (see above) — Bitwarden plus the offline copy is the break-glass path.
-- Case sensitivity: macOS APFS is case-insensitive (verified), Linux is not. A directory containing both `Foo` and `foo` cannot be restored on macOS. Keep trees casefold-unique; a `lint` check ships with the backup tool.
+- Case sensitivity: macOS APFS is case-insensitive (verified), Linux is not. A directory containing both `Foo` and `foo` cannot be restored on macOS. Keep trees casefold-unique; a `lint` check ships with the `pbackup` CLI.
 - `StrictHostKeyChecking no` is set for `pbackup` — acceptable for an encrypted repo, but pinning the host key (`ssh-keyscan`) is stricter.
-- Zen browser profile is *not* backed up (target commented out in `backup/config.toml`).
+- Zen browser profile is *not* backed up (target commented out in `pbackup/config.toml`).

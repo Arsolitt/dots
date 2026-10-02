@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-const pruneUsage = `Использование: backup prune [--apply] [--read-data-subset PCT] [--host NAME]
+const pruneUsage = `Использование: pbackup prune [--apply] [--read-data-subset PCT] [--host NAME]
 
 Удаляет снапшоты текущей машины, чьи теги больше не описаны в конфиге.
 Снапшоты без тегов и снапшоты с тегом manual не трогаются никогда.
@@ -72,7 +72,7 @@ func runPrune(cfg *Config, args []string, out, errOut io.Writer) error {
 			}
 		}
 		fmt.Fprintln(out)
-		fmt.Fprintln(out, "Для реального удаления запустите: backup prune --apply")
+		fmt.Fprintln(out, "Для реального удаления запустите: pbackup prune --apply")
 		return nil
 	}
 

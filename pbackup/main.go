@@ -10,15 +10,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Arsolitt/dots/backup/internal/lint"
-	"github.com/Arsolitt/dots/backup/internal/schedule"
+	"github.com/Arsolitt/dots/pbackup/internal/lint"
+	"github.com/Arsolitt/dots/pbackup/internal/schedule"
 )
 
 const version = "0.1.0"
 
-const mainUsage = `backup — обёртка над restic для домашних бэкапов.
+const mainUsage = `pbackup — обёртка над restic для домашних бэкапов.
 
-Использование: backup [--config PATH] <команда> [флаги] [аргументы]
+Использование: pbackup [--config PATH] <команда> [флаги] [аргументы]
 
 Команды:
   init        инициализировать репозиторий (no-op, если он уже есть)
@@ -35,7 +35,7 @@ const mainUsage = `backup — обёртка над restic для домашни
   help        эта справка
 
 Глобальные флаги:
-  --config PATH  конфиг (по умолчанию $BACKUP_CONFIG или ~/.config/backup/config.toml)
+  --config PATH  конфиг (по умолчанию $PBACKUP_CONFIG или ~/.config/pbackup/config.toml)
 `
 
 func main() {
@@ -46,7 +46,7 @@ func main() {
 	if errors.Is(err, flag.ErrHelp) {
 		os.Exit(0)
 	}
-	fmt.Fprintf(os.Stderr, "backup: %v\n", err)
+	fmt.Fprintf(os.Stderr, "pbackup: %v\n", err)
 	os.Exit(1)
 }
 
@@ -66,7 +66,7 @@ func run(args []string, out, errOut io.Writer) error {
 		fmt.Fprint(out, mainUsage)
 		return nil
 	case "version":
-		fmt.Fprintln(out, "backup "+version)
+		fmt.Fprintln(out, "pbackup "+version)
 		return nil
 	case "push", "pull", "prune", "check", "snapshots", "status", "cache", "lint", "schedule", "init":
 		// Known commands below; they all need the configuration.
@@ -107,7 +107,7 @@ func run(args []string, out, errOut io.Writer) error {
 
 // extractConfigFlag pulls the global --config flag out of the argument list.
 func extractConfigFlag(args []string) (string, []string, error) {
-	path := os.Getenv("BACKUP_CONFIG")
+	path := os.Getenv("PBACKUP_CONFIG")
 	rest := make([]string, 0, len(args))
 	for i := 0; i < len(args); i++ {
 		arg := args[i]
@@ -133,7 +133,7 @@ func extractConfigFlag(args []string) (string, []string, error) {
 	return path, rest, nil
 }
 
-const lintUsage = `Использование: backup lint [цель...]
+const lintUsage = `Использование: pbackup lint [цель...]
 
 Ищет имена файлов, которые совпадают без учёта регистра или после Unicode-
 нормализации: такой снапшот нельзя достоверно восстановить на macOS.
@@ -165,7 +165,7 @@ func runLint(cfg *Config, args []string, out, errOut io.Writer) error {
 	return errors.New("найдены коллизии имён файлов (регистр/Unicode)")
 }
 
-const scheduleUsage = `Использование: backup schedule <render|install|uninstall|status> [push|prune]
+const scheduleUsage = `Использование: pbackup schedule <render|install|uninstall|status> [push|prune]
 
 Без указания задачи команда работает с обеими: push и еженедельный prune
 (launchd на macOS, systemd timer на Linux). Время берётся из [schedule].
@@ -289,7 +289,7 @@ func scheduleJob(cfg *Config, name string) (schedule.Job, error) {
 		return schedule.Job{}, err
 	}
 	return schedule.Job{
-		Name:     "backup-" + name,
+		Name:     "pbackup-" + name,
 		Binary:   binary,
 		Args:     args,
 		LogPath:  filepath.Join(ExpandPath(cfg.StateDir), "schedule.log"),

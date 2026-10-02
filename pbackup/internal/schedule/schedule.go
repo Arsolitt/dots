@@ -1,5 +1,5 @@
 // Package schedule installs and inspects the user-level jobs that run the
-// backup CLI on a timer: a daily push and a weekly prune.
+// pbackup CLI on a timer: a daily push and a weekly prune.
 //
 // On macOS a job is a launchd LaunchAgent
 // (~/Library/LaunchAgents/com.arsolitt.<name>.plist). On Linux a job is a
@@ -38,7 +38,7 @@ type Calendar struct {
 	Weekday int
 }
 
-// Job is one scheduled unit owned by the backup CLI.
+// Job is one scheduled unit owned by the pbackup CLI.
 //
 // Binary and LogPath may start with "~/" for the current user's home
 // directory. PathEnv is exported to the job so restic and its helpers (pass,

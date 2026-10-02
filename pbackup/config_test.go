@@ -68,11 +68,11 @@ func TestLoadConfigDefaults(t *testing.T) {
 	if cfg.Compression != "auto" {
 		t.Errorf("Compression = %q, want auto", cfg.Compression)
 	}
-	if !strings.HasSuffix(cfg.CacheDir, filepath.Join(".cache", "backup")) {
-		t.Errorf("CacheDir = %q, want ~/.cache/backup", cfg.CacheDir)
+	if !strings.HasSuffix(cfg.CacheDir, filepath.Join(".cache", "pbackup")) {
+		t.Errorf("CacheDir = %q, want ~/.cache/pbackup", cfg.CacheDir)
 	}
-	if !strings.HasSuffix(cfg.StateDir, filepath.Join(".local", "state", "backup")) {
-		t.Errorf("StateDir = %q, want ~/.local/state/backup", cfg.StateDir)
+	if !strings.HasSuffix(cfg.StateDir, filepath.Join(".local", "state", "pbackup")) {
+		t.Errorf("StateDir = %q, want ~/.local/state/pbackup", cfg.StateDir)
 	}
 	if cfg.Repository != "sftp:test:/repo" {
 		t.Errorf("Repository = %q", cfg.Repository)
@@ -313,7 +313,7 @@ tags = ["a", "data"]
 }
 
 func TestExtractConfigFlag(t *testing.T) {
-	t.Setenv("BACKUP_CONFIG", "")
+	t.Setenv("PBACKUP_CONFIG", "")
 	path, rest, err := extractConfigFlag([]string{"push", "--dry-run"})
 	if err != nil {
 		t.Fatalf("extractConfigFlag: %v", err)
@@ -345,7 +345,7 @@ func TestExtractConfigFlag(t *testing.T) {
 		t.Error("extractConfigFlag(--config without value) = nil error, want failure")
 	}
 
-	t.Setenv("BACKUP_CONFIG", "/tmp/env.toml")
+	t.Setenv("PBACKUP_CONFIG", "/tmp/env.toml")
 	path, _, err = extractConfigFlag([]string{"push"})
 	if err != nil {
 		t.Fatalf("extractConfigFlag: %v", err)
@@ -360,7 +360,7 @@ func TestDispatchWithoutConfig(t *testing.T) {
 	if err := run([]string{"version"}, &out, &errOut); err != nil {
 		t.Fatalf("version: %v", err)
 	}
-	if got := strings.TrimSpace(out.String()); got != "backup 0.1.0" {
+	if got := strings.TrimSpace(out.String()); got != "pbackup 0.1.0" {
 		t.Errorf("version output = %q", got)
 	}
 	out.Reset()

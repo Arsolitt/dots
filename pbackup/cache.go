@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 )
 
-const cacheUsage = `Использование: backup cache <clean|path>
+const cacheUsage = `Использование: pbackup cache <clean|path>
 
   clean  удалить временные каталоги восстановления
   path   показать используемые пути кэша

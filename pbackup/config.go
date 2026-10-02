@@ -54,9 +54,9 @@ type Schedule struct {
 	PruneTime    string `toml:"prune_time"`
 }
 
-// DefaultConfigPath is used when neither --config nor BACKUP_CONFIG is set.
+// DefaultConfigPath is used when neither --config nor PBACKUP_CONFIG is set.
 func DefaultConfigPath() string {
-	return ExpandPath("~/.config/backup/config.toml")
+	return ExpandPath("~/.config/pbackup/config.toml")
 }
 
 // LoadConfig reads, defaults and validates the configuration file.
@@ -87,10 +87,10 @@ func (cfg *Config) applyDefaults() {
 		cfg.Compression = "auto"
 	}
 	if cfg.CacheDir == "" {
-		cfg.CacheDir = ExpandPath("~/.cache/backup")
+		cfg.CacheDir = ExpandPath("~/.cache/pbackup")
 	}
 	if cfg.StateDir == "" {
-		cfg.StateDir = ExpandPath("~/.local/state/backup")
+		cfg.StateDir = ExpandPath("~/.local/state/pbackup")
 	}
 	cfg.CacheDir = ExpandPath(cfg.CacheDir)
 	cfg.StateDir = ExpandPath(cfg.StateDir)

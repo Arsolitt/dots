@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-const checkUsage = `Использование: backup check [--read-data-subset PCT]
+const checkUsage = `Использование: pbackup check [--read-data-subset PCT]
 
 Проверяет целостность репозитория (restic check).
 

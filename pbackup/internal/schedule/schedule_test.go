@@ -10,9 +10,9 @@ import (
 func testJob() Job {
 	return Job{
 		Name:    "push",
-		Binary:  "/opt/homebrew/bin/backup",
-		Args:    []string{"backup"},
-		LogPath: "/var/log/backup/push.log",
+		Binary:  "/opt/homebrew/bin/pbackup",
+		Args:    []string{"pbackup"},
+		LogPath: "/var/log/pbackup/push.log",
 		PathEnv: "/opt/homebrew/bin:/usr/bin:/bin",
 		Calendar: Calendar{
 			Hour:    12,
@@ -39,16 +39,16 @@ func TestRenderLaunchdDaily(t *testing.T) {
 	for _, want := range []string{
 		"<key>Label</key>\n\t<string>com.arsolitt.push</string>",
 		"<key>ProgramArguments</key>\n\t<array>\n" +
-			"\t\t<string>/opt/homebrew/bin/backup</string>\n" +
-			"\t\t<string>backup</string>\n\t</array>",
+			"\t\t<string>/opt/homebrew/bin/pbackup</string>\n" +
+			"\t\t<string>pbackup</string>\n\t</array>",
 		"<key>StartCalendarInterval</key>\n\t<dict>\n" +
 			"\t\t<key>Hour</key>\n\t\t<integer>12</integer>\n" +
 			"\t\t<key>Minute</key>\n\t\t<integer>0</integer>\n\t</dict>",
 		"<key>EnvironmentVariables</key>\n\t<dict>\n" +
 			"\t\t<key>PATH</key>\n" +
 			"\t\t<string>/opt/homebrew/bin:/usr/bin:/bin</string>\n\t</dict>",
-		"<key>StandardOutPath</key>\n\t<string>/var/log/backup/push.log</string>",
-		"<key>StandardErrorPath</key>\n\t<string>/var/log/backup/push.log</string>",
+		"<key>StandardOutPath</key>\n\t<string>/var/log/pbackup/push.log</string>",
+		"<key>StandardErrorPath</key>\n\t<string>/var/log/pbackup/push.log</string>",
 		"<key>RunAtLoad</key>\n\t<false/>",
 	} {
 		if !strings.Contains(content, want) {
@@ -83,7 +83,7 @@ func TestRenderLaunchdWeekly(t *testing.T) {
 
 func TestRenderLaunchdEscapesPaths(t *testing.T) {
 	job := testJob()
-	job.Binary = "/tmp/a&b/backup"
+	job.Binary = "/tmp/a&b/pbackup"
 	job.LogPath = "/tmp/a & b/<push>.log"
 
 	content, err := renderLaunchd(job)
@@ -91,7 +91,7 @@ func TestRenderLaunchdEscapesPaths(t *testing.T) {
 		t.Fatalf("renderLaunchd: %v", err)
 	}
 	for _, want := range []string{
-		"<string>/tmp/a&amp;b/backup</string>",
+		"<string>/tmp/a&amp;b/pbackup</string>",
 		"<string>/tmp/a &amp; b/&lt;push&gt;.log</string>",
 	} {
 		if !strings.Contains(content, want) {
@@ -105,16 +105,16 @@ func TestRenderLaunchdExpandsHome(t *testing.T) {
 	t.Setenv("HOME", "/home/tester")
 
 	job := testJob()
-	job.Binary = "~/bin/backup"
-	job.LogPath = "~/.local/state/backup/logs/push.log"
+	job.Binary = "~/bin/pbackup"
+	job.LogPath = "~/.local/state/pbackup/logs/push.log"
 
 	content, err := renderLaunchd(job)
 	if err != nil {
 		t.Fatalf("renderLaunchd: %v", err)
 	}
 	for _, want := range []string{
-		"<string>/home/tester/bin/backup</string>",
-		"<string>/home/tester/.local/state/backup/logs/push.log</string>",
+		"<string>/home/tester/bin/pbackup</string>",
+		"<string>/home/tester/.local/state/pbackup/logs/push.log</string>",
 	} {
 		if !strings.Contains(content, want) {
 			t.Errorf("plist missing %q\n--- plist ---\n%s", want, content)
@@ -130,10 +130,10 @@ func TestRenderSystemdDaily(t *testing.T) {
 
 	wantService := "[Service]\n" +
 		"Type=oneshot\n" +
-		"ExecStart=/opt/homebrew/bin/backup backup\n" +
+		"ExecStart=/opt/homebrew/bin/pbackup pbackup\n" +
 		"Environment=PATH=/opt/homebrew/bin:/usr/bin:/bin\n" +
-		"StandardOutput=append:/var/log/backup/push.log\n" +
-		"StandardError=append:/var/log/backup/push.log\n"
+		"StandardOutput=append:/var/log/pbackup/push.log\n" +
+		"StandardError=append:/var/log/pbackup/push.log\n"
 	if service != wantService {
 		t.Errorf("service unit = %q, want %q", service, wantService)
 	}
@@ -150,14 +150,14 @@ func TestRenderSystemdDaily(t *testing.T) {
 
 func TestRenderSystemdQuotesArgs(t *testing.T) {
 	job := testJob()
-	job.Binary = "/opt/backup dir/backup"
-	job.Args = []string{"backup", "--tag", "my tag"}
+	job.Binary = "/opt/pbackup dir/pbackup"
+	job.Args = []string{"pbackup", "--tag", "my tag"}
 
 	service, _, err := renderSystemd(job)
 	if err != nil {
 		t.Fatalf("renderSystemd: %v", err)
 	}
-	want := `ExecStart="/opt/backup dir/backup" backup --tag "my tag"` + "\n"
+	want := `ExecStart="/opt/pbackup dir/pbackup" pbackup --tag "my tag"` + "\n"
 	if !strings.Contains(service, want) {
 		t.Errorf("service unit missing %q\n%s", want, service)
 	}
@@ -260,7 +260,7 @@ func TestInstallRejectsInvalidJob(t *testing.T) {
 	for _, job := range []Job{
 		{Name: ""},
 		{Name: "push/prune"},
-		{Name: "push", Binary: "/bin/backup", LogPath: ""},
+		{Name: "push", Binary: "/bin/pbackup", LogPath: ""},
 	} {
 		if err := Install(job); err == nil {
 			t.Errorf("Install(%+v) = nil, want error", job)

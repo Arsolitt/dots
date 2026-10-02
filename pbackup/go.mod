@@ -1,4 +1,4 @@
-module github.com/Arsolitt/dots/backup
+module github.com/Arsolitt/dots/pbackup
 
 go 1.26.0
 

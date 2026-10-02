@@ -21,7 +21,7 @@ const (
 	rescueNever   = "never"
 )
 
-const pullUsage = `Использование: backup pull [--yes] [--from HOST] [--verify] [--keep-cache] [--rescue MODE] [цель...]
+const pullUsage = `Использование: pbackup pull [--yes] [--from HOST] [--verify] [--keep-cache] [--rescue MODE] [цель...]
 
 Восстанавливает снапшоты в пути, заданные в конфиге.
 

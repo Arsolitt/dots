@@ -1,4 +1,4 @@
-# config.toml — backup registry and policies for the `backup` CLI.
+# config.toml — pbackup registry and policies for the `pbackup` CLI.
 # Single source of truth for targets, excludes, retention and schedule.
 # Shared by macOS and Linux — use ~ so one file works on both.
 
@@ -16,8 +16,8 @@ notify           = "failures"   # failures | always | off
 compression      = "auto"       # restic repo format v2: auto | off | fastest | better | max
 # host           = ""           # defaults to "mac" (darwin) / "linux" (linux); stable snapshot identity
 # limit_upload_kib = 0          # 0 = unlimited
-# cache_dir      = "~/.cache/backup"
-# state_dir      = "~/.local/state/backup"
+# cache_dir      = "~/.cache/pbackup"
+# state_dir      = "~/.local/state/pbackup"
 
 [schedule]
 push_time     = "12:00"

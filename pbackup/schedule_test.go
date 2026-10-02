@@ -24,7 +24,7 @@ func TestScheduleRenderBothJobs(t *testing.T) {
 		t.Fatalf("runSchedule(render): %v\n%s", err, errOut.String())
 	}
 	rendered := out.String()
-	for _, want := range []string{"=== push ===", "=== prune ===", "backup-push", "backup-prune", "schedule.log"} {
+	for _, want := range []string{"=== push ===", "=== prune ===", "pbackup-push", "pbackup-prune", "schedule.log"} {
 		if !strings.Contains(rendered, want) {
 			t.Errorf("render output misses %q:\n%s", want, rendered)
 		}
@@ -42,10 +42,10 @@ func TestScheduleRenderSingleJob(t *testing.T) {
 		t.Fatalf("runSchedule(render prune): %v\n%s", err, errOut.String())
 	}
 	rendered := out.String()
-	if strings.Contains(rendered, "=== push ===") || strings.Contains(rendered, "backup-push") {
+	if strings.Contains(rendered, "=== push ===") || strings.Contains(rendered, "pbackup-push") {
 		t.Errorf("explicit prune render must not touch push:\n%s", rendered)
 	}
-	if !strings.Contains(rendered, "backup-prune") {
+	if !strings.Contains(rendered, "pbackup-prune") {
 		t.Errorf("prune job missing:\n%s", rendered)
 	}
 }
