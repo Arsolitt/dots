@@ -5,8 +5,8 @@ Critical-path rule: recovery uses **plain `restic` + `ssh` only** — nothing in
 
 ## Inventory
 
-- Repository: `sftp:pbackup:/mnt/backup/restic` (restic, format v2)
-- Access: `ssh pbackup` — host/port/user live in `~/.ssh/config` on a live machine and in the Bitwarden item `pbackup/console`; key `~/.ssh/main` (copy attached to Bitwarden).
+- Repository: `sftp:pbackup:/pbackup/restic` (restic, format v2)
+- Access: `ssh pbackup` — host/port/user live in `~/.ssh/config` on a live machine and in the Bitwarden item `pbackup/console`; key `~/.ssh/laptop` (copy attached to Bitwarden).
 - The repository is also the machine-to-machine transfer medium: `backup push` on one machine, `backup pull` on the other.
 - Day-to-day operations use the `backup` CLI (`dots/backup`) — see `backup/README.md` for the cheat sheet; this runbook deliberately sticks to raw `restic`.
 - Snapshot tags (`source,category`): `projects,data` · `media` · `kube|talos|ssh|docker|gpg|password-store|sops-age|omp,configs`. Untagged and `manual`-tagged snapshots are never pruned by `cleanup`.
@@ -17,7 +17,7 @@ Critical-path rule: recovery uses **plain `restic` + `ssh` only** — nothing in
 | Item | Contents |
 |---|---|
 | `restic/backup-repo` | Repository password. Source of truth on live machines: `pass restic/backup-repo`. |
-| `backup/pbackup-sftp-key` | Private key `~/.ssh/main` (attach the file). |
+| `backup/pbackup-sftp-key` | Private key `~/.ssh/laptop` (attach the file). |
 | `sops/age-key` | age private key (`~/.config/sops/age/keys.txt`). |
 | `pbackup/console` | Out-of-band access to the backup host: provider panel / console credentials. |
 | — offline, not in Bitwarden — | Bitwarden master password + 2FA recovery code (paper / second password manager). |
@@ -27,10 +27,10 @@ Why: `pass`/GPG is circular for disaster recovery — `~/.password-store` and `~
 ## Restore procedure (new machine, same OS as the snapshot)
 
 1. Install restic: `brew install restic` (macOS) / `sudo pacman -S restic` (Arch).
-2. Fetch from Bitwarden: repo password → `set -x RESTIC_PASSWORD …` (fish; do not write it to disk); key → `~/.ssh/main` (`chmod 600`); recreate the `pbackup` stanza in `~/.ssh/config`.
+2. Fetch from Bitwarden: repo password → `set -x RESTIC_PASSWORD …` (fish; do not write it to disk); key → `~/.ssh/laptop` (`chmod 600`); recreate the `pbackup` stanza in `~/.ssh/config`.
 3. Check access: `ssh pbackup true`, then:
    ```fish
-   set -x RESTIC_REPOSITORY sftp:pbackup:/mnt/backup/restic
+   set -x RESTIC_REPOSITORY sftp:pbackup:/pbackup/restic
    restic snapshots --compact
    ```
    Note the `Host` value for your machine in the listing — pin it in every restore below (`--host <value>`) so a `--target /` restore never picks the *other* OS's snapshot (paths would land under the wrong prefix).

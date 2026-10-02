@@ -2,13 +2,16 @@
 # Single source of truth for targets, excludes, retention and schedule.
 # Shared by macOS and Linux — use ~ so one file works on both.
 
-repository       = "sftp:pbackup:/mnt/backup/restic"
+repository       = "sftp:pbackup:/pbackup/restic"
 password_command = "pass restic/backup-repo"
-# Non-interactive password source for scheduled runs (gpg-agent's cache may be cold):
-#   macOS:  security add-generic-password -a "$USER" -s backup-restic -w '<password>' -U
-#           password_command_darwin = "security find-generic-password -a $USER -s backup-restic -w"
-#   Linux:  secret-tool store --label backup-restic service backup-restic
-#           password_command_linux = "secret-tool lookup service backup-restic"
+# Non-interactive password for scheduled runs (gpg-agent's cache may be cold).
+# macOS is set below via Keychain — the stored item must hold the repo password:
+#   security add-generic-password -a "$USER" -s backup-restic -w '<password>' -U
+# restic runs the command WITHOUT a shell, so no $USER expansion — search by service:
+password_command_darwin = "security find-generic-password -s backup-restic -w"
+# Linux equivalent:
+#   secret-tool store --label backup-restic service backup-restic
+#   password_command_linux = "secret-tool lookup service backup-restic"
 notify           = "failures"   # failures | always | off
 compression      = "auto"       # restic repo format v2: auto | off | fastest | better | max
 # host           = ""           # defaults to "mac" (darwin) / "linux" (linux); stable snapshot identity
