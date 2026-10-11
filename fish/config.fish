@@ -22,7 +22,6 @@ set --export PATH ~/.cargo/bin $PATH
 # fnm (Node version manager — replaces nvm.fish)
 type -q fnm; and fnm env --use-on-cd | source
 source ~/.config/fish/themes/kanagawa.fish
-fish_add_path $HOME/.local/bin
 
 # starship prompt (replaces tide) — must init last
 starship init fish | source
