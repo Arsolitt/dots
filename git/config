@@ -131,5 +131,5 @@
 	required = true
 	clean = sops --input-type yaml --output-type yaml --indent 2 --encrypt --filename-override secrets.sops.yaml /dev/stdin
 [credential "https://gitlab.psclp.org"]
-	helper = libsecret
+	helper = "!f() { case $(uname -s) in Darwin) h=osxkeychain;; *) h=libsecret;; esac; git credential-$h \"$@\"; }; f"
 	username = arsolitt
