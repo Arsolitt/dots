@@ -1,0 +1,17 @@
+hl.window_rule({ match = { class = ".*" }, float = true })
+-- hl.window_rule({ match = { class = ".*" }, size = { 1050, 700 } })
+
+hl.window_rule({ match = { class = "^(Networks)$" }, float = true })
+hl.window_rule({ match = { class = "^(nekoray)$" }, float = true })
+hl.window_rule({ match = { class = "^(org.pulseaudio.pavucontrol)$" }, float = true, size = { 720, 441 }, move = { 1150, 67 } })
+hl.window_rule({ match = { class = "^(swayimg)$" }, float = true, size = { 1024, 576 } })
+
+hl.window_rule({ match = { class = "^(org.prismlauncher.PrismLauncher)$" }, workspace = "4 silent" })
+hl.window_rule({ match = { class = "^(.*Minecraft.*)$" }, workspace = "4 silent" })
+hl.window_rule({ match = { class = "^(steam_proton)" }, workspace = "4 silent" })
+hl.window_rule({ match = { class = "^(PortProton)" }, workspace = "4 silent" })
+hl.window_rule({ match = { class = "^(exbolauncher.exe)" }, workspace = "4 silent" })
+hl.window_rule({ match = { class = "^(stalcraft.exe)" }, workspace = "4 silent" })
+hl.window_rule({ match = { class = "^(vesktop)$" }, tile = true, workspace = "5 silent" })
+hl.window_rule({ match = { class = "^(org.telegram.desktop)$" }, tile = true, workspace = "5 silent" })
+hl.window_rule({ match = { class = "^(TelegramDesktop)$" }, tile = true, workspace = "5 silent" })

@@ -1,0 +1,32 @@
+hl.config({
+    misc = {
+        disable_hyprland_logo = true,
+        disable_splash_rendering = true,
+        allow_session_lock_restore = true,
+        enable_swallow = false,
+        swallow_regex = "^(kitty)$",
+    },
+})
+
+hl.device({
+    name = "xctech-wireless-receiver",
+    sensitivity = -0.5,
+})
+
+hl.config({
+    scrolling = {
+        fullscreen_on_one_column = true,
+        column_width = 0.5,
+        explicit_column_widths = "0.333, 0.5, 0.667, 1.0",
+        focus_fit_method = 1,
+        follow_min_visible = 0.4,
+        follow_focus = true,
+    },
+})
+
+hl.config({
+    xwayland = {
+        enabled = true,
+        force_zero_scaling = true,
+    },
+})

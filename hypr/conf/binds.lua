@@ -1,0 +1,7 @@
+hl.config({
+    binds = {
+        workspace_back_and_forth = false,
+        focus_preferred_method = 1,
+        movefocus_cycles_fullscreen = false,
+    },
+})

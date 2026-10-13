@@ -1,0 +1,19 @@
+-- Setup XDG for screen sharing
+hl.on("hyprland.start", function()
+    hl.exec_cmd("~/.config/dots/hypr/scripts/xdg.sh")
+    hl.exec_cmd("ssh-agent -a /run/user/1000/ssh-agent.socket")
+    hl.exec_cmd("dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP")
+    -- Disable middle click paste
+    -- hl.exec_cmd("wl-paste -p --watch wl-copy -pc &")
+    hl.exec_cmd("/usr/lib/mate-polkit/polkit-mate-authentication-agent-1")
+    hl.exec_cmd("waybar")
+    hl.exec_cmd("hyprpaper")
+    hl.exec_cmd("swaync")
+    -- hl.exec_cmd([[wl-paste -t text -w bash -c '[ "$(xclip -selection clipboard -o)" = "$(wl-paste -n)" ] || [ "$(wl-paste -l | grep image)" = "" ] && xclip -selection clipboard']])
+    hl.exec_cmd("sleep 5 && hyprlock")
+    hl.exec_cmd("vesktop")
+    hl.exec_cmd("Telegram")
+
+    -- hl.exec_cmd("element-desktop --password-store=\"gnome-libsecret\" --profile=\"personal\" --hidden")
+    -- hl.exec_cmd("element-desktop --password-store=\"gnome-libsecret\" --profile=\"work\" --hidden")
+end)
