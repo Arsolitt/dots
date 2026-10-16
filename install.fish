@@ -239,7 +239,7 @@ end
 
 function _install_packages_linux
     set -l repo_pkgs starship zoxide eza bat fd fzf git jq cloc fnm kubectl \
-        go gnupg restic pass rsync rust cilium-cli tmux
+        go gnupg restic pass rsync rust cilium-cli tmux libsecret
     set -l missing
     for pkg in $repo_pkgs
         if pacman -Q "$pkg" >/dev/null 2>&1
