@@ -106,15 +106,6 @@
 	required = true
   clean=sops --encrypt -p F431C200D643AE82D9D9493D5113F0524C1FB44A /dev/stdin
 	smudge=sops --decrypt -p F431C200D643AE82D9D9493D5113F0524C1FB44A /dev/stdin
-
-[filter "sops_ock_prod"]
-	required = true
-  clean=sops --input-type yaml --output-type yaml --indent 2 --encrypt -p B7C3FFEE97A2AE4A4AD399C2C871B09230CBB5EC --encrypted-regex '^(data|stringData)$' /dev/stdin
-	smudge=sops --input-type yaml --output-type yaml --indent 2 --decrypt -p B7C3FFEE97A2AE4A4AD399C2C871B09230CBB5EC --unencrypted-regex '^(data|stringData)$' /dev/stdin
-[filter "sops_full_ock_prod"]
-	required = true
-  clean=sops --encrypt -p B7C3FFEE97A2AE4A4AD399C2C871B09230CBB5EC /dev/stdin
-	smudge=sops --decrypt -p B7C3FFEE97A2AE4A4AD399C2C871B09230CBB5EC /dev/stdin
 	
 [credential "https://git.arsolitt.dev"]
 	helper = "!f() { case $(uname -s) in Darwin) h=osxkeychain;; *) h=libsecret;; esac; git credential-$h \"$@\"; }; f"
