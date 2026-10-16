@@ -239,9 +239,13 @@ end
 
 function _install_packages_linux
     set -l repo_pkgs starship zoxide eza bat fd fzf git jq cloc fnm kubectl \
-        go gnupg restic pass rsync rust cilium-cli tmux libsecret hypridle
+        go gnupg restic pass rsync rust cilium-cli tmux libsecret
+    set -l desktop_pkgs hyprland hyprlock hypridle hyprpaper hyprpicker waybar \
+        swaync rofi kitty mate-polkit xdg-desktop-portal xdg-desktop-portal-hyprland \
+        xdg-desktop-portal-gtk grim slurp wl-clipboard swappy swayimg satty wf-recorder \
+        nwg-look telegram-desktop ttf-fantasque-nerd
     set -l missing
-    for pkg in $repo_pkgs
+    for pkg in $repo_pkgs $desktop_pkgs
         if pacman -Q "$pkg" >/dev/null 2>&1
             _log_skip "pacman: $pkg already installed"
         else
@@ -261,19 +265,24 @@ function _install_packages_linux
         end
     end
 
-    # flux — AUR (fluxcd) via yay
-    if pacman -Q fluxcd >/dev/null 2>&1
-        _log_skip "aur: fluxcd already installed"
-    else if not _have yay
-        _log_warn "yay not found — install fluxcd manually: yay -S fluxcd"
-    else if test $DRY_RUN -eq 1
-        _log_info "would yay -S fluxcd"
-    else
-        yay -S --needed --noconfirm fluxcd
-        if test $status -eq 0
-            _log_ok "aur: installed fluxcd"
+    # AUR packages via yay
+    set -l aur_pkgs fluxcd vesktop kanagawa-gtk-theme-git kanagawa-icon-theme-git \
+        vimix-kanagawa-cursors gtk-engine-murrine ttf-pacifico ttf-montserrat \
+        maplemono-nf-cn-unhinted
+    for pkg in $aur_pkgs
+        if pacman -Q "$pkg" >/dev/null 2>&1
+            _log_skip "aur: $pkg already installed"
+        else if not _have yay
+            _log_warn "yay not found — install $pkg manually: yay -S $pkg"
+        else if test $DRY_RUN -eq 1
+            _log_info "would yay -S $pkg"
         else
-            _log_err "aur: fluxcd install failed"
+            yay -S --needed --noconfirm $pkg
+            if test $status -eq 0
+                _log_ok "aur: installed $pkg"
+            else
+                _log_err "aur: $pkg install failed"
+            end
         end
     end
 
