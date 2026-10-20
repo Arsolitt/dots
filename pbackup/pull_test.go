@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 	"time"
@@ -45,5 +47,25 @@ func TestNonRescueSnapshots(t *testing.T) {
 	// Only rescue points exist: nothing to restore.
 	if got := newestSnapshotFor(nonRescueSnapshots([]Snapshot{rescue, foreignRescue}), tags); got != nil {
 		t.Errorf("selected %+v, want no snapshot", got)
+	}
+}
+
+func TestRemoveTreeReadOnlyDirs(t *testing.T) {
+	root := t.TempDir()
+	readonly := filepath.Join(root, "k8s", "1.35.0-linux-amd64")
+	if err := os.MkdirAll(readonly, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(readonly, "etcd"), []byte("binary"), 0o555); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chmod(readonly, 0o555); err != nil {
+		t.Fatal(err)
+	}
+	if err := removeTree(root); err != nil {
+		t.Fatalf("removeTree: %v", err)
+	}
+	if _, err := os.Stat(root); !os.IsNotExist(err) {
+		t.Fatalf("tree still exists: %v", err)
 	}
 }

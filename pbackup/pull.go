@@ -164,7 +164,7 @@ func pullTarget(cfg *Config, restic *Restic, target *Target, snapshot *Snapshot,
 	}
 
 	dir := filepath.Join(ExpandPath(cfg.CacheDir), "restore", target.Name)
-	if err := os.RemoveAll(dir); err != nil {
+	if err := removeTree(dir); err != nil {
 		return err
 	}
 	if err := os.MkdirAll(dir, 0o755); err != nil {
@@ -192,11 +192,29 @@ func pullTarget(cfg *Config, restic *Restic, target *Target, snapshot *Snapshot,
 	}
 
 	if !keepCache {
-		if err := os.RemoveAll(dir); err != nil {
+		if err := removeTree(dir); err != nil {
 			fmt.Fprintf(out, "⚠️ не удалось очистить кэш %s: %v\n", dir, err)
 		}
 	}
 	return nil
+}
+
+// removeTree deletes a restore cache tree. Snapshots preserve read-only
+// directory modes (0555), so a plain os.RemoveAll cannot unlink their children
+// and leaves the tree behind; chmod the directories writable first. A later
+// pull then no longer fails on the previous attempt's cache.
+func removeTree(dir string) error {
+	if err := os.RemoveAll(dir); err == nil {
+		return nil
+	}
+	_ = os.Chmod(dir, 0o700)
+	_ = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if err == nil && info.IsDir() {
+			_ = os.Chmod(path, 0o700)
+		}
+		return nil
+	})
+	return os.RemoveAll(dir)
 }
 
 // rescueArgs is the safety snapshot taken before a destination is overwritten.
@@ -246,29 +264,53 @@ func restorePayloadPath(dir string, snapshot Snapshot) (string, error) {
 
 // syncToDestination copies the restored payload onto the destination path.
 func syncToDestination(src, destination string, isDir bool, out io.Writer) error {
-	archive := rsyncArchiveFlag()
+	binary, archive := rsyncCommand()
 	if isDir {
 		if err := os.MkdirAll(destination, 0o755); err != nil {
 			return err
 		}
-		return runRsync(archive, src+string(os.PathSeparator), destination+string(os.PathSeparator), out)
+		return runRsync(binary, archive, src+string(os.PathSeparator), destination+string(os.PathSeparator), out)
 	}
 	if err := os.MkdirAll(filepath.Dir(destination), 0o755); err != nil {
 		return err
 	}
-	return runRsync(archive, src, destination, out)
+	return runRsync(binary, archive, src, destination, out)
 }
 
-// rsyncArchiveFlag keeps ACLs on Linux and extended attributes on macOS.
-func rsyncArchiveFlag() string {
+// rsyncCommand prefers GNU rsync: the system /usr/bin/rsync on macOS is
+// openrsync, which fails on read-only (0400) files with EACCES. Homebrew rsync
+// is a declared dependency of install.fish. Only GNU rsync understands -X for
+// extended attributes; Apple's rsync and openrsync use -E.
+func rsyncCommand() (string, string) {
+	candidates := []string{"rsync"}
 	if runtime.GOOS == "darwin" {
-		return "-aE"
+		candidates = []string{"/opt/homebrew/bin/rsync", "/usr/local/bin/rsync", "rsync"}
 	}
-	return "-aX"
+	for _, candidate := range candidates {
+		path, err := exec.LookPath(candidate)
+		if err != nil {
+			continue
+		}
+		if isGNURsync(path) {
+			return path, "-aX"
+		}
+		if runtime.GOOS == "darwin" {
+			return path, "-aE"
+		}
+	}
+	return "rsync", "-aX"
 }
 
-func runRsync(archive, src, destination string, out io.Writer) error {
-	cmd := exec.Command("rsync", archive, src, destination)
+func isGNURsync(path string) bool {
+	version, err := exec.Command(path, "--version").Output()
+	if err != nil {
+		return false
+	}
+	return strings.HasPrefix(string(version), "rsync  version 3.")
+}
+
+func runRsync(binary, archive, src, destination string, out io.Writer) error {
+	cmd := exec.Command(binary, archive, src, destination)
 	cmd.Stdout = out
 	cmd.Stderr = out
 	if err := cmd.Run(); err != nil {
