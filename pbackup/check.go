@@ -28,6 +28,9 @@ func runCheck(cfg *Config, args []string, out, errOut io.Writer) error {
 	}
 
 	restic := newRestic(cfg, out)
+	// check takes an exclusive lock, which a lock left by a killed run blocks
+	// until its retry window expires.
+	clearStaleLocks(restic, out)
 	checkArgs := []string{"check", "--retry-lock", retryLock}
 	if *readDataSubset != "" {
 		checkArgs = append(checkArgs, "--read-data-subset", *readDataSubset)

@@ -181,6 +181,26 @@ func TestResticLimitUpload(t *testing.T) {
 	}
 }
 
+func TestRemovedLocks(t *testing.T) {
+	cases := []struct {
+		name   string
+		output string
+		want   int
+	}{
+		{"nothing removed", "", 0},
+		{"four locks", "successfully removed 4 locks\n", 4},
+		{"one lock", "successfully removed 1 lock\n", 1},
+		{"unrelated output", "repository opened\n", 0},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := removedLocks(tc.output); got != tc.want {
+				t.Errorf("removedLocks(%q) = %d, want %d", tc.output, got, tc.want)
+			}
+		})
+	}
+}
+
 func TestLastLines(t *testing.T) {
 	cases := []struct {
 		name string

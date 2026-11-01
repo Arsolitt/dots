@@ -44,6 +44,7 @@ pbackup prune --apply         # delete them + prune + check (1% of data)
 pbackup prune --host OLDNAME --apply   # one-time cleanup of a legacy host name
 
 pbackup check --read-data-subset 5%    # integrity check
+pbackup unlock                         # drop stale locks left by killed runs
 pbackup cache clean                    # drop temporary restore directories
 pbackup lint                           # case/Unicode name collisions (push runs it too)
 pbackup init                           # create the repository (no-op if present)
@@ -81,4 +82,9 @@ cold): use `password_command_darwin` (Keychain) or `password_command_linux`
   retention thins them over time.
 - Retention lives in `[retention.*]` of the config and runs on every `push`
   (`--no-forget` skips it).
+- Locks: `push`, `prune` and `check` clear stale locks (left by killed runs)
+  before taking an exclusive lock; `pbackup unlock` does it on demand. Live runs
+  are never touched — restic refreshes its lock every 5 minutes. A lock file
+  truncated by a crash cannot be parsed and is invisible to `unlock`; only
+  `restic unlock --remove-all` removes it.
 - Untagged snapshots are never considered stale.

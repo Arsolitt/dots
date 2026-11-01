@@ -3,12 +3,14 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 )
 
 // TestIntegrationLocalRepo exercises push, prune, check and pull against a
@@ -538,4 +540,122 @@ func treeContents(t *testing.T, root string) map[string]string {
 		t.Fatalf("walk %s: %v", root, err)
 	}
 	return files
+}
+
+// TestIntegrationUnlockStaleLock reproduces the failure mode that blocks
+// retention: a restic process killed with SIGKILL leaves its lock behind, and
+// an exclusive-lock command then fails until the lock is gone. The lock must be
+// removed without waiting for restic's 30-minute threshold, because the dead
+// process lives on this host.
+func TestIntegrationUnlockStaleLock(t *testing.T) {
+	if _, err := exec.LookPath("restic"); err != nil {
+		t.Skip("restic not installed")
+	}
+	clearRESTICHost(t)
+
+	root := t.TempDir()
+	source := filepath.Join(root, "data")
+	writeFixture(t, source)
+	// A payload larger than the upload limit keeps the backup running while the
+	// lock is on disk, so the kill reliably lands mid-run.
+	big := filepath.Join(source, "big")
+	if err := os.MkdirAll(big, 0o755); err != nil {
+		t.Fatalf("mkdir big: %v", err)
+	}
+	for i := range 64 {
+		name := filepath.Join(big, fmt.Sprintf("chunk-%02d.bin", i))
+		if err := os.WriteFile(name, bytes.Repeat([]byte("x"), 128<<10), 0o644); err != nil {
+			t.Fatalf("write %s: %v", name, err)
+		}
+	}
+	repository := filepath.Join(root, "repo")
+	if err := os.MkdirAll(repository, 0o755); err != nil {
+		t.Fatalf("mkdir repo: %v", err)
+	}
+
+	cfg := &Config{
+		Repository:      repository,
+		PasswordCommand: "echo testpass",
+		Host:            "gtest",
+		Compression:     "auto",
+		Notify:          notifyOff,
+		CacheDir:        filepath.Join(root, "cache"),
+		StateDir:        filepath.Join(root, "state"),
+	}
+	if err := cfg.Validate(); err != nil {
+		t.Fatalf("Validate: %v", err)
+	}
+
+	var out bytes.Buffer
+	restic := newRestic(cfg, &out)
+	if err := runInit(cfg, nil, &out, &out); err != nil {
+		t.Fatalf("runInit: %v\n%s", err, out.String())
+	}
+
+	if err := killBackupWithLock(restic, repository, source); err != nil {
+		t.Fatalf("setup stale lock: %v", err)
+	}
+	entries, err := os.ReadDir(filepath.Join(repository, "locks"))
+	if err != nil {
+		t.Fatalf("read locks: %v", err)
+	}
+	if len(entries) == 0 {
+		t.Fatal("killed restic left no lock behind")
+	}
+
+	removed, err := restic.Unlock()
+	if err != nil {
+		t.Fatalf("Unlock: %v\n%s", err, out.String())
+	}
+	if removed != len(entries) {
+		t.Errorf("Unlock removed %d locks, want %d", removed, len(entries))
+	}
+	entries, err = os.ReadDir(filepath.Join(repository, "locks"))
+	if err != nil {
+		t.Fatalf("read locks after unlock: %v", err)
+	}
+	if len(entries) != 0 {
+		t.Errorf("%d locks survived unlock", len(entries))
+	}
+
+	// The exclusive-lock path is what failed while the stale lock existed.
+	if err := restic.Run("forget", "--keep-last", "5", "--retry-lock", "1s"); err != nil {
+		t.Errorf("forget after unlock: %v", err)
+	}
+}
+
+// killBackupWithLock starts a backup and SIGKILLs it as soon as its lock file
+// is on disk — the state a crashed run leaves in the repository.
+func killBackupWithLock(restic *Restic, repository, source string) error {
+	locks := filepath.Join(repository, "locks")
+	for range 3 {
+		cmd := restic.command("backup", source, "--host", "gtest", "--limit-upload", "200")
+		cmd.Stdout = io.Discard
+		cmd.Stderr = io.Discard
+		if err := cmd.Start(); err != nil {
+			return err
+		}
+		lockID := ""
+		for range 400 {
+			if entries, err := os.ReadDir(locks); err == nil && len(entries) > 0 {
+				lockID = entries[0].Name()
+				break
+			}
+			time.Sleep(5 * time.Millisecond)
+		}
+		if lockID != "" {
+			// The backend writes the lock file in place: killing inside that
+			// window leaves a truncated file that a plain unlock cannot parse.
+			time.Sleep(250 * time.Millisecond)
+		}
+		_ = cmd.Process.Kill()
+		_ = cmd.Wait()
+		if lockID == "" {
+			continue
+		}
+		if _, err := restic.Output("cat", "lock", lockID); err == nil {
+			return nil
+		}
+	}
+	return fmt.Errorf("restic finished before a complete lock file was observed")
 }

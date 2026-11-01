@@ -93,6 +93,11 @@ func runPush(cfg *Config, args []string, out, errOut io.Writer) error {
 	if !*noForget {
 		categories := selectedCategories(cfg, targets)
 		fmt.Fprintln(out, "Очистка (forget/prune):")
+		if !*dryRun {
+			// forget takes an exclusive lock, so a lock left by a killed run
+			// would burn the whole --retry-lock window in every category.
+			clearStaleLocks(restic, out)
+		}
 		for _, category := range categories {
 			if len(retentionFlags(cfg.Retention[category])) == 0 {
 				fmt.Fprintf(out, "⚠️ для категории %s не заданы правила хранения, пропускаю\n", category)

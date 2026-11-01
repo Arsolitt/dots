@@ -26,6 +26,7 @@ const mainUsage = `pbackup — обёртка над restic для домашн�
   pull        восстановить данные из снапшотов
   prune       удалить снапшоты с устаревшими тегами
   check       проверить целостность репозитория
+  unlock      снять устаревшие блокировки репозитория
   snapshots   список снапшотов
   status      состояние последних запусков
   cache       кэш восстановления (clean|path)
@@ -68,7 +69,7 @@ func run(args []string, out, errOut io.Writer) error {
 	case "version":
 		fmt.Fprintln(out, "pbackup "+version)
 		return nil
-	case "push", "pull", "prune", "check", "snapshots", "status", "cache", "lint", "schedule", "init":
+	case "push", "pull", "prune", "check", "unlock", "snapshots", "status", "cache", "lint", "schedule", "init":
 		// Known commands below; they all need the configuration.
 	default:
 		fmt.Fprint(errOut, mainUsage)
@@ -90,6 +91,8 @@ func run(args []string, out, errOut io.Writer) error {
 		return runPrune(cfg, commandArgs, out, errOut)
 	case "check":
 		return runCheck(cfg, commandArgs, out, errOut)
+	case "unlock":
+		return runUnlock(cfg, commandArgs, out, errOut)
 	case "snapshots":
 		return runSnapshots(cfg, commandArgs, out, errOut)
 	case "status":

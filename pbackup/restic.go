@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -217,6 +218,51 @@ func (r *Restic) Snapshots(filters ...string) ([]Snapshot, error) {
 		return nil, fmt.Errorf("restic snapshots --json: %w", err)
 	}
 	return snapshots, nil
+}
+
+// Unlock removes stale locks left behind by killed restic runs. restic never
+// clears them on its own: while any lock file exists, an exclusive-lock
+// command (forget, prune, check) waits for its --retry-lock window and then
+// fails, even though plain backups keep working on non-exclusive locks. A lock
+// counts as stale when it predates the 30-minute threshold or when its process
+// is gone on this host; a live restic refreshes its lock every 5 minutes, so
+// running processes — on this or another machine — are never touched.
+func (r *Restic) Unlock() (int, error) {
+	data, err := r.Output("unlock")
+	if err != nil {
+		return 0, err
+	}
+	return removedLocks(string(data)), nil
+}
+
+// removedLocks reads restic's "successfully removed N locks" summary, which is
+// printed only when at least one lock was dropped.
+func removedLocks(output string) int {
+	match := removedLockPattern.FindStringSubmatch(output)
+	if match == nil {
+		return 0
+	}
+	removed, err := strconv.Atoi(match[1])
+	if err != nil {
+		return 0
+	}
+	return removed
+}
+
+var removedLockPattern = regexp.MustCompile(`successfully removed (\d+) lock`)
+
+// clearStaleLocks drops the locks of killed runs before a command that needs an
+// exclusive lock. A failure here is reported but not fatal: the command that
+// wants the lock fails with its own, more specific error.
+func clearStaleLocks(restic *Restic, out io.Writer) {
+	removed, err := restic.Unlock()
+	if err != nil {
+		fmt.Fprintf(out, "⚠️ не удалось снять устаревшие блокировки: %v\n", err)
+		return
+	}
+	if removed > 0 {
+		fmt.Fprintf(out, "🔓 снято устаревших блокировок: %d\n", removed)
+	}
 }
 
 // tagFilter renders tags the way restic wants them on the command line.

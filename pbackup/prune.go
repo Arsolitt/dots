@@ -76,6 +76,10 @@ func runPrune(cfg *Config, args []string, out, errOut io.Writer) error {
 		return nil
 	}
 
+	// forget/prune and check both take an exclusive lock, which a lock left by
+	// a killed run blocks until its retry window expires.
+	clearStaleLocks(restic, out)
+
 	if len(stale) > 0 {
 		fmt.Fprintln(out, "⏳ forget + prune...")
 		forgetArgs := append([]string{"forget"}, staleIDs(stale)...)
