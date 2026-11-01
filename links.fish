@@ -241,6 +241,33 @@ function install_linux
     for name in $LINUX_FILES
         link "$DOTFILES_DIR/$name" "$HOME/.config/$name"
     end
+
+    # PipeWire filter-chain drop-in: microphone noise suppression
+    ensure_dir "$HOME/.config/pipewire/pipewire.conf.d"
+    link "$DOTFILES_DIR/pipewire/mic-denoise-rnnoise.conf" \
+        "$HOME/.config/pipewire/pipewire.conf.d/50-mic-denoise.conf"
+    install_ladspa_plugins
+end
+
+# The filter chain loads its plugins from ~/.local/lib/ladspa, which PipeWire
+# cannot derive from the package dir; link them from /usr/lib/ladspa instead of
+# copying so pacman upgrades stay in effect.
+function install_ladspa_plugins
+    set -l dst "$HOME/.local/lib/ladspa"
+    ensure_dir "$dst"
+    for plugin in libdeep_filter_ladspa.so librnnoise_ladspa.so
+        set -l target "$dst/$plugin"
+        if test -e "$target"; or test -L "$target"
+            log_skip "ladspa plugin present: $target"
+            continue
+        end
+        set -l src "/usr/lib/ladspa/$plugin"
+        if not test -e "$src"
+            log_warn "ladspa plugin missing, install deepfilternet-ladspa / noise-suppression-for-voice"
+            continue
+        end
+        link "$src" "$target"
+    end
 end
 
 function install_macos
@@ -321,4 +348,4 @@ set --erase DOTFILES_DIR OS DRY_RUN BACKUP _CLEANUP_ONLY
 set --erase COMMON_CONFIGS LINUX_CONFIGS LINUX_FILES MACOS_CONFIGS
 functions --erase _use_color log_info log_ok log_skip log_warn log_err usage
 functions --erase ensure_dir link _try_remove_link
-functions --erase install_common install_linux install_macos install_gpg cleanup_broken_links
+functions --erase install_common install_linux install_macos install_gpg install_ladspa_plugins cleanup_broken_links

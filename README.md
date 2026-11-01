@@ -17,6 +17,7 @@
 - GTK: Kanagawa Orange Dark
 - Icons: Kanagawa
 - Font: FantasqueSansM
+- Microphone noise suppression: PipeWire filter-chain (DeepFilterNet LADSPA), `micns on|off|status`
 
 ## macOS
 - Ghostty (Kanagawa palette inlined)

@@ -1,0 +1,6 @@
+complete -c micns -f -a "status" -d "Show suppression state"
+complete -c micns -f -a "on" -d "Enable suppression (current plugin)"
+complete -c micns -f -a "off" -d "Disable suppression"
+complete -c micns -f -a "deepfilter" -d "Enable with DeepFilterNet (best quality, ~33% of a core)"
+complete -c micns -f -a "rnnoise" -d "Enable with RNNoise (cheap, ~2% of a core)"
+complete -c micns -f -a "rnnoise-max" -d "RNNoise with aggressive VAD gating (kills keyboard clicks between phrases)"

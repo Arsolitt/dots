@@ -243,7 +243,8 @@ function _install_packages_linux
     set -l desktop_pkgs hyprland hyprlock hypridle hyprpicker noctalia kitty \
         mate-polkit xdg-desktop-portal xdg-desktop-portal-hyprland \
         xdg-desktop-portal-gtk grim slurp wl-clipboard swappy swayimg satty wf-recorder \
-        nwg-look telegram-desktop ttf-fantasque-nerd
+        nwg-look telegram-desktop ttf-fantasque-nerd \
+        deepfilternet-ladspa noise-suppression-for-voice
     set -l missing
     for pkg in $repo_pkgs $desktop_pkgs
         if pacman -Q "$pkg" >/dev/null 2>&1
