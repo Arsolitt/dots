@@ -1,24 +1,32 @@
-hl.config({
-    decoration = {
-        rounding = 10,
-        blur = {
-            enabled = true,
-            size = 6,
-            passes = 2,
-            new_optimizations = true,
-            ignore_opacity = true,
-            xray = true,
-            -- blurls = waybar
-        },
-        active_opacity = 1.0,
-        inactive_opacity = 0.90,
-        fullscreen_opacity = 1.0,
+-- Look and feel configuration
 
-        shadow = {
-            enabled = true,
-            range = 30,
-            render_power = 3,
-            color = "0x66000000",
+hl.config({
+    group = {
+        col = {
+            border_active = CACHYLBLUE,
+            border_inactive = CACHYGRAY,
+            border_locked_active = CACHYDBLUE,
+            border_locked_inactive = CACHYGRAY,
+        },
+        groupbar = {
+            col = {
+                active = CACHYLGREEN,
+                inactive = CACHYGRAY,
+                locked_active = CACHYDBLUE,
+                locked_inactive = CACHYGRAY,
+            },
+        },
+    },
+    decoration = {
+        dim_special = 0.3,
+        rounding = 10,
+        active_opacity = 0.95,
+        inactive_opacity = 0.85,
+        fullscreen_opacity = 1,
+        blur = {
+            size = 5,
+            passes = 4,
+            special = true,
         },
     },
 })

@@ -198,9 +198,6 @@ set -g COMMON_CONFIGS \
 
 set -g LINUX_CONFIGS \
     hypr \
-    rofi \
-    waybar \
-    swaync \
     swappy \
     swayimg \
     nwg-look \

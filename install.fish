@@ -240,8 +240,8 @@ end
 function _install_packages_linux
     set -l repo_pkgs starship zoxide eza bat fd fzf git jq cloc fnm kubectl \
         go gnupg restic pass rsync rust cilium-cli tmux libsecret
-    set -l desktop_pkgs hyprland hyprlock hypridle hyprpaper hyprpicker waybar \
-        swaync rofi kitty mate-polkit xdg-desktop-portal xdg-desktop-portal-hyprland \
+    set -l desktop_pkgs hyprland hyprlock hypridle hyprpicker noctalia kitty \
+        mate-polkit xdg-desktop-portal xdg-desktop-portal-hyprland \
         xdg-desktop-portal-gtk grim slurp wl-clipboard swappy swayimg satty wf-recorder \
         nwg-look telegram-desktop ttf-fantasque-nerd
     set -l missing

@@ -19,18 +19,23 @@ local function is_laptop()
     return t == 8 or t == 9 or t == 10 or t == 14
 end
 
-require("conf/windowrules")
-require("conf/keyboard")
-require("conf/windows")
-require("conf/layouts")
-require("conf/decorations")
-require("conf/misc")
-require("conf/binds")
-require("conf/environment")
-require("conf/autostart")
+require("conf/colors")
+require("conf/variables")
 
 if is_laptop() then
     require("conf/laptop")
 else
     require("conf/desktop")
 end
+
+require("conf/animations")
+require("conf/decorations")
+require("conf/windows")
+require("conf/layouts")
+require("conf/inputs")
+require("conf/misc")
+require("conf/environment")
+require("conf/windowrules")
+require("conf/autostart")
+require("conf/binds")
+require("conf/keyboard")
