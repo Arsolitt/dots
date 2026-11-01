@@ -10,3 +10,6 @@ fish/completions/orbctl.fish
 
 # machine-local: TPM plugin clones (installed to ~/.tmux/plugins by install.fish)
 tmux/plugins/
+
+# machine-local: fish rewrites its universal store on every change; state, not config
+fish/fish_variables
