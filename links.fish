@@ -247,6 +247,11 @@ function install_linux
     link "$DOTFILES_DIR/pipewire/mic-denoise-rnnoise.conf" \
         "$HOME/.config/pipewire/pipewire.conf.d/50-mic-denoise.conf"
     install_ladspa_plugins
+
+    # NPU denoiser unit, started on demand by micns
+    ensure_dir "$HOME/.config/systemd/user"
+    link "$DOTFILES_DIR/systemd/user/npu-denoise.service" \
+        "$HOME/.config/systemd/user/npu-denoise.service"
 end
 
 # The filter chain loads its plugins from ~/.local/lib/ladspa, which PipeWire
