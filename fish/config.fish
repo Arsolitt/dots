@@ -6,6 +6,7 @@ end
 
 set -gx GPG_TTY (tty)
 set -gx EDITOR nano
+set --export OP_ACCOUNT pscascade.1password.com
 
 set --export PATH $PATH ~/vk-cloud-solutions/bin
 
