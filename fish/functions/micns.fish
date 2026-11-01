@@ -66,7 +66,7 @@ function micns --description "Toggle microphone noise suppression (PipeWire smar
             else
                 printf 'config : disabled\n'
             end
-            if wpctl status 2>/dev/null | string match -q '*mic-denoise*'
+            if pactl list short sources 2>/dev/null | string match -qr '^\d+\s+mic-denoise(\s|$)'
                 printf 'filter : loaded\n'
             else
                 printf 'filter : not loaded\n'
