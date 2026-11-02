@@ -19,3 +19,6 @@ hl.env("ELECTRON_ENABLE_WAYLAND", "1")
 hl.env("ELECTRON_OZONE_PLATFORM_HINT", "wayland")
 
 hl.env("SDL_VIDEODRIVER", "wayland,x11,windows")
+
+hl.env("SSH_ASKPASS", os.getenv("HOME") .. "/.local/bin/ssh-askpass-fprint")
+hl.env("SSH_ASKPASS_REQUIRE", "force")

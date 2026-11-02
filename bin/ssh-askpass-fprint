@@ -1,0 +1,25 @@
+#!/bin/sh
+prompt=$1
+
+case "$prompt" in
+*"(yes/no"*)
+    if zenity --question --text="$prompt"; then
+        printf 'yes\n'
+    else
+        printf 'no\n'
+    fi
+    exit 0
+    ;;
+esac
+
+key=$(printf '%s' "$prompt" | grep -oE "/[^ ':]+" | head -n 1)
+name=$(basename -- "$key" 2>/dev/null)
+
+if [ -n "$name" ] && command -v fprintd-verify >/dev/null 2>&1 && timeout 25 fprintd-verify >/dev/null 2>&1; then
+    if secret=$(secret-tool lookup service ssh key "$name"); then
+        printf '%s\n' "$secret"
+        exit 0
+    fi
+fi
+
+exec zenity --password --title="SSH passphrase"
