@@ -16,11 +16,11 @@ note_id=""
 if [ -n "$name" ] && command -v fprintd-verify >/dev/null 2>&1; then
     if command -v notify-send >/dev/null 2>&1; then
         note_id=$(notify-send --app-name=ssh --icon=dialog-password --print-id \
-            --expire-time=0 "SSH key" "Press the fingerprint sensor to unlock $name" 2>/dev/null)
+            --expire-time=0 "SSH key" "Touch the fingerprint sensor to unlock $name" 2>/dev/null)
     fi
 
     if [ -t 2 ]; then
-        printf 'ssh: press the fingerprint sensor to unlock %s\n' "$name" >&2
+        printf 'ssh: touch the fingerprint sensor to unlock %s\n' "$name" >&2
     fi
 
     mkdir -p "$(dirname -- "$log")" 2>/dev/null
