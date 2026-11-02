@@ -32,7 +32,7 @@ if [ -n "$name" ] && command -v fprintd-verify >/dev/null 2>&1; then
     fi
 
     mkdir -p "$(dirname -- "$log")" 2>/dev/null
-    if timeout 45 fprintd-verify >"$log" 2>&1; then
+    if timeout 45 fprintd-verify -f any >"$log" 2>&1; then
         if secret=$(secret-tool lookup service ssh key "$name"); then
             if [ -n "$note_id" ]; then
                 notify-send --replace-id="$note_id" --expire-time=2000 \

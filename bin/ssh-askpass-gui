@@ -22,7 +22,7 @@ try:
     import gi
 
     gi.require_version("Gtk", "4.0")
-    from gi.repository import Gio, GLib, Gtk
+    from gi.repository import Gdk, Gio, GLib, Gtk
 except Exception:
     sys.exit(2)
 
@@ -73,6 +73,14 @@ class Askpass(Gtk.Application):
         self.win.set_default_size(440, -1)
         self.win.set_resizable(False)
         self.win.connect("close-request", self.on_close)
+        self.win.add_css_class("ssh-askpass")
+        provider = Gtk.CssProvider()
+        provider.load_from_data(
+            b"window.ssh-askpass { border: 1px solid rgba(255, 255, 255, 0.28); border-radius: 12px; }"
+        )
+        Gtk.StyleContext.add_provider_for_display(
+            Gdk.Display.get_default(), provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        )
         if LayerShell is not None:
             LayerShell.init_for_window(self.win)
             LayerShell.set_namespace(self.win, "ssh-askpass")
@@ -159,7 +167,7 @@ class Askpass(Gtk.Application):
         self.stop_proc()
         try:
             self.proc = subprocess.Popen(
-                ["fprintd-verify"],
+                ["fprintd-verify", "-f", "any"],
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.PIPE,
             )
