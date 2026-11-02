@@ -4,11 +4,16 @@
 # ///
 """Live microphone denoising through PipeWire.
 
-Two ``pw-cat`` children carry raw float32 mono 48 kHz PCM: one records the physical
-source, one plays the enhanced stream into a sink (``scripts/virtual-source.sh`` turns
-that sink into ``npu_mic``). A reader thread pushes captured frames into a bounded queue;
-the main loop denoises and writes them to the playback child, dropping frames instead of
-growing latency when playback falls behind.
+Two ``pw-cat`` children carry raw float32 48 kHz PCM: one records the physical source at
+its native width, one plays the enhanced mono stream into a sink
+(``scripts/virtual-source.sh`` turns that sink into ``npu_mic``). The reader thread picks the
+configured capsule out of every interleaved payload, pushes the mono frames into a bounded
+queue, and the main loop denoises them, runs the post chain and writes them to the playback
+child, dropping frames instead of growing latency when playback falls behind.
+
+Recording the source at its native width matters: asking ``pw-cat`` for fewer channels than
+the device exposes makes PipeWire fold the capsules together, and capsules that are separated
+in space sum with a delay into comb notches, which is heard as a hollow, bucket-like timbre.
 
 Usage:
     .venv/bin/python realtime.py --source alsa_input...HiFi__Mic1__source --sink npu_denoise
@@ -18,6 +23,7 @@ from __future__ import annotations
 
 import argparse
 import io
+import math
 import queue
 import signal
 import subprocess
@@ -31,7 +37,9 @@ import numpy as np
 
 import dfn
 
-FRAME_BYTES = dfn.HOP_SIZE * 4
+CAPTURE_CHANNELS = 4
+CAPSULE = 0
+FRAME_BYTES = dfn.HOP_SIZE * 4 * CAPTURE_CHANNELS
 FRAME_MS = dfn.HOP_SIZE / dfn.SR * 1000.0
 STATS_INTERVAL = 10.0
 WINDOW = 60.0
@@ -72,7 +80,7 @@ def _capture_command(source: str) -> list[str]:
         "--rate",
         str(dfn.SR),
         "--channels",
-        "1",
+        str(CAPTURE_CHANNELS),
         "--target",
         source,
         "-",
@@ -97,18 +105,20 @@ def _playback_command(sink: str) -> list[str]:
 
 
 class _Pump(threading.Thread):
-    """Reads fixed-size capture frames and hands them to the bounded queue."""
+    """Reads fixed-size capture frames and hands one capsule of each to the bounded queue."""
 
     def __init__(
         self,
         stream: io.BufferedReader,
         frames: queue.Queue[np.ndarray],
         stop: threading.Event,
+        capsule: int,
     ) -> None:
         super().__init__(name="capture", daemon=True)
         self._stream = stream
         self._frames = frames
         self._stop = stop
+        self._capsule = capsule
         self.dropped = 0
 
     def run(self) -> None:
@@ -117,11 +127,81 @@ class _Pump(threading.Thread):
             if len(payload) < FRAME_BYTES:
                 self._stop.set()
                 return
-            frame = np.frombuffer(payload, dtype=np.float32)
+            block = np.frombuffer(payload, dtype=np.float32).reshape(-1, CAPTURE_CHANNELS)
+            frame = block[:, self._capsule].copy()
             try:
                 self._frames.put_nowait(frame)
             except queue.Full:
                 self.dropped += 1
+
+
+class PostChain:
+    """DC blocker, 80 Hz high-pass and peak limiter for the denoised mono stream.
+
+    The physical microphone carries a large sub-100 Hz rumble, and DeepFilterNet leaves that
+    band nearly untouched, so the stream that reaches a listener is dominated by low
+    frequency energy that reads as a boomy, hollow timbre and costs headroom. The high-pass
+    removes it; the limiter keeps the gain the browser applies afterwards from clipping.
+    """
+
+    HPF_HZ = 80.0
+    HPF_Q = 1.0 / math.sqrt(2.0)
+    DC_POLE = 0.995
+    CEILING = 0.891
+    ATTACK_MS = 5.0
+    RELEASE_MS = 50.0
+
+    def __init__(self, rate: int = dfn.SR) -> None:
+        w0 = 2.0 * math.pi * self.HPF_HZ / rate
+        cos_w0 = math.cos(w0)
+        alpha = math.sin(w0) / (2.0 * self.HPF_Q)
+        a0 = 1.0 + alpha
+        self._b0 = (1.0 + cos_w0) / 2.0 / a0
+        self._b1 = -(1.0 + cos_w0) / a0
+        self._b2 = self._b0
+        self._a1 = -2.0 * cos_w0 / a0
+        self._a2 = (1.0 - alpha) / a0
+        self._x1 = 0.0
+        self._x2 = 0.0
+        self._y1 = 0.0
+        self._y2 = 0.0
+        self._dc_in = 0.0
+        self._dc_out = 0.0
+        self._gain = 1.0
+        self._attack = math.exp(-1.0 / (self.ATTACK_MS * 1e-3 * rate))
+        self._release = math.exp(-1.0 / (self.RELEASE_MS * 1e-3 * rate))
+
+    def process(self, frame: np.ndarray) -> np.ndarray:
+        out = np.empty(frame.shape, dtype=np.float32)
+        b0, b1, b2 = self._b0, self._b1, self._b2
+        a1, a2 = self._a1, self._a2
+        pole = self.DC_POLE
+        ceiling = self.CEILING
+        attack, release = self._attack, self._release
+        x1, x2, y1, y2 = self._x1, self._x2, self._y1, self._y2
+        dc_in, dc_out = self._dc_in, self._dc_out
+        gain = self._gain
+        for index, sample in enumerate(frame):
+            value = float(sample)
+            dc_out = value - dc_in + pole * dc_out
+            dc_in = value
+            filtered = b0 * dc_out + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2
+            x2, x1 = x1, dc_out
+            y2, y1 = y1, filtered
+            magnitude = -filtered if filtered < 0.0 else filtered
+            target = ceiling / magnitude if magnitude > ceiling else 1.0
+            coefficient = attack if target < gain else release
+            gain = target + (gain - target) * coefficient
+            limited = filtered * gain
+            if limited > ceiling:
+                limited = ceiling
+            elif limited < -ceiling:
+                limited = -ceiling
+            out[index] = limited
+        self._x1, self._x2, self._y1, self._y2 = x1, x2, y1, y2
+        self._dc_in, self._dc_out = dc_in, dc_out
+        self._gain = gain
+        return out
 
 
 class Realtime:
@@ -135,6 +215,7 @@ class Realtime:
         self._costs: deque[tuple[float, float]] = deque()
         self._processed = 0
         self._pump: _Pump | None = None
+        self._post = PostChain()
 
     def stop(self) -> None:
         self._stop.set()
@@ -157,6 +238,7 @@ class Realtime:
             io.BufferedReader(capture.stdout, buffer_size=FRAME_BYTES * 4),
             self._frames,
             self._stop,
+            CAPSULE,
         )
         self._pump = pump
         pump.start()
@@ -174,7 +256,7 @@ class Realtime:
                     continue
                 started = time.perf_counter()
                 try:
-                    enhanced = self._stream.process(frame)
+                    enhanced = self._post.process(self._stream.process(frame))
                 except RuntimeError:
                     if self._stop.is_set():
                         break

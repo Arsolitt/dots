@@ -5,8 +5,8 @@ the CPU stops paying ~35-40% of a core for microphone noise suppression.
 
 Scripts carry their dependencies inline (PEP 723), so everything runs through
 `uv run` without a project virtualenv. The tree lives in the dotfiles repo and
-is linked to `~/projects/npu-denoise`; model weights are downloaded into
-`~/.cache/npu-denoise/models`.
+the user unit runs it in place (`WorkingDirectory=%h/dots/npu-denoise`); model
+weights are downloaded into `~/.cache/npu-denoise/models`.
 
 ## Measured on this machine
 
@@ -24,9 +24,9 @@ plugin this replaces costs ~39 % of a core.
 
 ## Setup
 
-`install.fish` in the dotfiles root installs the packages, adds the user to the
-`render` group (required for `/dev/accel/accel0`) and fetches the models. The
-manual equivalent:
+`uv run setup/install.py` in the dotfiles root installs the packages, adds the
+user to the `render` group (required for `/dev/accel/accel0`) and fetches the
+models. The manual equivalent:
 
 ```
 sudo pacman -S uv level-zero-loader intel-npu-driver intel-npu-compiler
@@ -65,6 +65,20 @@ record). A PulseAudio null-sink plus remap-source would do the same, but
 pipewire-pulse splits module arguments on whitespace, so any device description
 with spaces is truncated to its first word; SPA JSON passed to pw-loopback keeps
 the label intact.
+
+## Capture and post-processing
+
+`realtime.py` records the physical source at its native width (`CAPTURE_CHANNELS`)
+and picks one capsule in numpy (`CAPSULE`). Asking `pw-cat` for a single channel
+of a four-channel source leaves the choice to PipeWire channelmix, which sums
+every capsule: the measured capsule delay of 22 samples (0.46 ms) turns that sum
+into comb notches, heard as a hollow, bucket-like timbre.
+
+After DeepFilterNet the mono stream goes through `PostChain`: a DC blocker, a
+second-order high-pass at 80 Hz and a peak limiter at -1 dBFS with a 5 ms attack
+and a 50 ms release. The high-pass matters because the laptop microphone carries
+a large sub-100 Hz rumble that the model leaves almost untouched; without it the
+stream is dominated by low-frequency energy and sounds boomy.
 
 ## Usage
 
