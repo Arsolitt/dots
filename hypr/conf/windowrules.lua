@@ -128,6 +128,7 @@ hl.layer_rule({
 })
 
 -- Personal app placement
+hl.window_rule({ match = { class = "^(dev\\.arsolitt\\.SshAskpass)$" }, float = true, center = true })
 hl.window_rule({ match = { class = "^(org.prismlauncher.PrismLauncher)$" }, workspace = "name:gaming" })
 hl.window_rule({ match = { class = "^(.*Minecraft.*)$" }, workspace = "name:gaming" })
 hl.window_rule({ match = { class = "^(steam_proton)$" }, workspace = "name:gaming" })
