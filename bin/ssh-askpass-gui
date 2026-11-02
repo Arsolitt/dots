@@ -6,6 +6,18 @@ import subprocess
 import sys
 import time
 
+LAYER_PRELOAD = "/usr/lib/libgtk4-layer-shell.so.0"
+if (
+    os.path.exists(LAYER_PRELOAD)
+    and "libgtk4-layer-shell" not in os.environ.get("LD_PRELOAD", "")
+    and os.environ.get("SSH_ASKPASS_GUI_REEXEC") != "1"
+):
+    os.environ["LD_PRELOAD"] = LAYER_PRELOAD + (
+        ":" + os.environ["LD_PRELOAD"] if os.environ.get("LD_PRELOAD") else ""
+    )
+    os.environ["SSH_ASKPASS_GUI_REEXEC"] = "1"
+    os.execv(sys.executable, [sys.executable] + sys.argv)
+
 try:
     import gi
 
@@ -13,6 +25,12 @@ try:
     from gi.repository import Gio, GLib, Gtk
 except Exception:
     sys.exit(2)
+
+try:
+    gi.require_version("Gtk4LayerShell", "1.0")
+    from gi.repository import Gtk4LayerShell as LayerShell
+except Exception:
+    LayerShell = None
 
 APP_ID = "dev.arsolitt.SshAskpass"
 RETRY_DELAY = 0.6
@@ -55,6 +73,11 @@ class Askpass(Gtk.Application):
         self.win.set_default_size(440, -1)
         self.win.set_resizable(False)
         self.win.connect("close-request", self.on_close)
+        if LayerShell is not None:
+            LayerShell.init_for_window(self.win)
+            LayerShell.set_namespace(self.win, "ssh-askpass")
+            LayerShell.set_layer(self.win, LayerShell.Layer.OVERLAY)
+            LayerShell.set_keyboard_mode(self.win, LayerShell.KeyboardMode.EXCLUSIVE)
 
         box = Gtk.Box(
             orientation=Gtk.Orientation.VERTICAL,
