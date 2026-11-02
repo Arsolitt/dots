@@ -1,0 +1,2 @@
+#!/bin/sh
+exec secret-tool lookup service ssh key "$SSH_KEY_NAME"
