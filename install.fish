@@ -239,7 +239,8 @@ end
 
 function _install_packages_linux
     set -l repo_pkgs starship zoxide eza bat fd fzf git jq cloc fnm kubectl \
-        go gnupg restic pass rsync rust cilium-cli tmux libsecret
+        go gnupg restic pass rsync rust cilium-cli tmux libsecret \
+        docker docker-compose docker-buildx
     set -l desktop_pkgs hyprland hyprlock hypridle hyprpicker noctalia kitty \
         mate-polkit xdg-desktop-portal xdg-desktop-portal-hyprland \
         xdg-desktop-portal-gtk grim slurp wl-clipboard swappy swayimg satty wf-recorder \
@@ -293,6 +294,9 @@ function _install_packages_linux
 
     # NPU denoiser: group access to /dev/accel and the model files
     _install_npu_linux
+
+    # docker: service, group access, stale macOS context guard
+    _setup_docker_linux
 end
 
 function _install_npu_linux
@@ -324,6 +328,74 @@ function _install_npu_linux
         bash "$DOTFILES/npu-denoise/scripts/fetch-models.sh"
         and _log_ok "npu: models fetched"
         or _log_err "npu: model fetch failed"
+    end
+end
+
+function _setup_docker_linux
+    if not _have systemctl
+        _log_warn "docker: systemctl not available — start the docker service manually"
+        return 0
+    end
+
+    if systemctl is-enabled --quiet docker 2>/dev/null
+        _log_skip "docker: service already enabled"
+    else if test $DRY_RUN -eq 1
+        _log_info "would sudo systemctl enable docker"
+    else
+        sudo systemctl enable docker
+        if test $status -eq 0
+            _log_ok "docker: service enabled"
+        else
+            _log_err "docker: systemctl enable failed"
+        end
+    end
+
+    if systemctl is-active --quiet docker 2>/dev/null
+        _log_skip "docker: service already running"
+    else if test $DRY_RUN -eq 1
+        _log_info "would sudo systemctl start docker"
+    else
+        sudo systemctl start docker
+        if test $status -eq 0
+            _log_ok "docker: service started"
+        else
+            _log_err "docker: systemctl start failed"
+        end
+    end
+
+    if id -nG | string match -qr '(^| )docker( |$)'
+        _log_skip "docker: user already in docker group"
+    else if test $DRY_RUN -eq 1
+        _log_info "would sudo usermod -aG docker $USER"
+    else
+        sudo usermod -aG docker $USER
+        if test $status -eq 0
+            _log_warn "docker: added $USER to docker — relogin required for rootless CLI access"
+        else
+            _log_err "docker: usermod -aG docker failed"
+        end
+    end
+
+    # A dotfiles restore from macOS can carry a Docker Desktop / OrbStack
+    # context that has no endpoint on Linux; reset it to the local default.
+    if _have docker
+        set -l ctx (docker context show 2>/dev/null)
+        if test -z "$ctx"
+            _log_skip "docker: no context reported"
+        else if test "$ctx" = orbstack
+            if test $DRY_RUN -eq 1
+                _log_info "would docker context use default (stale orbstack context from macOS)"
+            else
+                docker context use default
+                if test $status -eq 0
+                    _log_warn "docker: replaced stale 'orbstack' context with 'default'"
+                else
+                    _log_err "docker: failed to reset stale orbstack context"
+                end
+            end
+        else
+            _log_skip "docker: context already '$ctx'"
+        end
     end
 end
 
@@ -568,6 +640,125 @@ function _phase7_pbackup
 end
 
 # ---------------------------------------------------------------------------
+# Phase 8: searxng (docker compose, loopback only)
+# ---------------------------------------------------------------------------
+
+function _phase8_search
+    _log_info "phase 8: searxng"
+    _setup_searxng
+end
+
+function _setup_searxng
+    if not _have docker
+        _log_skip "searxng: docker not installed — skipping"
+        return 0
+    end
+
+    set -l src_compose "$DOTFILES/searxng/docker-compose.yml"
+    set -l src_template "$DOTFILES/searxng/settings.yml.template"
+    set -l target "$HOME/docker/searxng"
+    set -l settings_dir "$target/searxng"
+    set -l target_compose "$target/docker-compose.yml"
+    set -l target_settings "$settings_dir/settings.yml"
+
+    if not test -f "$src_compose"; or not test -f "$src_template"
+        _log_err "searxng: repo assets missing under $DOTFILES/searxng"
+        return 1
+    end
+
+    for dir in "$target" "$settings_dir"
+        if test -d "$dir"
+            _log_skip "searxng: dir exists $dir"
+        else if test $DRY_RUN -eq 1
+            _log_info "would mkdir -p $dir"
+        else
+            mkdir -p "$dir"
+            if test $status -eq 0
+                _log_ok "searxng: created $dir"
+            else
+                _log_err "searxng: mkdir -p $dir failed"
+            end
+        end
+    end
+
+    # Compose file: only touch it when missing or drifted from the repo copy.
+    if test -f "$target_compose"; and cmp -s "$src_compose" "$target_compose"
+        _log_skip "searxng: compose file up to date"
+    else if test $DRY_RUN -eq 1
+        if test -f "$target_compose"
+            _log_info "would update $target_compose from repo"
+        else
+            _log_info "would install $target_compose from repo"
+        end
+    else
+        set -l action installed
+        test -f "$target_compose"; and set action updated
+        if cp "$src_compose" "$target_compose"
+            _log_ok "searxng: compose file $action"
+        else
+            _log_err "searxng: compose file copy failed"
+        end
+    end
+
+    # Settings: the rendered secret is never rewritten once generated.
+    if test -f "$target_settings"
+        if string match -q '*__SEARXNG_SECRET__*' <"$target_settings"
+            if test $DRY_RUN -eq 1
+                _log_info "would generate secret_key in $target_settings"
+            else
+                set -l secret (openssl rand -hex 32)
+                set -l tmp (mktemp)
+                if sed "s/__SEARXNG_SECRET__/$secret/" "$target_settings" >"$tmp"; and mv "$tmp" "$target_settings"
+                    _log_ok "searxng: generated secret_key in $target_settings"
+                else
+                    rm -f "$tmp"
+                    _log_err "searxng: secret_key generation failed"
+                end
+            end
+        else
+            _log_skip "searxng: settings.yml already has a secret_key"
+        end
+    else if test $DRY_RUN -eq 1
+        _log_info "would render $target_settings from template with a generated secret"
+    else
+        set -l secret (openssl rand -hex 32)
+        set -l tmp (mktemp)
+        if sed "s/__SEARXNG_SECRET__/$secret/" "$src_template" >"$tmp"; and mv "$tmp" "$target_settings"
+            _log_ok "searxng: settings.yml created"
+        else
+            rm -f "$tmp"
+            _log_err "searxng: settings render failed"
+        end
+    end
+
+    if not docker info >/dev/null 2>&1
+        _log_warn "searxng: docker not reachable — relogin, then re-run install.fish"
+        return 0
+    end
+
+    set -l running (docker inspect -f '{{.State.Running}}' searxng 2>/dev/null)
+    if test "$running" = true
+        _log_skip "searxng: container already running"
+        return 0
+    end
+
+    if test $DRY_RUN -eq 1
+        _log_info "would docker compose -f $target_compose up -d"
+        return 0
+    end
+
+    pushd "$target" >/dev/null
+    docker compose -f "$target_compose" up -d
+    set -l st $status
+    popd >/dev/null
+    if test $st -eq 0
+        _log_ok "searxng: stack up on http://127.0.0.1:8080"
+    else
+        _log_err "searxng: docker compose up failed"
+    end
+end
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -582,6 +773,7 @@ _phase4_fnm
 _phase5_krew
 _phase6_shell
 _phase7_pbackup
+_phase8_search
 
 # ---------------------------------------------------------------------------
 # Summary & cleanup
@@ -595,5 +787,5 @@ end
 
 set --erase DOTFILES OS DRY_RUN ERRORS
 functions --erase _use_color _log_info _log_ok _log_skip _log_warn _log_err _have
-functions --erase _phase1_packages _install_packages_macos _install_packages_linux _install_kubecm_linux _install_npu_linux _install_casks_macos _install_tpm
-functions --erase _phase2_links _phase3_fisher _phase4_fnm _phase5_krew _phase6_shell _phase7_pbackup
+functions --erase _phase1_packages _install_packages_macos _install_packages_linux _install_kubecm_linux _install_npu_linux _setup_docker_linux _setup_searxng _install_casks_macos _install_tpm
+functions --erase _phase2_links _phase3_fisher _phase4_fnm _phase5_krew _phase6_shell _phase7_pbackup _phase8_search

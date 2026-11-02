@@ -18,6 +18,8 @@
 - Icons: Kanagawa
 - Font: FantasqueSansM
 - Microphone noise suppression: `micns` — PipeWire filter-chain presets (RNNoise, DeepFilterNet LADSPA) or the NPU denoiser (`micns npu`, ~7% of a core; host in `npu-denoise/`, models in `~/.cache/npu-denoise`)
+- Docker + docker compose (docker group for rootless CLI access)
+- SearXNG (docker compose, loopback 127.0.0.1:8080, JSON API)
 
 ## macOS
 - Ghostty (Kanagawa palette inlined)
