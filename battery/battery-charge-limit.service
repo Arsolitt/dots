@@ -1,0 +1,12 @@
+[Unit]
+Description=Apply the firmware 80% battery charge limit
+After=systemd-modules-load.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStartPre=-/usr/bin/modprobe acpi_call
+ExecStart=/usr/local/sbin/charge-limit on
+
+[Install]
+WantedBy=multi-user.target
