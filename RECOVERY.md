@@ -7,10 +7,10 @@ Critical-path rule: recovery uses **plain `restic` + `ssh` only** — nothing in
 
 - Repository: `sftp:pbackup:/pbackup/restic` (restic, format v2)
 - Access: `ssh pbackup` — host/port/user live in `~/.ssh/config` on a live machine and in the Bitwarden item `pbackup/console`; key `~/.ssh/laptop` (copy attached to Bitwarden).
-- The repository is also the machine-to-machine transfer medium: `pbackup push` on one machine, `pbackup pull` on the other.
+- The repository is also the machine-to-machine transfer medium: `pbackup push` on one Linux host, `pbackup pull` on another.
 - Day-to-day operations use the `pbackup` CLI (`dots/pbackup`) — see `pbackup/README.md` for the cheat sheet; this runbook deliberately sticks to raw `restic`.
 - Snapshot tags (`source,category`): `projects,data` · `media` · `kube|talos|ssh|docker|gpg|password-store|sops-age|omp,configs`. Untagged and `manual`-tagged snapshots are never pruned by `cleanup`.
-- Runtime repository password: `pass restic/backup-repo` (interactive) or the per-OS non-interactive command in `pbackup/config.toml` (Keychain / secret-tool) — needed for unattended scheduled runs.
+- Runtime repository password: `pass restic/backup-repo` (interactive) or the `secret-tool` non-interactive command documented in `pbackup/config.toml` — needed for unattended scheduled runs.
 
 ## Bitwarden items to create (keep current)
 
@@ -24,47 +24,40 @@ Critical-path rule: recovery uses **plain `restic` + `ssh` only** — nothing in
 
 Why: `pass`/GPG is circular for disaster recovery — `~/.password-store` and `~/.gpg` live *inside* the repository that needs the password. Bitwarden (plus an offline copy of its own credentials) is the out-of-band copy that breaks the loop.
 
-## Restore procedure (new machine, same OS as the snapshot)
+## Restore procedure (new Linux machine)
 
-1. Install restic: `brew install restic` (macOS) / `sudo pacman -S restic` (Arch).
+1. Install the bootstrap tools: `sudo pacman -S --needed git fish uv restic`; clone the dotfiles and run `uv run setup/install.py` (or `uv run setup/install.py --only configs` when only symlinks are needed).
 2. Fetch from Bitwarden: repo password → `set -x RESTIC_PASSWORD …` (fish; do not write it to disk); key → `~/.ssh/laptop` (`chmod 600`); recreate the `pbackup` stanza in `~/.ssh/config`.
 3. Check access: `ssh pbackup true`, then:
    ```fish
    set -x RESTIC_REPOSITORY sftp:pbackup:/pbackup/restic
    restic snapshots --compact
    ```
-   Note the `Host` value for your machine in the listing — pin it in every restore below (`--host <value>`) so a `--target /` restore never picks the *other* OS's snapshot (paths would land under the wrong prefix).
+   Note your machine's hostname in the listing — pin it in every restore below (`--host <hostname>`) so a restore never picks another machine's snapshot (paths would land under the wrong prefix).
 4. Restore configuration first (small, unblocks everything else):
    ```fish
-   restic restore latest --host <host> --tag sops-age --target /
-   restic restore latest --host <host> --tag ssh --target /
-   restic restore latest --host <host> --tag gpg --target /
-   restic restore latest --host <host> --tag password-store --target /
-   restic restore latest --host <host> --tag omp --target /
-   restic restore latest --host <host> --tag kube --target /
-   restic restore latest --host <host> --tag docker --target /
-   restic restore latest --host <host> --tag talos --target /
+   restic restore latest --host <hostname> --tag sops-age --target /
+   restic restore latest --host <hostname> --tag ssh --target /
+   restic restore latest --host <hostname> --tag gpg --target /
+   restic restore latest --host <hostname> --tag password-store --target /
+   restic restore latest --host <hostname> --tag omp --target /
+   restic restore latest --host <hostname> --tag kube --target /
+   restic restore latest --host <hostname> --tag docker --target /
+   restic restore latest --host <hostname> --tag talos --target /
    ```
 5. Verify: `sops -d <any sops-encrypted file>` decrypts; `pass ls` works (re-import GPG keys via `gpg-import.fish` if needed); `ssh -T git@git.arsolitt.dev`.
 6. Restore data:
    ```fish
-   restic restore latest --host <host> --tag projects --target /
-   restic restore latest --host <host> --tag media --target /
+   restic restore latest --host <hostname> --tag projects --target /
+   restic restore latest --host <hostname> --tag media --target /
    ```
 7. Integrity check: `restic check --read-data-subset=1%`.
-
-Cross-OS restore (snapshot taken on the other OS): paths differ (`/Users/arsolitt` vs `/home/arsolitt`), so stage and copy instead of `--target /`:
-
-```fish
-restic restore latest --tag ssh --target /tmp/restore
-rsync -aX /tmp/restore/<original-path-from-snapshot>/ ~/.ssh/
-```
 
 ## Verification drill (do it while nothing is broken)
 
 ```fish
 restic restore latest --tag ssh --target /tmp/drill --verify
-diff -r /tmp/drill/<host-path>/.ssh ~/.ssh
+diff -r /tmp/drill/home/arsolitt/.ssh ~/.ssh
 ```
 
 Confirms the password works, the repository decrypts, and data is readable — before you actually need it. Run after any storage change and every few months.
@@ -72,6 +65,5 @@ Confirms the password works, the repository decrypts, and data is readable — b
 ## Known gotchas
 
 - `pass`/GPG chain is circular by design (see above) — Bitwarden plus the offline copy is the break-glass path.
-- Case sensitivity: macOS APFS is case-insensitive (verified), Linux is not. A directory containing both `Foo` and `foo` cannot be restored on macOS. Keep trees casefold-unique; a `lint` check ships with the `pbackup` CLI.
 - `StrictHostKeyChecking no` is set for `pbackup` — acceptable for an encrypted repo, but pinning the host key (`ssh-keyscan`) is stricter.
-- Zen browser profile is *not* backed up (target commented out in `pbackup/config.toml`).
+- Zen browser profile is *not* backed up.

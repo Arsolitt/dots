@@ -1,5 +1,5 @@
 if status is-login
-    if test (uname) = Linux -a -z "$DISPLAY" -a "$(tty)" = /dev/tty1
+    if test -z "$DISPLAY" -a "$(tty)" = /dev/tty1
         exec start-hyprland
     end
 end
@@ -26,7 +26,3 @@ source ~/.config/fish/themes/kanagawa.fish
 
 # starship prompt (replaces tide) — must init last
 starship init fish | source
-
-# Added by OrbStack: command-line tools and integration
-# This won't be added again if you remove it.
-source ~/.orbstack/shell/init2.fish 2>/dev/null || :

@@ -108,7 +108,7 @@
 	smudge=sops --decrypt -p F431C200D643AE82D9D9493D5113F0524C1FB44A /dev/stdin
 	
 [credential "https://git.arsolitt.dev"]
-	helper = "!f() { case $(uname -s) in Darwin) h=osxkeychain;; *) h=libsecret;; esac; git credential-$h \"$@\"; }; f"
+	helper = libsecret
 	username = arsolitt
 [credential "https://github.com"]
 	helper =
@@ -123,5 +123,5 @@
 	required = true
 	clean = sops --input-type yaml --output-type yaml --indent 2 --encrypt --filename-override secrets.sops.yaml /dev/stdin
 [credential "https://gitlab.psclp.org"]
-	helper = "!f() { case $(uname -s) in Darwin) h=osxkeychain;; *) h=libsecret;; esac; git credential-$h \"$@\"; }; f"
+	helper = libsecret
 	username = arsolitt
