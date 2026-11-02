@@ -3,22 +3,45 @@ prompt=$1
 
 case "$prompt" in
 *"(yes/no"*)
-    if zenity --question --text="$prompt"; then
-        printf 'yes\n'
-    else
-        printf 'no\n'
-    fi
+    zenity --question --text="$prompt" && printf 'yes\n' || printf 'no\n'
     exit 0
     ;;
 esac
 
 key=$(printf '%s' "$prompt" | grep -oE "/[^ ':]+" | head -n 1)
 name=$(basename -- "$key" 2>/dev/null)
+log=${XDG_CACHE_HOME:-$HOME/.cache}/ssh-askpass-fprint.log
 
-if [ -n "$name" ] && command -v fprintd-verify >/dev/null 2>&1 && timeout 25 fprintd-verify >/dev/null 2>&1; then
-    if secret=$(secret-tool lookup service ssh key "$name"); then
-        printf '%s\n' "$secret"
-        exit 0
+note_id=""
+if [ -n "$name" ] && command -v fprintd-verify >/dev/null 2>&1; then
+    if command -v notify-send >/dev/null 2>&1; then
+        note_id=$(notify-send --app-name=ssh --icon=dialog-password --print-id \
+            --expire-time=0 "SSH key" "Press the fingerprint sensor to unlock $name" 2>/dev/null)
+    fi
+
+    if [ -t 2 ]; then
+        printf 'ssh: press the fingerprint sensor to unlock %s\n' "$name" >&2
+    fi
+
+    mkdir -p "$(dirname -- "$log")" 2>/dev/null
+    if timeout 45 fprintd-verify >"$log" 2>&1; then
+        if secret=$(secret-tool lookup service ssh key "$name"); then
+            if [ -n "$note_id" ]; then
+                notify-send --replace-id="$note_id" --expire-time=2000 \
+                    --app-name=ssh --icon=dialog-password "SSH key" "Unlocked $name" >/dev/null 2>&1
+            fi
+            printf '%s\n' "$secret"
+            exit 0
+        fi
+        if [ -n "$note_id" ]; then
+            notify-send --replace-id="$note_id" --expire-time=3000 \
+                --app-name=ssh --icon=dialog-password "SSH key" "No keyring entry for $name" >/dev/null 2>&1
+        fi
+    else
+        if [ -n "$note_id" ]; then
+            notify-send --replace-id="$note_id" --expire-time=3000 \
+                --app-name=ssh --icon=dialog-password "SSH key" "Fingerprint not recognized, type the passphrase" >/dev/null 2>&1
+        fi
     fi
 fi
 
