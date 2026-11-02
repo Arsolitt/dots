@@ -10,14 +10,18 @@ from ..links import DEFAULT_SCAN_DIRS, Link, Linker
 from ..profile import Profile
 from . import Step
 
-CONFIG_DIRS = ("fish", "git", "kitty", "btop", "tmux")
+CONFIG_DIRS = ("fish", "git", "kitty", "btop", "tmux", "nvim")
 LINUX_DIRS = ("hypr", "swappy", "swayimg", "nwg-look", "gtk-2.0", "gtk-3.0", "gtk-4.0")
 LINUX_FILES = ("mimeapps.list", "electron-flags.conf")
 BIN_FILES = (
+    "bin/opus-bench",
     "bin/ssh-askpass-fprint",
     "bin/ssh-askpass-gui",
     "bin/ssh-askpass-keyring",
     "bin/ssh-unlock.fish",
+    "gpg-export.fish",
+    "gpg-import.fish",
+    "yay.fish",
 )
 PIPEWIRE_SOURCE = "pipewire/mic-denoise-rnnoise.conf"
 PIPEWIRE_DEST = ".config/pipewire/pipewire.conf.d/50-mic-denoise.conf"
