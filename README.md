@@ -17,7 +17,7 @@
 - GTK: Kanagawa Orange Dark
 - Icons: Kanagawa
 - Font: FantasqueSansM
-- Microphone noise suppression: `micns` — PipeWire filter-chain presets (RNNoise, DeepFilterNet LADSPA) or the NPU denoiser (`micns npu`, ~7% of a core)
+- Microphone noise suppression: `micns` — PipeWire filter-chain presets (RNNoise, DeepFilterNet LADSPA) or the NPU denoiser (`micns npu`, ~7% of a core; host in `npu-denoise/`, models in `~/.cache/npu-denoise`)
 
 ## macOS
 - Ghostty (Kanagawa palette inlined)

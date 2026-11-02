@@ -244,7 +244,8 @@ function _install_packages_linux
         mate-polkit xdg-desktop-portal xdg-desktop-portal-hyprland \
         xdg-desktop-portal-gtk grim slurp wl-clipboard swappy swayimg satty wf-recorder \
         nwg-look telegram-desktop ttf-fantasque-nerd \
-        deepfilternet-ladspa noise-suppression-for-voice
+        deepfilternet-ladspa noise-suppression-for-voice \
+        uv level-zero-loader intel-npu-driver intel-npu-compiler
     set -l missing
     for pkg in $repo_pkgs $desktop_pkgs
         if pacman -Q "$pkg" >/dev/null 2>&1
@@ -289,6 +290,41 @@ function _install_packages_linux
 
     # kubecm — not in pacman, not in krew; install from GitHub releases
     _install_kubecm_linux
+
+    # NPU denoiser: group access to /dev/accel and the model files
+    _install_npu_linux
+end
+
+function _install_npu_linux
+    if not getent group render >/dev/null 2>&1
+        _log_skip "npu: no render group on this system"
+        return 0
+    end
+    if id -nG | string match -qr '(^| )render( |$)'
+        _log_skip "npu: user already in render group"
+    else if test $DRY_RUN -eq 1
+        _log_info "would usermod -aG render $USER"
+    else
+        sudo usermod -aG render $USER
+        if test $status -eq 0
+            _log_warn "npu: added $USER to render — relogin required for /dev/accel access"
+        else
+            _log_err "npu: usermod -aG render failed"
+        end
+    end
+
+    set -l cache $HOME/.cache
+    set -q XDG_CACHE_HOME; and set cache $XDG_CACHE_HOME
+    set -l models $cache/npu-denoise/models
+    if test -f "$models/enc.onnx"; and test -f "$models/erb_dec.onnx"; and test -f "$models/df_dec.onnx"
+        _log_skip "npu: models already present in $models"
+    else if test $DRY_RUN -eq 1
+        _log_info "would fetch DeepFilterNet3 ONNX models into $models"
+    else
+        bash "$DOTFILES/npu-denoise/scripts/fetch-models.sh"
+        and _log_ok "npu: models fetched"
+        or _log_err "npu: model fetch failed"
+    end
 end
 
 function _install_kubecm_linux
@@ -559,5 +595,5 @@ end
 
 set --erase DOTFILES OS DRY_RUN ERRORS
 functions --erase _use_color _log_info _log_ok _log_skip _log_warn _log_err _have
-functions --erase _phase1_packages _install_packages_macos _install_packages_linux _install_kubecm_linux _install_casks_macos _install_tpm
+functions --erase _phase1_packages _install_packages_macos _install_packages_linux _install_kubecm_linux _install_npu_linux _install_casks_macos _install_tpm
 functions --erase _phase2_links _phase3_fisher _phase4_fnm _phase5_krew _phase6_shell _phase7_pbackup

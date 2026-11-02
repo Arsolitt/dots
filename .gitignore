@@ -13,3 +13,7 @@ tmux/plugins/
 
 # machine-local: fish rewrites its universal store on every change; state, not config
 fish/fish_variables
+
+# python bytecode from the npu-denoise scripts
+__pycache__/
+*.pyc

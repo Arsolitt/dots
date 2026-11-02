@@ -252,6 +252,10 @@ function install_linux
     ensure_dir "$HOME/.config/systemd/user"
     link "$DOTFILES_DIR/systemd/user/npu-denoise.service" \
         "$HOME/.config/systemd/user/npu-denoise.service"
+
+    # NPU denoiser host itself; the unit refers to it at ~/projects/npu-denoise
+    ensure_dir "$HOME/projects"
+    link "$DOTFILES_DIR/npu-denoise" "$HOME/projects/npu-denoise"
 end
 
 # The filter chain loads its plugins from ~/.local/lib/ladspa, which PipeWire
