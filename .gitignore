@@ -3,12 +3,7 @@ hyprland.conf
 hyprpaper.conf
 banks
 
-# machine-local: OrbStack completion symlinks (absolute paths into /Applications)
-fish/completions/docker.fish
-fish/completions/kubectl.fish
-fish/completions/orbctl.fish
-
-# machine-local: TPM plugin clones (installed to ~/.tmux/plugins by install.fish)
+# machine-local: TPM plugin clones (installed to ~/.tmux/plugins by setup/install.py)
 tmux/plugins/
 
 # machine-local: fish rewrites its universal store on every change; state, not config

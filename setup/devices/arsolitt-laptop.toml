@@ -1,0 +1,17 @@
+# Xiaomi Redmi Book Pro 16 2026 — Arsolitt's laptop.
+# Pins the hardware gates this machine supports; battery and docker stay
+# automatic so detection still governs them.
+
+[features]
+fingerprint = "on"
+battery = "auto"
+charge_limit = "on"
+npu = "on"
+docker = "auto"
+platform_profile_fix = "on"
+
+[packages]
+extra = []
+
+[links]
+skip = []

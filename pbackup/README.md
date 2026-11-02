@@ -6,15 +6,15 @@ scheduled runs on macOS (launchd) and Linux (systemd user timers).
 
 > Renamed from `backup` (2026-10): binary, source dir, `PBACKUP_CONFIG` and the
 > `~/.config|state|cache/pbackup` paths. Older installs: move the three old dirs
-> to their pbackup names and rebuild via `install.fish`.
+> to their pbackup names and rebuild via `uv run setup/install.py --only pbackup`.
 
 Disaster recovery uses plain `restic` only — see [../RECOVERY.md](../RECOVERY.md).
 
 ## Install
 
 ```fish
-fish ~/dots/links.fish                               # config → ~/.config/pbackup/config.toml
-go build -C ~/dots/pbackup -o ~/.local/bin/pbackup .   # or the full fish ~/dots/install.fish
+uv run setup/install.py --only configs                 # config → ~/.config/pbackup/config.toml
+go build -C pbackup -o ~/.local/bin/pbackup .          # or: uv run setup/install.py --only pbackup
 ```
 
 ## Daily

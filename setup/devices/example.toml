@@ -1,0 +1,28 @@
+# Device profile template. Copy to setup/devices/<hostname>.toml.
+#
+# Feature gates: "auto" uses hardware detection, "on" forces the step to run,
+# "off" disables it. A machine-local overlay passed with --profile (or through
+# DOTS_PROFILE) is merged on top of the device profile.
+
+[features]
+fingerprint = "auto"
+battery = "auto"
+charge_limit = "auto"
+npu = "auto"
+docker = "auto"
+platform_profile_fix = "auto"
+
+[packages]
+# Extra pacman packages installed for this host.
+extra = []
+
+[links]
+# Built-in links to drop: repo dir/file names, repo-relative paths or
+# destination paths.
+skip = []
+
+# Additional symlinks appended after the built-in list. src is relative to the
+# repository root (absolute paths pass through); dst is expanded with ~.
+[[links.extra]]
+src = "nvim"
+dst = "~/.config/nvim"
