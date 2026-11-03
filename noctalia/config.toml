@@ -143,10 +143,15 @@ show_labels = false
 
 [idle.behavior.lock]
 timeout = 300
-action = "lock"
 enabled = true
 
 [idle.behavior.screen-off]
 timeout = 360
 action = "screen_off"
+enabled = true
+
+[idle.behavior.suspend-on-battery]
+timeout = 600
+action = "command"
+command = "grep -q Discharging /sys/class/power_supply/BAT0/status && systemctl suspend"
 enabled = true
