@@ -23,16 +23,32 @@ require_root() {
 }
 
 hook_body() {
-    cat <<'HOOK_BODY'
+cat <<'HOOK_BODY'
 #!/bin/sh
 # Installed by dots suspend/bitland-sleep.sh: the bitland_mifs_wmi suspend
-# callback returns -EINVAL on kernel 7.3.1 and aborts sleep, so the control
-# device is unbound before suspend and rebound after resume.
+# callback returns -EINVAL on kernel 7.3.1 and aborts sleep, so the driver is
+# detached before suspend and reattached after resume.
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+export PATH
 DEV=B60BFB48-3E5B-49E4-A0E9-8CFFE1B3434B-4
 CTRL=/sys/bus/wmi/drivers/bitland-mifs-wmi
+say() { printf 'bitland-mifs-wmi: %s\n' "$*"; }
 case ${1:-} in
-    pre) echo "$DEV" >"$CTRL/unbind" 2>/dev/null || true ;;
-    post) echo "$DEV" >"$CTRL/bind" 2>/dev/null || true ;;
+    pre)
+        if modprobe -r bitland_mifs_wmi 2>/dev/null; then
+            say 'module removed for sleep'
+        elif echo "$DEV" >"$CTRL/unbind" 2>/dev/null; then
+            say 'control device unbound for sleep'
+        else
+            say 'WARN: could not detach driver; suspend may abort with -EINVAL'
+        fi
+        ;;
+    post)
+        modprobe bitland_mifs_wmi 2>/dev/null
+        if [ ! -e "$CTRL/$DEV" ]; then
+            echo "$DEV" >"$CTRL/bind" 2>/dev/null || say 'WARN: rebind failed'
+        fi
+        ;;
 esac
 HOOK_BODY
 }
