@@ -143,6 +143,7 @@ show_labels = false
 
 [idle.behavior.lock]
 timeout = 300
+action = "lock"
 enabled = true
 
 [idle.behavior.screen-off]
