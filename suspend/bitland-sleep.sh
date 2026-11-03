@@ -3,15 +3,19 @@
 #
 # The in-tree driver (kernel 7.3.1) has a suspend callback that returns
 # -EINVAL and aborts every system suspend; the fix (upstream commit
-# d3666875c75e) is not in 7.3.1 yet. Unbinding the WMI control device
-# before sleep and rebinding it after resume lets suspend succeed. Drop
-# this once a fixed kernel ships.
+# d3666875c75e) is not in 7.3.1 yet. The module is unloaded before sleep
+# and reloaded after resume (sysfs unbind leaves the device attached).
+# The hook must live in /usr/lib/systemd/system-sleep: that is the only
+# directory systemd-sleep executes hooks from (verified on systemd 262;
+# /etc/systemd/system-sleep is silently ignored). Drop this once a
+# fixed kernel ships.
 set -eu
 
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 export PATH
 
-HOOK=/etc/systemd/system-sleep/bitland-mifs-wmi.sh
+HOOK=/usr/lib/systemd/system-sleep/bitland-mifs-wmi.sh
+LEGACY_HOOK=/etc/systemd/system-sleep/bitland-mifs-wmi.sh
 
 die() {
     printf '%s\n' "$*" >&2
@@ -89,6 +93,10 @@ cmd_install() {
         printf 'installed %s\n' "$HOOK"
     fi
     rm -f "$_tmp"
+    if [ -e "$LEGACY_HOOK" ]; then
+        rm -f "$LEGACY_HOOK"
+        printf 'removed legacy %s\n' "$LEGACY_HOOK"
+    fi
 }
 
 cmd_uninstall() {

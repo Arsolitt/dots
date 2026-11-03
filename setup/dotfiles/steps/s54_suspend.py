@@ -7,7 +7,7 @@ from pathlib import Path
 from ..cli import Context
 from . import Step
 
-HOOK = Path("/etc/systemd/system-sleep/bitland-mifs-wmi.sh")
+HOOK = Path("/usr/lib/systemd/system-sleep/bitland-mifs-wmi.sh")
 SCRIPT = "suspend/bitland-sleep.sh"
 
 
