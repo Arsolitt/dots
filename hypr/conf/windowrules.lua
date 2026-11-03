@@ -1,5 +1,10 @@
 -- Window rules wiki https://wiki.hypr.land/Configuring/Basics/Window-Rules/
 
+-- Float all windows by default. Keep this rule first: effects run top to
+-- bottom and the last match wins, so explicit tile rules further below
+-- (vesktop, telegram) still override it.
+hl.window_rule({ match = { class = ".*" }, float = true })
+
 -- Generic floating position
 hl.window_rule({ match = { float = true }, persistent_size = true })
 
