@@ -17,6 +17,7 @@ SYS_VENDOR = Path("/sys/class/dmi/id/sys_vendor")
 PRODUCT_NAME = Path("/sys/class/dmi/id/product_name")
 ACCEL_DIR = Path("/sys/class/accel")
 USB_DEVICES = Path("/sys/bus/usb/devices")
+BITLAND_WMI_DEV = Path("/sys/bus/wmi/drivers/bitland-mifs-wmi/B60BFB48-3E5B-49E4-A0E9-8CFFE1B3434B-4")
 
 LAPTOP_CHASSIS = frozenset({8, 9, 10, 14})
 CHARGE_LIMIT_VENDORS = ("XIAOMI", "REDMI BOOK")
@@ -147,6 +148,11 @@ def docker() -> bool:
     return shutil.which("docker") is not None
 
 
+def bitland_sleep_fix(dev: Path = BITLAND_WMI_DEV) -> bool:
+    """True when the bitland-mifs-wmi control device is present."""
+    return dev.is_dir()
+
+
 def device() -> Device:
     """Describe this host and probe its hardware features."""
     has_battery = battery()
@@ -160,5 +166,6 @@ def device() -> Device:
             "charge_limit": charge_limit(has_battery),
             "npu": npu(),
             "docker": docker(),
+            "bitland_sleep_fix": bitland_sleep_fix(),
         },
     )

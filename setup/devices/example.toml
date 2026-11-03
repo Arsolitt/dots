@@ -11,6 +11,9 @@ charge_limit = "auto"
 npu = "auto"
 docker = "auto"
 platform_profile_fix = "auto"
+# bitland_mifs_wmi suspend callback returns -EINVAL until kernel d3666875c75e
+# ships; the hook unbinds/rebinds the device around sleep.
+bitland_sleep_fix = "auto"
 
 [packages]
 # Extra pacman packages installed for this host.
