@@ -43,8 +43,6 @@ BASE_PACKAGES = (
 
 DESKTOP_PACKAGES = (
     "hyprland",
-    "hyprlock",
-    "hypridle",
     "hyprpicker",
     "noctalia",
     "zen-browser-bin",

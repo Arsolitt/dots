@@ -14,7 +14,5 @@ hl.workspace_rule({ workspace = "4", monitor = "eDP-1", persistent = true, gaps_
 hl.workspace_rule({ workspace = "5", monitor = "eDP-1", persistent = true })
 hl.workspace_rule({ workspace = "6", monitor = "HDMI-A-1", persistent = true })
 
-hl.bind("switch:on:Lid Switch", hl.dsp.exec_cmd("systemctl suspend"), { locked = true })
-
 hl.env("HYPRCURSOR_SIZE", "24")
 hl.env("XCURSOR_SIZE", "24")
