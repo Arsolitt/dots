@@ -1,7 +1,6 @@
 -- swayimg 5.4 (Lua config).
 -- ВАЖНО: версия 5.4 читает только init.lua. Прежний INI-файл `config`
--- (с `Ctrl+e = exec nemo "%"`) больше не загружается -- поэтому старый
--- бинд на nemo и перестал работать. Этот файл его заменяет.
+-- больше не загружается -- этот файл его заменяет.
 -- Источник API: /usr/share/swayimg/swayimg.lua
 
 -- Перенесённая настройка из старого config: сглаживание включено.
@@ -32,18 +31,18 @@ local function copy_path(img)
 end
 
 -- Ctrl-u: скопировать файл как URI (text/uri-list).
--- Вставка в nemo/файловый менеджер скопирует сам файл.
+-- Вставка в файловый менеджер скопирует сам файл.
 local function copy_file_uri(img)
   if not img or not img.path then return end
   os.execute("printf 'file://%s\\n' " .. shquote(img.path) .. " | wl-copy --type text/uri-list")
 end
 
--- Ctrl-o: открыть содержащую папку в nemo.
+-- Ctrl-o: открыть содержащую папку в Dolphin.
 -- `&` + редирект обязательны, иначе os.execute заблокирует swayimg до закрытия окна.
 local function open_folder(img)
   if not img or not img.path then return end
   local dir = img.path:match("^(.*)/[^/]*$") or "."
-  os.execute("nemo " .. shquote(dir) .. " >/dev/null 2>&1 &")
+  os.execute("dolphin " .. shquote(dir) .. " >/dev/null 2>&1 &")
 end
 
 ----------------------------------------------------------------------- viewer
