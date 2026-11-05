@@ -1,7 +1,7 @@
 #!/usr/bin/env fish
 
 set -l keys $HOME/.ssh/main $HOME/.ssh/laptop
-set -l ttl 3600
+set -l ttl 7200
 set -l failed 0
 
 if not set -q SSH_AUTH_SOCK
