@@ -72,6 +72,12 @@ hl.bind(mainMod .. " + CONTROL + Down",  hl.dsp.focus({ workspace = "emptym" }))
 hl.bind(mainMod .. " + CONTROL + SHIFT + Right", hl.dsp.window.move({ workspace = "m+1" }))
 hl.bind(mainMod .. " + CONTROL + SHIFT + Left",  hl.dsp.window.move({ workspace = "m-1" }))
 
+-- Named workspace kept off the numbered ring; windowrules.lua pins games to it
+local gamingWorkspace = "name:gaming"
+
+hl.bind(mainMod .. " + G",         hl.dsp.focus({ workspace = gamingWorkspace }))
+hl.bind(mainMod .. " + SHIFT + G", hl.dsp.window.move({ workspace = gamingWorkspace }))
+
 -- --- Scratchpad -------------------------------------------------------------------------------------------
 
 hl.bind(mainMod .. " + grave",         hl.dsp.workspace.toggle_special())
