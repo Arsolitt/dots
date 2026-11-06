@@ -24,6 +24,7 @@ local gamingWorkspace = "name:gaming"
 hl.window_rule({ match = { content = "game" }, workspace = gamingWorkspace })
 hl.window_rule({ match = { xdg_tag = "^(.*game.*)$" }, workspace = gamingWorkspace, fullscreen_state = 2, content = "game", sync_fullscreen = true })
 hl.window_rule({ match = { class = gamingApps }, workspace = gamingWorkspace })
+hl.window_rule({ match = { class = gamingApps, title = "^Scrap Mechanic$" }, render_unfocused = true })
 hl.window_rule({ match = { class = "^(steam)$", title = "^(Friends List)$" }, float = true })
 hl.window_rule({ match = { class = "^(steam)$", title = "^(Launching\\.{3})$" }, float = true, center = true, workspace = gamingWorkspace })
 hl.window_rule({
