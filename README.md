@@ -2,57 +2,28 @@
 
 ## Install
 
-Prerequisites on Arch Linux (CachyOS included):
-
 ```fish
 sudo pacman -S --needed git fish uv
-```
-
-Preview the resolved step plan, dry-run it, then install:
-
-```fish
 uv run setup/install.py --list
-uv run setup/install.py --dry-run
 uv run setup/install.py
 ```
 
-## Device gates
+Hardware steps gate themselves; `--list` shows the detected host, features and
+the per-step plan. Per-host profiles live in `setup/devices/<hostname>.toml`.
 
-`setup/install.py --list` prints the detected host, resolved features and the
-per-step plan. Hardware steps stay off where the hardware is absent:
-fingerprint PAM wiring needs a USB sensor, the 80% cap needs a Xiaomi WMI
-battery, the NPU denoiser needs `/sys/class/accel/accel0`, and SearXNG needs
-docker. Hyprland keeps its own laptop/desktop selection from the DMI chassis
-type at runtime.
+## Stack
 
-Per-host overrides live in `setup/devices/<hostname>.toml`; `--profile PATH`
-(or `DOTS_PROFILE`) overlays a machine-local file on top. Feature values are
-`auto` (detected), `on` or `off`; `[packages].extra` adds packages and
-`[[links.extra]]` adds symlinks without editing code. See
-[`setup/README.md`](setup/README.md) for the module and step contract.
-
-## Linux (CachyOS + Hyprland)
-- Hyprland
-- Hyprpaper
-- Hyprlock
-- Waybar
-- Rofi
-- Nemo
-- Kitty
-- Kitty theme: Kanagawa
-- Fish
-- Starship prompt (Kanagawa two-line)
-- Fish theme: Kanagawa
-- Screenshots: Grim + Slurp + Swappy
-- Cursor: vimix Kanagawa Lotus
-- GTK: Kanagawa Orange Dark
-- Icons: Kanagawa
-- Font: FantasqueSansM
-- Microphone noise suppression: `micns` — PipeWire filter-chain presets (RNNoise, DeepFilterNet LADSPA) or the NPU denoiser (`micns npu`, ~7% of a core; host in `npu-denoise/`, models in `~/.cache/npu-denoise`)
-- Battery charge cap: `battery/charge-limit.sh` — firmware 80% limit via WMI `WMAA`, systemd unit on boot plus udev rule on AC plug
-- Power profiles: `power-profile/ppd-platform-driver.sh install` — keeps power-profiles-daemon off the ACPI `platform_profile` path that Xiaomi firmware closes on USB-C power
-- Docker + docker compose (docker group for rootless CLI access)
-- SearXNG (docker compose, loopback 127.0.0.1:8080, JSON API)
+- Hyprland, Lua config (`hypr/`): laptop/desktop module from the DMI chassis type, scrolling layout, `gaming` workspace
+- Noctalia shell (`noctalia/`): bar, launcher, control center, notifications, clipboard, wallpaper, session, lock, idle, polkit agent
+- Kitty + fish + starship, Kanagawa everywhere
+- Dolphin + Ark, Zen, swayimg, nwg-look, hyprpicker
+- Screenshots: `hypr/scripts/screenshot.fish` (hyprshot fork) → grim/slurp + satty; Noctalia's own → swash; recording via wf-recorder
+- tmux + TPM, neovim (LazyVim), btop
+- Mic denoise: `micns` — PipeWire presets or NPU DeepFilterNet3 (`npu-denoise/`)
+- 80% battery cap (Xiaomi WMI `WMAA`), ppd `platform_profile` fix, bitland suspend hook
+- Fingerprint: fprintd PAM (login/sudo/polkit) + SSH askpass chain in `bin/`
+- Docker, SearXNG on `127.0.0.1:8080`, `pbackup` over restic ([recovery](RECOVERY.md))
+- Dev: kubectl/kubecm/krew, flux, ansible, go/rust, fnm, uv, sops/age, pass, restic
 
 ## Screenshots
 
