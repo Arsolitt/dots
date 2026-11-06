@@ -60,6 +60,7 @@ DESKTOP_PACKAGES = (
     "swappy",
     "swayimg",
     "satty",
+    "swash",
     "wf-recorder",
     "nwg-look",
     "dolphin",
