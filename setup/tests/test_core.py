@@ -9,11 +9,13 @@ import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
+from unittest import mock
 
 from dotfiles import detect as detector
 from dotfiles import links as linker
 from dotfiles import profile as profiles
 from dotfiles import steps as stepmod
+from dotfiles.steps import s55_session as session_step
 
 SETUP_DIR = Path(__file__).resolve().parents[1]
 
@@ -349,6 +351,101 @@ class StepsPlanTest(unittest.TestCase):
 
     def test_discover_returns_list(self) -> None:
         self.assertIsInstance(stepmod.discover(), list)
+
+
+class SessionContext(RecordingContext):
+    """RecordingContext extended with the probe and run surface of steps."""
+
+    def __init__(self, dry_run: bool = False) -> None:
+        super().__init__(dry_run=dry_run)
+        self.runs: list[tuple[list[str], bool]] = []
+        self.enabled: set[str] = set()
+
+    def have(self, command: str) -> bool:
+        return True
+
+    def ok(self, cmd, sudo: bool = False, cwd=None) -> bool:
+        argv = [str(part) for part in cmd]
+        return argv[-1] in self.enabled
+
+    def run(self, cmd, sudo: bool = False, cwd=None, check=True, capture=False):
+        self.runs.append(([str(part) for part in cmd], sudo))
+        return "" if capture else None
+
+
+class SessionStepTest(unittest.TestCase):
+    def setUp(self) -> None:
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.repo = Path(tmp.name)
+        (self.repo / "greetd").mkdir()
+        self.artifact = self.repo / "greetd" / "config.toml"
+        self.artifact.write_text("[terminal]\nvt = 1\n", encoding="utf-8")
+        self.target = self.repo / "etc-greetd-config.toml"
+        self.unit_dir = self.repo / "units"
+        self.unit_dir.mkdir()
+        (self.unit_dir / "greetd.service").write_text("", encoding="utf-8")
+        for name, value in (("CONFIG", self.target), ("UNIT_DIRS", (self.unit_dir,))):
+            patcher = mock.patch.object(session_step, name, value)
+            patcher.start()
+            self.addCleanup(patcher.stop)
+
+    def _ctx(self) -> SessionContext:
+        ctx = SessionContext()
+        ctx.root = self.repo
+        return ctx
+
+    def test_matching_config_is_skipped(self) -> None:
+        self.target.write_text(self.artifact.read_text(encoding="utf-8"), encoding="utf-8")
+        ctx = self._ctx()
+        with mock.patch.object(session_step, "UNITS", ()):
+            session_step.STEP.run(ctx)
+        self.assertEqual(ctx.runs, [])
+        self.assertIn(
+            ("skip", f"session: {self.target} already matches the repo artifact"),
+            ctx.logs,
+        )
+
+    def test_changed_config_backs_up_and_installs(self) -> None:
+        self.target.write_text("old\n", encoding="utf-8")
+        ctx = self._ctx()
+        with mock.patch.object(session_step, "UNITS", ()):
+            session_step.STEP.run(ctx)
+        self.assertEqual(len(ctx.runs), 2)
+        backup_cmd, backup_sudo = ctx.runs[0]
+        self.assertEqual(backup_cmd[:3], ["cp", "-p", str(self.target)])
+        self.assertIn(".dots-backup-", backup_cmd[3])
+        self.assertTrue(backup_sudo)
+        self.assertEqual(
+            ctx.runs[1],
+            (["install", "-m", "0644", str(self.artifact), str(self.target)], True),
+        )
+
+    def test_disabled_unit_is_enabled(self) -> None:
+        self.target.write_text(self.artifact.read_text(encoding="utf-8"), encoding="utf-8")
+        ctx = self._ctx()
+        ctx.enabled = set()
+        with mock.patch.object(session_step, "UNITS", ("greetd",)):
+            session_step.STEP.run(ctx)
+        self.assertIn((["systemctl", "enable", "greetd"], True), ctx.runs)
+
+    def test_enabled_unit_is_skipped(self) -> None:
+        self.target.write_text(self.artifact.read_text(encoding="utf-8"), encoding="utf-8")
+        ctx = self._ctx()
+        ctx.enabled = {"greetd"}
+        with mock.patch.object(session_step, "UNITS", ("greetd",)):
+            session_step.STEP.run(ctx)
+        self.assertEqual(ctx.runs, [])
+        self.assertIn(("skip", "session: greetd already enabled"), ctx.logs)
+
+    def test_absent_unit_file_is_skipped(self) -> None:
+        self.target.write_text(self.artifact.read_text(encoding="utf-8"), encoding="utf-8")
+        (self.unit_dir / "greetd.service").unlink()
+        ctx = self._ctx()
+        with mock.patch.object(session_step, "UNITS", ("greetd",)):
+            session_step.STEP.run(ctx)
+        self.assertEqual(ctx.runs, [])
+        self.assertIn(("skip", "session: no unit file for greetd"), ctx.logs)
 
 
 def _load_entrypoint(name: str):

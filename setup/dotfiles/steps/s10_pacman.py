@@ -43,8 +43,11 @@ BASE_PACKAGES = (
 
 DESKTOP_PACKAGES = (
     "hyprland",
+    "greetd",
+    "uwsm",
     "hyprpicker",
     "noctalia",
+    "noctalia-greeter",
     "zen-browser-bin",
     "pipewire",
     "pipewire-pulse",
