@@ -32,4 +32,4 @@ the per-step plan. Per-host profiles live in `setup/devices/<hostname>.toml`.
 ## Wallpapers
 
 #### Original
-![image](README/blackhole-anime.jpeg)
+![image](README/wallpaper.jpg)
