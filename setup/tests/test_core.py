@@ -16,6 +16,7 @@ from dotfiles import links as linker
 from dotfiles import profile as profiles
 from dotfiles import steps as stepmod
 from dotfiles.steps import s55_session as session_step
+from dotfiles.steps import s56_nemo as nemo_step
 
 SETUP_DIR = Path(__file__).resolve().parents[1]
 
@@ -446,6 +447,66 @@ class SessionStepTest(unittest.TestCase):
             session_step.STEP.run(ctx)
         self.assertEqual(ctx.runs, [])
         self.assertIn(("skip", "session: no unit file for greetd"), ctx.logs)
+
+
+class NemoContext(SessionContext):
+    """SessionContext plus a canned gsettings read surface."""
+
+    def __init__(self, schemas: str, values: dict[tuple[str, str], str]) -> None:
+        super().__init__()
+        self.schemas = schemas
+        self.values = values
+
+    def read(self, cmd, cwd=None) -> str:
+        argv = [str(part) for part in cmd]
+        if argv[1] == "list-schemas":
+            return self.schemas
+        return self.values.get((argv[2], argv[3]), "")
+
+
+class NemoStepTest(unittest.TestCase):
+    SCHEMAS = (
+        "org.cinnamon.desktop.default-applications.terminal\n"
+        "org.nemo.extensions.nemo-terminal\n"
+    )
+
+    def test_matching_values_are_skipped(self) -> None:
+        ctx = NemoContext(
+            self.SCHEMAS,
+            {
+                ("org.cinnamon.desktop.default-applications.terminal", "exec"): "'kitty'",
+                ("org.nemo.extensions.nemo-terminal", "default-visible"): "false",
+            },
+        )
+        nemo_step.STEP.run(ctx)
+        self.assertEqual(ctx.runs, [])
+        self.assertIn(("skip", "nemo: exec already kitty"), ctx.logs)
+
+    def test_stale_values_are_set(self) -> None:
+        ctx = NemoContext(
+            self.SCHEMAS,
+            {
+                ("org.cinnamon.desktop.default-applications.terminal", "exec"): "'gnome-terminal'",
+                ("org.nemo.extensions.nemo-terminal", "default-visible"): "true",
+            },
+        )
+        nemo_step.STEP.run(ctx)
+        self.assertEqual(
+            ctx.runs,
+            [
+                (["gsettings", "set", "org.cinnamon.desktop.default-applications.terminal", "exec", "kitty"], False),
+                (["gsettings", "set", "org.nemo.extensions.nemo-terminal", "default-visible", "false"], False),
+            ],
+        )
+
+    def test_missing_schema_skips_key(self) -> None:
+        ctx = NemoContext("org.cinnamon.desktop.default-applications.terminal\n", {})
+        nemo_step.STEP.run(ctx)
+        self.assertEqual(len(ctx.runs), 1)
+        self.assertIn(
+            ("skip", "nemo: schema org.nemo.extensions.nemo-terminal not installed, skipping default-visible"),
+            ctx.logs,
+        )
 
 
 def _load_entrypoint(name: str):
