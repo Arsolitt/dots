@@ -13,7 +13,7 @@ AUR_PACKAGES = (
     "1password-cli",
     "netbird-bin",
     "netbird-ui-bin",
-    "kanagawa-icon-theme-git",
+    "papirus-folders",
     "vimix-kanagawa-cursors",
     "gtk-engine-murrine",
     "ttf-pacifico",
