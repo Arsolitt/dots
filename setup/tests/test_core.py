@@ -520,5 +520,36 @@ class ContextRunTest(unittest.TestCase):
         self.assertEqual(ctx.errors, [])
 
 
+class AurEnvTest(unittest.TestCase):
+    def test_venv_bin_is_stripped_from_yay_env(self) -> None:
+        from dotfiles import packages
+
+        venv_bin = tempfile.mkdtemp()
+        fake_python = Path(venv_bin) / "python"
+        fake_python.write_text("#!/bin/sh\n")
+        fake_python.chmod(0o755)
+        poisoned = {
+            "PATH": f"{venv_bin}:/usr/local/bin:/usr/bin",
+            "VIRTUAL_ENV": "/tmp/venv",
+            "PYTHONPATH": "/tmp/junk",
+        }
+        with mock.patch.dict(os.environ, poisoned, clear=True):
+            env = packages._aur_env()
+        parts = env["PATH"].split(os.pathsep)
+        self.assertNotIn(venv_bin, parts)
+        self.assertEqual(parts, ["/usr/local/bin", "/usr/bin"])
+        self.assertNotIn("VIRTUAL_ENV", env)
+        self.assertNotIn("PYTHONPATH", env)
+
+    def test_system_python_leaves_path_intact(self) -> None:
+        from dotfiles import packages
+
+        clean = {"PATH": "/usr/local/bin:/usr/bin", "PYTHONPATH": "/tmp/junk"}
+        with mock.patch.dict(os.environ, clean, clear=True):
+            env = packages._aur_env()
+        self.assertEqual(env["PATH"], "/usr/local/bin:/usr/bin")
+        self.assertNotIn("PYTHONPATH", env)
+
+
 if __name__ == "__main__":
     unittest.main()

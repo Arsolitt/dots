@@ -2,10 +2,33 @@
 
 from __future__ import annotations
 
+import os
+import shutil
 import subprocess
 from typing import Iterable
 
 from .cli import Context
+
+
+def _aur_env() -> dict[str, str]:
+    """Env for yay: makepkg must build against the system toolchain.
+
+    ``uv run`` puts PEP 723 venv dirs and uv-managed interpreters first in
+    PATH, so makepkg resolves ``python`` to them and AUR builds die on
+    missing build/setuptools. Drop PATH entries shadowing the system python.
+    """
+    env = os.environ.copy()
+    env.pop("VIRTUAL_ENV", None)
+    env.pop("PYTHONPATH", None)
+    parts = [part for part in env.get("PATH", "").split(os.pathsep) if part]
+    while parts:
+        resolved = shutil.which("python", path=os.pathsep.join(parts))
+        if resolved is None or os.path.realpath(resolved).startswith("/usr/"):
+            break
+        drop = os.path.dirname(os.path.abspath(resolved))
+        parts = [part for part in parts if os.path.abspath(part) != drop]
+    env["PATH"] = os.pathsep.join(parts)
+    return env
 
 
 def _unique(pkgs: Iterable[str]) -> list[str]:
@@ -57,4 +80,4 @@ def aur_install(ctx: Context, pkgs: Iterable[str]) -> None:
         if installed(pkg):
             ctx.log_skip(f"already installed: {pkg}")
             continue
-        ctx.run(["yay", "-S", "--needed", "--noconfirm", pkg])
+        ctx.run(["yay", "-S", "--needed", "--noconfirm", pkg], env=_aur_env())

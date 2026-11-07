@@ -75,6 +75,7 @@ class Context:
         cwd: str | Path | None = None,
         check: bool = True,
         capture: bool = False,
+        env: dict[str, str] | None = None,
     ) -> str | None:
         argv = [str(part) for part in cmd]
         if sudo and os.geteuid() != 0:
@@ -87,6 +88,7 @@ class Context:
         result = subprocess.run(
             argv,
             cwd=cwd,
+            env=env,
             text=True,
             capture_output=True,
         )
