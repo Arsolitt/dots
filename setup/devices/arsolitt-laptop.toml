@@ -11,7 +11,7 @@ docker = "auto"
 platform_profile_fix = "on"
 
 [packages]
-extra = []
+extra = ["intel-media-driver", "vpl-gpu-rt", "vulkan-intel"]
 
 [links]
 skip = []

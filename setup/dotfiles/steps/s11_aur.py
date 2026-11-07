@@ -8,7 +8,9 @@ from . import Step
 
 AUR_PACKAGES = (
     "fluxcd",
-    "vesktop",
+    "vesktop-bin",
+    "1password",
+    "1password-cli",
     "netbird-bin",
     "netbird-ui-bin",
     "kanagawa-gtk-theme-git",
