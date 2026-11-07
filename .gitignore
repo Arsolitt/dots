@@ -12,3 +12,13 @@ fish/fish_variables
 # python bytecode from the npu-denoise scripts
 __pycache__/
 *.pyc
+
+# Noctalia wallpaper-theme render output (regenerated per wallpaper change)
+btop/themes/noctalia.theme
+gtk-3.0/noctalia.css
+gtk-3.0/noctalia-extensions.css
+gtk-4.0/noctalia.css
+gtk-4.0/noctalia-extensions.css
+kitty/themes/noctalia.conf
+hypr/noctalia.lua
+hypr/noctalia.conf

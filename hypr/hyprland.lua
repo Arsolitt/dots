@@ -39,3 +39,7 @@ require("conf/windowrules")
 require("conf/autostart")
 require("conf/binds")
 require("conf/keyboard")
+
+-- Noctalia wallpaper palette; file is generated after first render, pcall guards fresh boot
+local ok_noctalia, noctalia = pcall(function() return require("noctalia") end)
+if ok_noctalia then noctalia.apply_theme() end

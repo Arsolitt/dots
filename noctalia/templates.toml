@@ -1,0 +1,9 @@
+[theme.templates]
+enable_builtin_templates   = true
+enable_community_templates = true
+builtin_ids                = ["btop", "gtk3", "gtk4", "kcolorscheme", "qt", "kitty", "hyprland"]
+community_ids              = ["zen-browser", "telegram", "bat"]
+
+[theme.templates.user.fzf]
+input_path  = "templates/fzf-theme.fish"
+output_path = "$XDG_CACHE_HOME/noctalia/fzf-theme.fish"

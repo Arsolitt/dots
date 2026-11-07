@@ -21,7 +21,7 @@ First-party code and config:
 
 Vendored or generated — never restyle or "fix" without an explicit ask:
 `nvim/` (LazyVim starter, Apache-2.0), `kitty/current-theme.conf`, `btop/btop.conf`,
-`fish/themes/kanagawa.fish`, fisher-managed functions/completions (`__git*`, `__z*`,
+fisher-managed functions/completions (`__git*`, `__z*`,
 `_fzf_*`, `fisher`, `fzf_configure_bindings`), generated completions for
 cilium/flux/kubecm/copilot/bun, `hypr/scripts/screenshot.{fish,sh}` (hyprshot fork).
 Keep local edits to vendored files minimal and upstream-compatible.

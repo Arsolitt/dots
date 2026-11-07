@@ -100,6 +100,7 @@ DESKTOP_PACKAGES = (
     "ffmpegthumbnailer",
     "poppler-glib",
     "7zip",
+    "adw-gtk3",
     "qt6ct",
     "telegram-desktop",
     "code",

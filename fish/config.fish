@@ -22,7 +22,12 @@ set --export PATH $BUN_INSTALL/bin $PATH
 set --export PATH ~/.cargo/bin $PATH
 # fnm (Node version manager — replaces nvm.fish)
 type -q fnm; and fnm env --use-on-cd | source
-source ~/.config/fish/themes/kanagawa.fish
+source ~/.config/fish/themes/wallpaper.fish
+
+# fzf colors rendered by noctalia from the wallpaper palette
+if test -f ~/.cache/noctalia/fzf-theme.fish
+    source ~/.cache/noctalia/fzf-theme.fish
+end
 
 # starship prompt (replaces tide) — must init last
 starship init fish | source
