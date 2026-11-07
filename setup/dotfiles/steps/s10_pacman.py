@@ -24,6 +24,9 @@ BASE_PACKAGES = (
     "kubectl",
     "go",
     "gnupg",
+    # Optional dep of pinentry, but the pinned gnome3 backend renders
+    # through gcr-prompter.
+    "gcr",
     "age",
     "sops",
     "ansible",
