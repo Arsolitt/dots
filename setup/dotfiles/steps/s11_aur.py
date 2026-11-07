@@ -18,6 +18,8 @@ AUR_PACKAGES = (
     "ttf-pacifico",
     "ttf-montserrat",
     "maplemono-nf-cn-unhinted",
+    "nemo-engrampa",
+    "nemo-mediainfo-tab",
 )
 
 

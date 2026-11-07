@@ -37,12 +37,12 @@ local function copy_file_uri(img)
   os.execute("printf 'file://%s\\n' " .. shquote(img.path) .. " | wl-copy --type text/uri-list")
 end
 
--- Ctrl-o: открыть содержащую папку в Dolphin.
+-- Ctrl-o: открыть содержащую папку в Nemo.
 -- `&` + редирект обязательны, иначе os.execute заблокирует swayimg до закрытия окна.
 local function open_folder(img)
   if not img or not img.path then return end
   local dir = img.path:match("^(.*)/[^/]*$") or "."
-  os.execute("dolphin " .. shquote(dir) .. " >/dev/null 2>&1 &")
+  os.execute("nemo " .. shquote(dir) .. " >/dev/null 2>&1 &")
 end
 
 ----------------------------------------------------------------------- viewer

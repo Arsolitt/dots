@@ -2,4 +2,4 @@
 antialiasing=yes
 
 [keys.viewer]
-Ctrl+e = exec dolphin "%"
+Ctrl+e = exec nemo "%"

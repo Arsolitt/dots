@@ -16,7 +16,7 @@ the per-step plan. Per-host profiles live in `setup/devices/<hostname>.toml`.
 - Hyprland, Lua config (`hypr/`): laptop/desktop module from the DMI chassis type, scrolling layout, `gaming` workspace
 - Noctalia shell (`noctalia/`): bar, launcher, control center, notifications, clipboard, wallpaper, session, lock, idle, polkit agent
 - Kitty + fish + starship, Kanagawa everywhere
-- Dolphin + Ark, Zen, swayimg, nwg-look, hyprpicker
+- Nemo + Engrampa (with nemo extensions), Zen, swayimg, nwg-look, hyprpicker
 - Screenshots: `hypr/scripts/screenshot.fish` (hyprshot fork) → grim/slurp + satty; Noctalia's own → swash; recording via wf-recorder
 - tmux + TPM, neovim (LazyVim), btop
 - Mic denoise: `micns` — PipeWire presets or NPU DeepFilterNet3 (`npu-denoise/`)
