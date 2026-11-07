@@ -87,9 +87,8 @@ gpu_poll_seconds = 2
 
 [theme]
 mode = "dark"
-source = "wallpaper"
-wallpaper_scheme = "m3-tonal-spot"
-terminal_colors = "standard"
+source = "builtin"
+builtin = "Kanagawa"
 
 [widget.clock]
 color = "secondary"

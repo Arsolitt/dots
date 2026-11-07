@@ -1,7 +1,7 @@
 #!/usr/bin/fish
 
 # ANSI names only: colors follow whatever 16-color palette kitty currently
-# renders, which noctalia derives from the wallpaper. No hex values here.
+# renders, which noctalia derives from its active palette. No hex values here.
 
 # Syntax Highlighting Colors
 set -g fish_color_normal normal
