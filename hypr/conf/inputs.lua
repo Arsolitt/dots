@@ -3,7 +3,9 @@
 hl.config({
     input = {
         kb_layout = "us, ru",
-        kb_options = "grp:alt_shift_toggle",
+        -- CapsLock switches layout, Shift+CapsLock keeps CapsLock; Alt+Shift must stay
+        -- unclaimed or it swallows app chords such as VSCode copy line down/up
+        kb_options = "grp:caps_toggle",
         repeat_rate = 35,
         repeat_delay = 250,
         follow_mouse = 1,
