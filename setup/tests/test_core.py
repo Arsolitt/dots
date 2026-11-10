@@ -468,6 +468,7 @@ class NemoStepTest(unittest.TestCase):
     SCHEMAS = (
         "org.cinnamon.desktop.default-applications.terminal\n"
         "org.nemo.extensions.nemo-terminal\n"
+        "org.nemo.desktop\n"
     )
 
     def test_matching_values_are_skipped(self) -> None:
@@ -476,6 +477,7 @@ class NemoStepTest(unittest.TestCase):
             {
                 ("org.cinnamon.desktop.default-applications.terminal", "exec"): "'kitty'",
                 ("org.nemo.extensions.nemo-terminal", "default-visible"): "false",
+                ("org.nemo.desktop", "show-desktop-icons"): "false",
             },
         )
         nemo_step.STEP.run(ctx)
@@ -488,6 +490,7 @@ class NemoStepTest(unittest.TestCase):
             {
                 ("org.cinnamon.desktop.default-applications.terminal", "exec"): "'gnome-terminal'",
                 ("org.nemo.extensions.nemo-terminal", "default-visible"): "true",
+                ("org.nemo.desktop", "show-desktop-icons"): "true",
             },
         )
         nemo_step.STEP.run(ctx)
@@ -496,6 +499,7 @@ class NemoStepTest(unittest.TestCase):
             [
                 (["gsettings", "set", "org.cinnamon.desktop.default-applications.terminal", "exec", "kitty"], False),
                 (["gsettings", "set", "org.nemo.extensions.nemo-terminal", "default-visible", "false"], False),
+                (["gsettings", "set", "org.nemo.desktop", "show-desktop-icons", "false"], False),
             ],
         )
 
@@ -505,6 +509,10 @@ class NemoStepTest(unittest.TestCase):
         self.assertEqual(len(ctx.runs), 1)
         self.assertIn(
             ("skip", "nemo: schema org.nemo.extensions.nemo-terminal not installed, skipping default-visible"),
+            ctx.logs,
+        )
+        self.assertIn(
+            ("skip", "nemo: schema org.nemo.desktop not installed, skipping show-desktop-icons"),
             ctx.logs,
         )
 
