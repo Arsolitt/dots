@@ -45,6 +45,7 @@ BASE_PACKAGES = (
     "docker-buildx",
     "base-devel",
     "github-cli",
+    "glab",
     "opentofu",
     "bind",
     "pacman-contrib",
