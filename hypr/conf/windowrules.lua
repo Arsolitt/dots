@@ -131,6 +131,9 @@ hl.window_rule({ match = { class = [[^(stalcraft\.exe)$]] }, workspace = "name:g
 hl.window_rule({ match = { class = "^(vesktop)$" }, workspace = "5 silent", tile = true })
 hl.window_rule({ match = { class = "^(org.telegram.desktop)$" }, workspace = "5 silent", tile = true })
 hl.window_rule({ match = { class = "^(TelegramDesktop)$" }, workspace = "5 silent", tile = true })
+-- Telegram media viewer is a transient overlay of the chat, not a tile: tiling
+-- it makes the viewport reflow and jump focus elsewhere when it closes.
+hl.window_rule({ match = { class = "^(org.telegram.desktop|TelegramDesktop)$", title = "^Media viewer$" }, float = true, fullscreen_state = 2, sync_fullscreen = true, workspace = "5 silent" })
 
 hl.window_rule({ match = { class = "^(Networks)$" }, float = true })
 hl.window_rule({ match = { class = "^(nekoray)$" }, float = true })
