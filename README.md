@@ -22,7 +22,7 @@ the per-step plan. Per-host profiles live in `setup/devices/<hostname>.toml`.
 - Mic denoise: `micns` — PipeWire presets or NPU DeepFilterNet3 (`npu-denoise/`)
 - 80% battery cap (Xiaomi WMI `WMAA`), ppd `platform_profile` fix, bitland suspend hook
 - Fingerprint: fprintd PAM (login/sudo/polkit) + SSH askpass chain in `bin/`
-- Docker, SearXNG on `127.0.0.1:8080`, `pbackup` over restic ([recovery](RECOVERY.md))
+- Docker, SearXNG on `127.0.0.1:8081`, `pbackup` over restic ([recovery](RECOVERY.md))
 - Dev: kubectl/kubecm/krew, flux, ansible, go/rust, fnm, uv, sops/age, pass, restic
 
 ## Screenshots

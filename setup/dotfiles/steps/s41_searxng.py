@@ -85,7 +85,7 @@ def _run(ctx: Context) -> None:
         cwd=target,
     )
     if not ctx.dry_run and len(ctx.errors) == before:
-        ctx.log_ok("searxng: stack up on http://127.0.0.1:8080")
+        ctx.log_ok("searxng: stack up on http://127.0.0.1:8081")
 
 
 STEP = Step(
