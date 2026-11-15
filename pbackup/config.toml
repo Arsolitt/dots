@@ -86,9 +86,12 @@ path = "~/.config/sops/age"
 tags = ["sops-age", "configs"]
 
 [[targets]]
-name = "omp"
-path = "~/.omp/agent"
-tags = ["omp", "configs"]
+name    = "omp"
+path    = "~/.omp/agent"
+tags    = ["omp", "configs"]
+# Model weights and other regenerable caches live here; the target is about
+# agent state (sessions, memories, config), so pulls must not download them.
+exclude = ["cache"]
 
 [[targets]]
 name = "media"
