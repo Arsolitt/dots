@@ -77,6 +77,11 @@ cold): use `password_command_darwin` (Keychain) or `password_command_linux`
 - Rescue snapshots: `pull` snapshots the current state first (default: `configs`
   targets; `--rescue always|never`). They are tagged `manual` — never a restore
   source, never deleted by `prune`.
+- Excludes: a target's own `exclude` patterns shape `push` and `pull` alike —
+  `pull` forwards them as `restic restore --exclude` and lists them as
+  `исключено:` in the plan, so a restore never downloads data the target does
+  not keep (e.g. `~/.omp/agent/cache`). `exclude_sets` stay backup-side: they
+  cap the repository, and an older snapshot may still contain such data.
 - Host identity: snapshots are written as `mac` / `linux` (stable across machine
   renames). Legacy host values are not touched by `prune` (per-host scope);
   retention thins them over time.

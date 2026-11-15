@@ -97,6 +97,9 @@ func runPull(cfg *Config, args []string, out, errOut io.Writer) error {
 		fmt.Fprintf(out, "      теги: %s; машина: %s; время: %s; снапшот: %s\n",
 			plan.snapshot.TagSet(), plan.snapshot.Host,
 			plan.snapshot.Time.Local().Format("2006-01-02 15:04:05"), plan.snapshot.ShortID)
+		if len(plan.target.Exclude) > 0 {
+			fmt.Fprintf(out, "      исключено: %s\n", strings.Join(plan.target.Exclude, ", "))
+		}
 	}
 	fmt.Fprintln(out)
 
@@ -170,12 +173,7 @@ func pullTarget(cfg *Config, restic *Restic, target *Target, snapshot *Snapshot,
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return err
 	}
-	restoreArgs := []string{"restore", snapshot.ShortID, "--target", dir, "--overwrite", "if-changed"}
-	if verify {
-		restoreArgs = append(restoreArgs, "--verify")
-	}
-	restoreArgs = append(restoreArgs, "--retry-lock", retryLock)
-	if err := restic.Run(restoreArgs...); err != nil {
+	if err := restic.Run(restoreArgs(target, snapshot, dir, verify)...); err != nil {
 		return err
 	}
 
@@ -199,6 +197,22 @@ func pullTarget(cfg *Config, restic *Restic, target *Target, snapshot *Snapshot,
 	return nil
 }
 
+// restoreArgs is the restic invocation for one target. Only the target's own
+// `exclude` patterns travel to the restore: they describe data the target does
+// not keep (caches), so a pull must not download it. `exclude_sets` stay
+// backup-side: they are repository size policies, and a snapshot taken before
+// such a set existed still holds the data — a restore must reproduce it.
+func restoreArgs(target *Target, snapshot *Snapshot, dir string, verify bool) []string {
+	args := []string{"restore", snapshot.ShortID, "--target", dir, "--overwrite", "if-changed"}
+	for _, pattern := range target.Exclude {
+		args = append(args, "--exclude", pattern)
+	}
+	if verify {
+		args = append(args, "--verify")
+	}
+	return append(args, "--retry-lock", retryLock)
+}
+
 // removeTree deletes a restore cache tree. Snapshots preserve read-only
 // directory modes (0555), so a plain os.RemoveAll cannot unlink their children
 // and leaves the tree behind; chmod the directories writable first. A later
@@ -218,11 +232,17 @@ func removeTree(dir string) error {
 }
 
 // rescueArgs is the safety snapshot taken before a destination is overwritten.
-// It carries the target tags plus `manual`, which marks it as a rescue point.
+// It carries the target tags plus `manual`, which marks it as a rescue point,
+// and honours the target excludes: a rescue point that re-added the data the
+// target drops would grow the repository for nothing and could never be
+// restored, since pull applies the same excludes.
 func rescueArgs(cfg *Config, target *Target, destination string) []string {
 	args := []string{"backup", destination, "--host", cfg.Host, "--tag", "manual"}
 	for _, tag := range target.Tags {
 		args = append(args, "--tag", tag)
+	}
+	for _, pattern := range target.AllExcludes(cfg) {
+		args = append(args, "--exclude", pattern)
 	}
 	return append(args, "--retry-lock", retryLock)
 }

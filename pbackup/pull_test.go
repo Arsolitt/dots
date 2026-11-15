@@ -26,6 +26,50 @@ func TestRescueArgs(t *testing.T) {
 	}
 }
 
+func TestRestoreArgs(t *testing.T) {
+	// exclude_sets must not leak into the restore: they are backup-side size
+	// policies, and older snapshots may still hold the data.
+	target := &Target{Name: "projects", Exclude: []string{"cache"}, ExcludeSets: []string{"project"}}
+	snapshot := &Snapshot{ShortID: "6cec0a65"}
+
+	got := restoreArgs(target, snapshot, "/tmp/restore/projects", true)
+	want := []string{
+		"restore", "6cec0a65",
+		"--target", "/tmp/restore/projects",
+		"--overwrite", "if-changed",
+		"--exclude", "cache",
+		"--verify",
+		"--retry-lock", "5m",
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("restoreArgs = %v, want %v", got, want)
+	}
+	if plain := restoreArgs(target, snapshot, "/tmp/restore/projects", false); countFlag(plain, "--verify") != 0 {
+		t.Errorf("--verify must be omitted without the flag: %v", plain)
+	}
+}
+
+func TestRescueArgsExcludes(t *testing.T) {
+	cfg := &Config{Host: "linux", ExcludeSets: map[string][]string{"project": {"**/node_modules", "**/.venv"}}}
+	target := &Target{
+		Name:        "projects",
+		Tags:        []string{"projects", "data"},
+		Exclude:     []string{"cache"},
+		ExcludeSets: []string{"project"},
+	}
+	got := rescueArgs(cfg, target, "/home/x/projects")
+	want := []string{
+		"backup", "/home/x/projects",
+		"--host", "linux",
+		"--tag", "manual", "--tag", "projects", "--tag", "data",
+		"--exclude", "cache", "--exclude", "**/node_modules", "--exclude", "**/.venv",
+		"--retry-lock", "5m",
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("rescueArgs = %v, want %v", got, want)
+	}
+}
+
 func TestNonRescueSnapshots(t *testing.T) {
 	base := time.Date(2026, 9, 30, 12, 0, 0, 0, time.UTC)
 	tags := []string{"fixture", "data"}
