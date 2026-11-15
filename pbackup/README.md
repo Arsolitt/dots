@@ -77,6 +77,14 @@ cold): use `password_command_darwin` (Keychain) or `password_command_linux`
 - Rescue snapshots: `pull` snapshots the current state first (default: `configs`
   targets; `--rescue always|never`). They are tagged `manual` — never a restore
   source, never deleted by `prune`.
+- Interrupted restores: a dropped connection fails every file still in flight,
+  which restic reports as per-file errors ("ignoring error for …") and exit
+  status 1 instead of aborting. `pull` therefore makes up to three restore
+  attempts; every attempt after the first verifies content and re-downloads only
+  the blobs still missing from the restore cache. A cache tree left by a failed
+  pull is resumed by the next pull of the *same* snapshot (marked in
+  `.pbackup-incomplete`); a tree from another snapshot is discarded, because the
+  payload is synced without `--delete`.
 - Excludes: a target's own `exclude` patterns shape `push` and `pull` alike —
   `pull` forwards them as `restic restore --exclude` and lists them as
   `исключено:` in the plan, so a restore never downloads data the target does

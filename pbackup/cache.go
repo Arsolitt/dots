@@ -58,7 +58,7 @@ func cleanRestoreCache(cacheDir string, out io.Writer) error {
 			continue
 		}
 		path := filepath.Join(root, entry.Name())
-		if err := os.RemoveAll(path); err != nil {
+		if err := removeTree(path); err != nil {
 			return err
 		}
 		fmt.Fprintf(out, "Удалено: %s\n", path)
@@ -66,4 +66,23 @@ func cleanRestoreCache(cacheDir string, out io.Writer) error {
 	}
 	fmt.Fprintf(out, "Очищено каталогов: %d\n", removed)
 	return nil
+}
+
+// removeTree deletes a restore cache tree. Snapshots preserve read-only
+// directory modes (0555), so a plain os.RemoveAll cannot unlink their children
+// and leaves the tree behind; chmod the directories writable first. Both the
+// next pull and `pbackup cache clean` then start from an empty tree instead of
+// inheriting the previous attempt's cache.
+func removeTree(dir string) error {
+	if err := os.RemoveAll(dir); err == nil {
+		return nil
+	}
+	_ = os.Chmod(dir, 0o700)
+	_ = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if err == nil && info.IsDir() {
+			_ = os.Chmod(path, 0o700)
+		}
+		return nil
+	})
+	return os.RemoveAll(dir)
 }

@@ -21,6 +21,25 @@ const (
 	rescueNever   = "never"
 )
 
+// Overwrite modes passed to restic restore. `if-changed` trusts a matching size
+// and nanosecond mtime, so it is safe only against a tree that was never
+// written: once restic has applied the metadata pass, a file whose data failed
+// to load carries the snapshot mtime and `if-changed` would silently keep it.
+const (
+	overwriteIfChanged = "if-changed"
+	overwriteAlways    = "always"
+)
+
+// restoreAttempts bounds the retries of one restore. A dropped SFTP connection
+// fails every file still in flight and restic reports that as per-file errors
+// plus exit status 1, not as a fatal error, so a single pass ends "restored
+// 59 %" instead of aborting; asking again costs only the blobs still missing.
+const restoreAttempts = 3
+
+// restoreMarker names the file inside a restore cache directory that ties the
+// cached tree to the snapshot it was built from.
+const restoreMarker = ".pbackup-incomplete"
+
 const pullUsage = `Использование: pbackup pull [--yes] [--from HOST] [--verify] [--keep-cache] [--rescue MODE] [цель...]
 
 Восстанавливает снапшоты в пути, заданные в конфиге.
@@ -167,14 +186,16 @@ func pullTarget(cfg *Config, restic *Restic, target *Target, snapshot *Snapshot,
 	}
 
 	dir := filepath.Join(ExpandPath(cfg.CacheDir), "restore", target.Name)
-	if err := removeTree(dir); err != nil {
+	resumed, err := prepareRestoreDir(dir, snapshot.ShortID, out)
+	if err != nil {
 		return err
 	}
-	if err := os.MkdirAll(dir, 0o755); err != nil {
+	if err := restoreTree(restic, target, snapshot, dir, verify, resumed, out); err != nil {
+		fmt.Fprintf(out, "⚠️ Кэш восстановления сохранён для дозагрузки: %s\n", dir)
 		return err
 	}
-	if err := restic.Run(restoreArgs(target, snapshot, dir, verify)...); err != nil {
-		return err
+	if err := os.Remove(filepath.Join(dir, restoreMarker)); err != nil && !errors.Is(err, os.ErrNotExist) {
+		fmt.Fprintf(out, "⚠️ не удалось снять отметку кэша %s: %v\n", dir, err)
 	}
 
 	payload, err := restorePayloadPath(dir, *snapshot)
@@ -202,8 +223,8 @@ func pullTarget(cfg *Config, restic *Restic, target *Target, snapshot *Snapshot,
 // not keep (caches), so a pull must not download it. `exclude_sets` stay
 // backup-side: they are repository size policies, and a snapshot taken before
 // such a set existed still holds the data — a restore must reproduce it.
-func restoreArgs(target *Target, snapshot *Snapshot, dir string, verify bool) []string {
-	args := []string{"restore", snapshot.ShortID, "--target", dir, "--overwrite", "if-changed"}
+func restoreArgs(target *Target, snapshot *Snapshot, dir string, verify bool, overwrite string) []string {
+	args := []string{"restore", snapshot.ShortID, "--target", dir, "--overwrite", overwrite}
 	for _, pattern := range target.Exclude {
 		args = append(args, "--exclude", pattern)
 	}
@@ -213,22 +234,48 @@ func restoreArgs(target *Target, snapshot *Snapshot, dir string, verify bool) []
 	return append(args, "--retry-lock", retryLock)
 }
 
-// removeTree deletes a restore cache tree. Snapshots preserve read-only
-// directory modes (0555), so a plain os.RemoveAll cannot unlink their children
-// and leaves the tree behind; chmod the directories writable first. A later
-// pull then no longer fails on the previous attempt's cache.
-func removeTree(dir string) error {
-	if err := os.RemoveAll(dir); err == nil {
-		return nil
+// restoreTree restores the snapshot into dir and retries after a broken
+// transfer. Retries verify content instead of metadata, so they re-download only
+// the blobs that are still missing from the cache tree.
+func restoreTree(restic *Restic, target *Target, snapshot *Snapshot, dir string, verify, resumed bool, out io.Writer) error {
+	overwrite := overwriteIfChanged
+	if resumed {
+		overwrite = overwriteAlways
 	}
-	_ = os.Chmod(dir, 0o700)
-	_ = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
-		if err == nil && info.IsDir() {
-			_ = os.Chmod(path, 0o700)
+	var err error
+	for attempt := 1; attempt <= restoreAttempts; attempt++ {
+		if err = restic.Run(restoreArgs(target, snapshot, dir, verify, overwrite)...); err == nil {
+			return nil
 		}
-		return nil
-	})
-	return os.RemoveAll(dir)
+		if attempt < restoreAttempts {
+			fmt.Fprintf(out, "⚠️ Попытка %d из %d прервана, дозагружаю недостающее: %v\n", attempt, restoreAttempts, err)
+		}
+		overwrite = overwriteAlways
+	}
+	return err
+}
+
+// prepareRestoreDir decides whether a leftover cache tree can be resumed. A tree
+// is reused only for the snapshot that produced it: pull syncs the payload
+// without --delete, so a tree built from another snapshot would copy files the
+// requested one does not contain.
+func prepareRestoreDir(dir, snapshotID string, out io.Writer) (bool, error) {
+	marker := filepath.Join(dir, restoreMarker)
+	saved, err := os.ReadFile(marker)
+	switch {
+	case err == nil && strings.TrimSpace(string(saved)) == snapshotID:
+		fmt.Fprintf(out, "--- Дозагрузка прерванного восстановления: %s ---\n", dir)
+		return true, nil
+	case err != nil && !errors.Is(err, os.ErrNotExist):
+		return false, err
+	}
+	if err := removeTree(dir); err != nil {
+		return false, err
+	}
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return false, err
+	}
+	return false, os.WriteFile(marker, []byte(snapshotID+"\n"), 0o600)
 }
 
 // rescueArgs is the safety snapshot taken before a destination is overwritten.
