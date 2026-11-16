@@ -1,0 +1,11 @@
+# netbird-ui defaults to unix:///var/run/netbird.sock, where netbird-bin's daemon
+# listens. The packaged /usr/share/applications/netbird.desktop hardcodes
+# unix:///var/run/netbird/main.sock, which does not exist, so the GUI reports
+# "service is not running" while the CLI works.
+[Desktop Entry]
+Name=Netbird
+Exec=/usr/bin/netbird-ui
+Icon=netbird
+Type=Application
+Terminal=false
+Categories=Utility;

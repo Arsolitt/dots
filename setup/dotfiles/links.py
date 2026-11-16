@@ -15,6 +15,7 @@ DEFAULT_SCAN_DIRS = (
     Path.home() / ".config",
     Path.home() / ".gnupg",
     Path.home() / ".local/bin",
+    Path.home() / ".local/share/applications",
     Path.home() / "projects",
 )
 

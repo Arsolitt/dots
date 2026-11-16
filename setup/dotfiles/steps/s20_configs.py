@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 from typing import Sequence
 
@@ -25,6 +26,8 @@ BIN_FILES = (
 )
 PIPEWIRE_SOURCE = "pipewire/mic-denoise-rnnoise.conf"
 PIPEWIRE_DEST = ".config/pipewire/pipewire.conf.d/50-mic-denoise.conf"
+NETBIRD_DESKTOP = "netbird/netbird.desktop"
+NETBIRD_UI = "netbird-ui"
 NPU_SERVICE = "systemd/user/npu-denoise.service"
 NPU_HOST = "npu-denoise"
 
@@ -68,6 +71,12 @@ def _built_in(ctx: Context) -> list[Link]:
 
     links.append(Link(ctx.root / PIPEWIRE_SOURCE, home / PIPEWIRE_DEST))
     links.extend(_ladspa_links(ctx, home))
+
+    if shutil.which(NETBIRD_UI):
+        links.append(Link(ctx.root / NETBIRD_DESKTOP,
+                          home / ".local/share/applications" / Path(NETBIRD_DESKTOP).name))
+    else:
+        ctx.log_warn(f"{NETBIRD_UI} not installed, skip {NETBIRD_DESKTOP}")
 
     if ctx.feature("npu"):
         links.append(
