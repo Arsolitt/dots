@@ -1,0 +1,562 @@
+#!/usr/bin/env python3
+import os
+import sys
+
+if os.environ.get("_POMODORO_PRELOADED") != "1":
+    os.execve(
+        sys.executable,
+        [sys.executable, os.path.abspath(__file__), *sys.argv[1:]],
+        dict(
+            os.environ,
+            LD_PRELOAD="/usr/lib/libgtk4-layer-shell.so",
+            _POMODORO_PRELOADED="1",
+        ),
+    )
+
+import ctypes
+import json
+import math
+import signal
+import socket
+import subprocess
+import time
+import tomllib
+from pathlib import Path
+
+import gi
+
+gi.require_version("Gtk", "4.0")
+gi.require_version("Gdk", "4.0")
+gi.require_version("Gtk4LayerShell", "1.0")
+from gi.repository import Gdk, GLib, GLibUnix, Gtk
+from gi.repository import Gtk4LayerShell as LayerShell
+
+DEFAULTS = {
+    "durations": {
+        "work_minutes": 25.0,
+        "break_minutes": 5.0,
+        "long_break_minutes": 15.0,
+        "cycles_before_long_break": 4,
+    },
+    "display": {"monitor": "second", "margin": 24, "show_when_idle": False},
+}
+PHASES = {
+    "work": ("work_minutes", "WORK"),
+    "break": ("break_minutes", "BREAK"),
+    "long_break": ("long_break_minutes", "LONG BREAK"),
+}
+COMMANDS = ("start", "pause", "resume", "toggle", "reset", "status", "stop")
+CSS = """
+.pomodoro-window { background: transparent; }
+.pomodoro-card {
+    background-color: rgba(18, 18, 22, 0.88);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 16px;
+    padding: 12px 20px;
+}
+.pomodoro-label {
+    font-family: monospace;
+    font-size: 19px;
+    font-weight: 600;
+    color: #f2f2f5;
+}
+"""
+
+
+def config_path():
+    override = os.environ.get("POMODORO_CONFIG")
+    if override:
+        return Path(override)
+    base = Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config")
+    deployed = base / "pomodoro" / "config.toml"
+    if deployed.exists():
+        return deployed
+    return Path(__file__).resolve().parent.parent / "pomodoro" / "config.toml"
+
+
+def socket_path():
+    runtime = os.environ.get("XDG_RUNTIME_DIR") or f"/tmp/pomodoro-{os.getuid()}"
+    return Path(runtime) / "pomodoro.sock"
+
+
+def load_config():
+    data = {}
+    try:
+        with open(config_path(), "rb") as handle:
+            data = tomllib.load(handle)
+    except (OSError, tomllib.TOMLDecodeError):
+        data = {}
+
+    durations = data.get("durations")
+    durations = durations if isinstance(durations, dict) else {}
+    display = data.get("display")
+    display = display if isinstance(display, dict) else {}
+
+    config = {
+        "durations": dict(DEFAULTS["durations"]),
+        "display": dict(DEFAULTS["display"]),
+    }
+    for key, default in DEFAULTS["durations"].items():
+        value = durations.get(key, default)
+        try:
+            if key == "cycles_before_long_break":
+                config["durations"][key] = max(1, int(value))
+            else:
+                config["durations"][key] = max(0.0, float(value))
+        except (TypeError, ValueError):
+            config["durations"][key] = default
+    try:
+        config["display"]["margin"] = max(0, int(display.get("margin", 24)))
+    except (TypeError, ValueError):
+        pass
+    monitor = display.get("monitor", DEFAULTS["display"]["monitor"])
+    if isinstance(monitor, str):
+        config["display"]["monitor"] = monitor
+    show_when_idle = display.get("show_when_idle", DEFAULTS["display"]["show_when_idle"])
+    if isinstance(show_when_idle, bool):
+        config["display"]["show_when_idle"] = show_when_idle
+    return config
+
+
+class Timer:
+    def __init__(self, config):
+        self.config = config
+        self.state = "idle"
+        self.phase = "work"
+        self.cycle = 0
+        self.remaining = self.duration("work")
+        self.stamp = 0.0
+
+    def duration(self, phase):
+        key = PHASES[phase][0]
+        return max(1.0, self.config["durations"][key] * 60.0)
+
+    def phase_name(self, phase):
+        return PHASES[phase][1]
+
+    def status(self):
+        seconds = max(0, math.ceil(self.remaining - 1e-9))
+        return {
+            "state": self.state,
+            "phase": self.phase,
+            "remaining": seconds,
+        }
+
+    def begin(self, phase):
+        self.phase = phase
+        self.remaining = self.duration(phase)
+        self.state = "running"
+        self.stamp = time.monotonic()
+
+    def advance(self):
+        if self.phase == "work":
+            self.cycle += 1
+            cycles = self.config["durations"]["cycles_before_long_break"]
+            self.phase = "long_break" if self.cycle % cycles == 0 else "break"
+        else:
+            self.phase = "work"
+        self.remaining = self.duration(self.phase)
+
+    def tick(self):
+        if self.state != "running":
+            return
+        now = time.monotonic()
+        self.remaining -= now - self.stamp
+        self.stamp = now
+        while self.remaining <= 0:
+            overshoot = -self.remaining
+            self.advance()
+            self.remaining = self.duration(self.phase) - overshoot
+
+    def start(self):
+        if self.state == "paused":
+            self.resume()
+        elif self.state != "running":
+            self.cycle = 0
+            self.begin("work")
+
+    def pause(self):
+        if self.state == "running":
+            self.tick()
+            self.state = "paused"
+
+    def resume(self):
+        if self.state == "paused":
+            self.state = "running"
+            self.stamp = time.monotonic()
+
+    def toggle(self):
+        if self.state == "running":
+            self.pause()
+        elif self.state == "paused":
+            self.resume()
+        else:
+            self.start()
+
+    def reset(self):
+        self.state = "idle"
+        self.phase = "work"
+        self.cycle = 0
+        self.remaining = self.duration("work")
+
+
+def gdk_monitors():
+    display = Gdk.Display.get_default()
+    if display is None:
+        return []
+    monitors = display.get_monitors()
+    return [monitors.get_item(i) for i in range(monitors.get_n_items())]
+
+
+def select_monitor():
+    monitors = gdk_monitors()
+    if not monitors:
+        return None
+    names = []
+    try:
+        result = subprocess.run(
+            ["hyprctl", "monitors", "-j"],
+            capture_output=True,
+            text=True,
+            timeout=3,
+        )
+        names = [m["name"] for m in sorted(json.loads(result.stdout), key=lambda m: m["id"])]
+    except (OSError, ValueError, subprocess.SubprocessError):
+        names = []
+    if len(names) > 1:
+        for monitor in monitors:
+            if monitor.get_connector() == names[1]:
+                return monitor
+    return monitors[0]
+
+
+class ClickThrough:
+    def __init__(self):
+        self.libgtk = ctypes.CDLL("libgtk-4.so.1")
+        self.libwl = ctypes.CDLL("libwayland-client.so.0")
+        self.libgtk.gdk_wayland_surface_get_wl_surface.restype = ctypes.c_void_p
+        self.libgtk.gdk_wayland_surface_get_wl_surface.argtypes = [ctypes.c_void_p]
+        self.libgtk.gdk_wayland_display_get_wl_compositor.restype = ctypes.c_void_p
+        self.libgtk.gdk_wayland_display_get_wl_compositor.argtypes = [ctypes.c_void_p]
+        self.libwl.wl_proxy_marshal_flags.restype = ctypes.c_void_p
+        self.libwl.wl_proxy_get_version.restype = ctypes.c_uint32
+        self.libwl.wl_proxy_get_version.argtypes = [ctypes.c_void_p]
+        self.capsule = ctypes.pythonapi.PyCapsule_GetPointer
+        self.capsule.restype = ctypes.c_void_p
+        self.capsule.argtypes = [ctypes.py_object, ctypes.c_char_p]
+
+    def pointer(self, obj):
+        return self.capsule(obj.__gpointer__, None)
+
+    def apply(self, surface):
+        if surface is None:
+            return False
+        display = Gdk.Display.get_default()
+        if display is None:
+            return False
+        compositor = self.libgtk.gdk_wayland_display_get_wl_compositor(self.pointer(display))
+        wl_surface = self.libgtk.gdk_wayland_surface_get_wl_surface(self.pointer(surface))
+        if not (compositor and wl_surface):
+            return False
+        region_interface = ctypes.addressof(
+            ctypes.c_char.in_dll(self.libwl, "wl_region_interface")
+        )
+        region = self.libwl.wl_proxy_marshal_flags(
+            ctypes.c_void_p(compositor),
+            1,
+            ctypes.c_void_p(region_interface),
+            self.libwl.wl_proxy_get_version(compositor),
+            0,
+            ctypes.c_void_p(None),
+        )
+        if not region:
+            return False
+        self.libwl.wl_proxy_marshal_flags(
+            ctypes.c_void_p(wl_surface),
+            5,
+            None,
+            self.libwl.wl_proxy_get_version(wl_surface),
+            0,
+            ctypes.c_void_p(region),
+        )
+        self.libwl.wl_proxy_marshal_flags(
+            ctypes.c_void_p(wl_surface),
+            6,
+            None,
+            self.libwl.wl_proxy_get_version(wl_surface),
+            0,
+        )
+        return True
+
+
+class Server:
+    def __init__(self, path, handler):
+        self.path = path
+        self.handler = handler
+        self.listener = None
+
+    def start(self):
+        if self.path.exists():
+            if daemon_alive(self.path):
+                raise RuntimeError("another pomodoro daemon is already listening")
+            self.path.unlink()
+        listener = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        listener.bind(str(self.path))
+        listener.listen(8)
+        listener.setblocking(False)
+        os.chmod(self.path, 0o600)
+        self.listener = listener
+        GLib.io_add_watch(listener, GLib.PRIORITY_DEFAULT, GLib.IO_IN, self.on_accept)
+
+    def stop(self):
+        if self.listener is not None:
+            try:
+                self.listener.close()
+            except OSError:
+                pass
+            self.listener = None
+        try:
+            self.path.unlink()
+        except OSError:
+            pass
+
+    def on_accept(self, descriptor, condition):
+        try:
+            connection, _ = self.listener.accept()
+        except OSError:
+            return True
+        connection.setblocking(False)
+        buffer = bytearray()
+
+        def on_read(descriptor, condition, connection=connection, buffer=buffer):
+            try:
+                chunk = connection.recv(4096)
+            except BlockingIOError:
+                return True
+            except OSError:
+                chunk = b""
+            if not chunk:
+                connection.close()
+                return False
+            buffer.extend(chunk)
+            if b"\n" not in buffer:
+                return True
+            line = buffer.split(b"\n", 1)[0].decode("utf-8", "replace").strip()
+            try:
+                connection.sendall((json.dumps(self.handler(line)) + "\n").encode())
+            except OSError:
+                pass
+            finally:
+                connection.close()
+            return False
+
+        GLib.io_add_watch(
+            connection,
+            GLib.PRIORITY_DEFAULT,
+            GLib.IO_IN | GLib.IO_HUP,
+            on_read,
+        )
+        return True
+
+
+def daemon_alive(path):
+    probe = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    probe.settimeout(0.5)
+    try:
+        probe.connect(str(path))
+        return True
+    except OSError:
+        return False
+    finally:
+        probe.close()
+
+
+class Daemon:
+    def __init__(self, config):
+        self.config = config
+        self.timer = Timer(config)
+        self.window = None
+        self.label = None
+        self.markup = None
+        self.shown = False
+        self.click = ClickThrough()
+        self.loop = GLib.MainLoop()
+        self.server = Server(socket_path(), self.handle)
+
+    def build_window(self):
+        provider = Gtk.CssProvider()
+        provider.load_from_string(CSS)
+        display = Gdk.Display.get_default()
+        Gtk.StyleContext.add_provider_for_display(
+            display, provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        )
+
+        window = Gtk.Window()
+        window.set_decorated(False)
+        window.set_focusable(False)
+        window.add_css_class("pomodoro-window")
+
+        card = Gtk.Box()
+        card.add_css_class("pomodoro-card")
+        self.label = Gtk.Label()
+        self.label.add_css_class("pomodoro-label")
+        card.append(self.label)
+        window.set_child(card)
+
+        LayerShell.init_for_window(window)
+        LayerShell.set_layer(window, LayerShell.Layer.OVERLAY)
+        LayerShell.set_keyboard_mode(window, LayerShell.KeyboardMode.NONE)
+        LayerShell.set_namespace(window, "pomodoro")
+        LayerShell.set_anchor(window, LayerShell.Edge.TOP, True)
+        LayerShell.set_anchor(window, LayerShell.Edge.RIGHT, True)
+        margin = self.config["display"]["margin"]
+        LayerShell.set_margin(window, LayerShell.Edge.TOP, margin)
+        LayerShell.set_margin(window, LayerShell.Edge.RIGHT, margin)
+        monitor = select_monitor()
+        if monitor is not None:
+            LayerShell.set_monitor(window, monitor)
+
+        window.connect("map", self.on_map)
+        self.window = window
+
+    def on_map(self, window):
+        self.apply_click_through()
+        GLib.timeout_add(250, self.apply_click_through_once)
+
+    def apply_click_through_once(self):
+        self.apply_click_through()
+        return False
+
+    def apply_click_through(self):
+        try:
+            self.click.apply(self.window.get_surface())
+        except (AttributeError, OSError, TypeError):
+            pass
+
+    def render(self):
+        name = self.timer.phase_name(self.timer.phase)
+        seconds = max(0, math.ceil(self.timer.remaining - 1e-9))
+        clock = f"{seconds // 60:02d}:{seconds % 60:02d}"
+        markup = f'<span alpha="55%">{name}</span> {clock}'
+        if markup != self.markup:
+            self.markup = markup
+            self.label.set_markup(markup)
+
+    def sync_visibility(self):
+        visible = self.timer.state != "idle" or self.config["display"]["show_when_idle"]
+        if visible == self.shown:
+            return
+        self.shown = visible
+        if visible:
+            self.window.present()
+        else:
+            self.window.set_visible(False)
+
+    def on_tick(self):
+        self.timer.tick()
+        self.sync_visibility()
+        self.render()
+        return True
+
+    def handle(self, command):
+        if command == "start":
+            self.timer.start()
+        elif command == "pause":
+            self.timer.pause()
+        elif command == "resume":
+            self.timer.resume()
+        elif command == "toggle":
+            self.timer.toggle()
+        elif command == "reset":
+            self.timer.reset()
+        elif command == "status":
+            pass
+        elif command == "stop":
+            reply = self.timer.status()
+            GLib.idle_add(self.shutdown)
+            return reply
+        else:
+            return {"error": f"unknown command: {command}"}
+        self.sync_visibility()
+        self.render()
+        return self.timer.status()
+
+    def shutdown(self):
+        self.server.stop()
+        self.loop.quit()
+        return False
+
+
+def run_daemon():
+    config = load_config()
+    Gtk.init()
+    daemon = Daemon(config)
+    try:
+        daemon.server.start()
+    except (OSError, RuntimeError) as error:
+        print(f"pomodoro: {error}", file=sys.stderr)
+        return 1
+    try:
+        daemon.build_window()
+        daemon.render()
+        daemon.sync_visibility()
+        GLib.timeout_add(200, daemon.on_tick)
+        for number in (signal.SIGTERM, signal.SIGINT):
+            GLibUnix.signal_add(GLib.PRIORITY_DEFAULT, number, daemon.shutdown)
+        daemon.loop.run()
+    finally:
+        daemon.server.stop()
+    return 0
+
+
+def run_client(command):
+    path = socket_path()
+    connection = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    connection.settimeout(3)
+    try:
+        connection.connect(str(path))
+    except OSError:
+        print("pomodoro: daemon is not running", file=sys.stderr)
+        return 1
+    try:
+        connection.sendall(f"{command}\n".encode())
+        chunks = []
+        while True:
+            chunk = connection.recv(4096)
+            if not chunk:
+                break
+            chunks.append(chunk)
+            if b"\n" in chunk:
+                break
+    except OSError as error:
+        print(f"pomodoro: {error}", file=sys.stderr)
+        return 1
+    finally:
+        connection.close()
+    line = b"".join(chunks).split(b"\n", 1)[0].decode("utf-8", "replace").strip()
+    if not line:
+        print("pomodoro: empty reply from daemon", file=sys.stderr)
+        return 1
+    reply = json.loads(line)
+    if "error" in reply:
+        print(f"pomodoro: {reply['error']}", file=sys.stderr)
+        return 1
+    if command == "status":
+        print(json.dumps(reply))
+    return 0
+
+
+def main(argv):
+    if not argv or argv[0] in ("-h", "--help"):
+        print("usage: pomodoro --daemon | start | pause | resume | toggle | reset | status | stop")
+        return 0 if argv else 2
+    if argv[0] == "--daemon":
+        return run_daemon()
+    if argv[0] not in COMMANDS:
+        print(f"pomodoro: unknown command: {argv[0]}", file=sys.stderr)
+        return 2
+    return run_client(argv[0])
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

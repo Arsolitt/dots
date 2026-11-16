@@ -1,0 +1,10 @@
+[durations]
+work_minutes = 25
+break_minutes = 5
+long_break_minutes = 15
+cycles_before_long_break = 4
+
+[display]
+monitor = "second"
+margin = 24
+show_when_idle = false

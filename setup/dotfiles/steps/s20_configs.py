@@ -12,7 +12,7 @@ from ..profile import Profile
 from . import Step
 
 CONFIG_DIRS = ("fish", "git", "kitty", "btop", "tmux", "nvim")
-LINUX_DIRS = ("hypr", "swappy", "swayimg", "nwg-look", "gtk-2.0", "gtk-3.0", "gtk-4.0", "noctalia")
+LINUX_DIRS = ("hypr", "swappy", "swayimg", "nwg-look", "gtk-2.0", "gtk-3.0", "gtk-4.0", "noctalia", "pomodoro")
 LINUX_FILES = ("mimeapps.list", "electron-flags.conf")
 BIN_FILES = (
     "bin/opus-bench",
@@ -20,6 +20,7 @@ BIN_FILES = (
     "bin/ssh-askpass-gui",
     "bin/ssh-askpass-keyring",
     "bin/ssh-unlock.fish",
+    "bin/pomodoro",
     "gpg-export.fish",
     "gpg-import.fish",
     "yay.fish",

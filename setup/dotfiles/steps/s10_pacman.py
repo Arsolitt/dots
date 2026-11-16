@@ -118,6 +118,9 @@ DESKTOP_PACKAGES = (
     "ttf-fantasque-nerd",
     "deepfilternet-ladspa",
     "noise-suppression-for-voice",
+    "gtk4",
+    "gtk4-layer-shell",
+    "python-gobject",
 )
 
 NPU_PACKAGES = ("level-zero-loader", "intel-npu-driver", "intel-npu-compiler")

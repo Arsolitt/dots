@@ -1,6 +1,7 @@
 local mainMod = "SUPER"
 local noctCall = "noctalia msg "
 local shotScript = os.getenv("HOME") .. "/.config/hypr/scripts/screenshot.fish"
+local pomodoro = os.getenv("HOME") .. "/.local/bin/pomodoro"
 
 -- --- Applications -----------------------------------------------------------------------------------------
 
@@ -95,6 +96,11 @@ hl.bind(mainMod .. " + SHIFT + W", hl.dsp.exec_cmd(noctCall .. "panel-toggle wal
 hl.bind(mainMod .. " + L",         hl.dsp.exec_cmd(noctCall .. "session lock"))
 hl.bind(mainMod .. " + SHIFT + B", hl.dsp.exec_cmd(noctCall .. "bar-toggle"))
 hl.bind(mainMod .. " + M",         hl.dsp.exit())
+
+-- --- Pomodoro ---------------------------------------------------------------------------------------------
+
+hl.bind(mainMod .. " + ALT + P",         hl.dsp.exec_cmd(pomodoro .. " toggle"))
+hl.bind(mainMod .. " + ALT + SHIFT + P", hl.dsp.exec_cmd(pomodoro .. " reset"))
 
 -- --- Screenshots ------------------------------------------------------------------------------------------
 
