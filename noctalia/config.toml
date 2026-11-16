@@ -12,7 +12,7 @@ radius_bottom_right = 12
 radius_top_left = 0
 radius_top_right = 0
 scale = 1.10
-start = [ "launcher", "clock", "spacer_1", "group:g1" ]
+start = [ "launcher", "clock", "keyboard_layout", "spacer_1", "group:g1" ]
 thickness = 35
 
     [[bar.default.capsule_group]]
@@ -27,6 +27,12 @@ thickness = 35
 # hyprland borders/groups read noctalia.lua at config load; re-apply on palette re-render
 colors_changed = "hyprctl reload"
 
+[notification]
+position = "top_left"
+
+[osd.kinds]
+keyboard_layout = false
+
 [shell]
 clipboard_image_action_command = "swash --stdin --name \"swash-$(date +'%Y-%m-%d_%H:%M:%S').png\""
 launch_apps_as_systemd_services = true
@@ -35,6 +41,10 @@ settings_show_advanced = true
 
     [shell.greeter_sync]
     auto_sync = false
+
+    [shell.keyboard_layout.custom_labels]
+    "English (US)" = "EN"
+    "Russian" = "RU"
 
     [shell.panel]
     open_near_click_control_center = true
@@ -93,6 +103,12 @@ builtin = "Kanagawa"
 [widget.clock]
 color = "secondary"
 format = "{:%H:%M %A %m/%d/%y}"
+
+[widget.keyboard_layout]
+hide_when_single_layout = false
+show_glyph = false
+show_label = true
+type = "keyboard_layout"
 
 [widget.launcher]
 color = "secondary"
