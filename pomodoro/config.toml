@@ -8,3 +8,8 @@ cycles_before_long_break = 4
 monitor = "second"
 margin = 24
 show_when_idle = false
+
+[alerts]
+sound = true
+sound_file = ""
+flash_seconds = 4

@@ -16,6 +16,7 @@ if os.environ.get("_POMODORO_PRELOADED") != "1":
 import ctypes
 import json
 import math
+import shutil
 import signal
 import socket
 import subprocess
@@ -39,6 +40,7 @@ DEFAULTS = {
         "cycles_before_long_break": 4,
     },
     "display": {"monitor": "second", "margin": 24, "show_when_idle": False},
+    "alerts": {"sound": True, "sound_file": "", "flash_seconds": 4.0},
 }
 PHASES = {
     "work": ("work_minutes", "WORK"),
@@ -59,6 +61,17 @@ CSS = """
     font-size: 19px;
     font-weight: 600;
     color: #f2f2f5;
+}
+.pomodoro-card.alert {
+    background-color: rgba(190, 32, 48, 0.96);
+    border-color: rgba(255, 220, 120, 0.90);
+}
+window.pomodoro-alert {
+    background: transparent;
+    border: 10px solid #ff3b5c;
+}
+window.pomodoro-alert.pulse {
+    border-color: #ffd166;
 }
 """
 
@@ -91,10 +104,13 @@ def load_config():
     durations = durations if isinstance(durations, dict) else {}
     display = data.get("display")
     display = display if isinstance(display, dict) else {}
+    alerts = data.get("alerts")
+    alerts = alerts if isinstance(alerts, dict) else {}
 
     config = {
         "durations": dict(DEFAULTS["durations"]),
         "display": dict(DEFAULTS["display"]),
+        "alerts": dict(DEFAULTS["alerts"]),
     }
     for key, default in DEFAULTS["durations"].items():
         value = durations.get(key, default)
@@ -115,6 +131,17 @@ def load_config():
     show_when_idle = display.get("show_when_idle", DEFAULTS["display"]["show_when_idle"])
     if isinstance(show_when_idle, bool):
         config["display"]["show_when_idle"] = show_when_idle
+    sound = alerts.get("sound", DEFAULTS["alerts"]["sound"])
+    if isinstance(sound, bool):
+        config["alerts"]["sound"] = sound
+    sound_file = alerts.get("sound_file", DEFAULTS["alerts"]["sound_file"])
+    if isinstance(sound_file, str):
+        config["alerts"]["sound_file"] = sound_file
+    try:
+        flash = float(alerts.get("flash_seconds", DEFAULTS["alerts"]["flash_seconds"]))
+        config["alerts"]["flash_seconds"] = min(30.0, max(1.0, flash))
+    except (TypeError, ValueError):
+        pass
     return config
 
 
@@ -126,6 +153,7 @@ class Timer:
         self.cycle = 0
         self.remaining = self.duration("work")
         self.stamp = 0.0
+        self.work_finished = False
 
     def duration(self, phase):
         key = PHASES[phase][0]
@@ -165,8 +193,16 @@ class Timer:
         self.stamp = now
         while self.remaining <= 0:
             overshoot = -self.remaining
+            finished_work = self.phase == "work"
             self.advance()
+            if finished_work:
+                self.work_finished = True
             self.remaining = self.duration(self.phase) - overshoot
+
+    def take_work_finished(self):
+        finished = self.work_finished
+        self.work_finished = False
+        return finished
 
     def start(self):
         if self.state == "paused":
@@ -198,6 +234,7 @@ class Timer:
         self.phase = "work"
         self.cycle = 0
         self.remaining = self.duration("work")
+        self.work_finished = False
 
 
 def gdk_monitors():
@@ -228,6 +265,32 @@ def select_monitor():
             if monitor.get_connector() == names[1]:
                 return monitor
     return monitors[0]
+
+
+DEFAULT_SOUND = "/usr/share/sounds/freedesktop/stereo/complete.oga"
+SOUND_PLAYERS = (("pw-play",), ("paplay",), ("canberra-gtk-play", "-f"))
+
+
+def play_alert_sound(config):
+    alerts = config["alerts"]
+    if not alerts["sound"]:
+        return
+    sound = alerts["sound_file"] or DEFAULT_SOUND
+    if not Path(sound).exists():
+        return
+    for player in SOUND_PLAYERS:
+        if shutil.which(player[0]) is None:
+            continue
+        try:
+            subprocess.Popen(
+                [*player, sound],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                start_new_session=True,
+            )
+            return
+        except OSError:
+            continue
 
 
 class ClickThrough:
@@ -377,8 +440,12 @@ class Daemon:
         self.timer = Timer(config)
         self.window = None
         self.label = None
+        self.card = None
         self.markup = None
         self.shown = False
+        self.alert_window = None
+        self.alert_source = 0
+        self.alert_ticks = 0
         self.click = ClickThrough()
         self.loop = GLib.MainLoop()
         self.server = Server(socket_path(), self.handle)
@@ -396,12 +463,12 @@ class Daemon:
         window.set_focusable(False)
         window.add_css_class("pomodoro-window")
 
-        card = Gtk.Box()
-        card.add_css_class("pomodoro-card")
+        self.card = Gtk.Box()
+        self.card.add_css_class("pomodoro-card")
         self.label = Gtk.Label()
         self.label.add_css_class("pomodoro-label")
-        card.append(self.label)
-        window.set_child(card)
+        self.card.append(self.label)
+        window.set_child(self.card)
 
         LayerShell.init_for_window(window)
         LayerShell.set_layer(window, LayerShell.Layer.OVERLAY)
@@ -418,20 +485,83 @@ class Daemon:
 
         window.connect("map", self.on_map)
         self.window = window
+        self.build_alert_window(monitor)
+
+    def build_alert_window(self, monitor):
+        alert = Gtk.Window()
+        alert.set_decorated(False)
+        alert.set_focusable(False)
+        alert.add_css_class("pomodoro-alert")
+        LayerShell.init_for_window(alert)
+        LayerShell.set_layer(alert, LayerShell.Layer.OVERLAY)
+        LayerShell.set_keyboard_mode(alert, LayerShell.KeyboardMode.NONE)
+        LayerShell.set_namespace(alert, "pomodoro-alert")
+        LayerShell.set_exclusive_zone(alert, 0)
+        for edge in (
+            LayerShell.Edge.TOP,
+            LayerShell.Edge.BOTTOM,
+            LayerShell.Edge.LEFT,
+            LayerShell.Edge.RIGHT,
+        ):
+            LayerShell.set_anchor(alert, edge, True)
+        if monitor is not None:
+            LayerShell.set_monitor(alert, monitor)
+        alert.connect("map", self.on_alert_map)
+        self.alert_window = alert
+
+    def on_alert_map(self, window):
+        self.apply_click_through(window)
+        GLib.timeout_add(250, self.apply_click_through_once, window)
 
     def on_map(self, window):
-        self.apply_click_through()
-        GLib.timeout_add(250, self.apply_click_through_once)
+        self.apply_click_through(window)
+        GLib.timeout_add(250, self.apply_click_through_once, window)
 
-    def apply_click_through_once(self):
-        self.apply_click_through()
+    def apply_click_through_once(self, window):
+        self.apply_click_through(window)
         return False
 
-    def apply_click_through(self):
+    def apply_click_through(self, window):
         try:
-            self.click.apply(self.window.get_surface())
+            self.click.apply(window.get_surface())
         except (AttributeError, OSError, TypeError):
             pass
+
+    def trigger_alert(self):
+        play_alert_sound(self.config)
+        if self.alert_window is None:
+            return
+        if self.alert_source:
+            GLib.source_remove(self.alert_source)
+            self.alert_source = 0
+        self.card.add_css_class("alert")
+        self.alert_window.remove_css_class("pulse")
+        self.alert_window.present()
+        self.alert_ticks = max(2, int(self.config["alerts"]["flash_seconds"] * 1000 / 300))
+        self.alert_source = GLib.timeout_add(300, self.pulse_alert)
+
+    def pulse_alert(self):
+        if self.alert_ticks <= 0:
+            self.alert_source = 0
+            self.alert_window.set_visible(False)
+            self.card.remove_css_class("alert")
+            return False
+        self.alert_ticks -= 1
+        if self.alert_window.has_css_class("pulse"):
+            self.alert_window.remove_css_class("pulse")
+        else:
+            self.alert_window.add_css_class("pulse")
+        return True
+
+    def stop_alert(self):
+        if self.alert_source:
+            GLib.source_remove(self.alert_source)
+            self.alert_source = 0
+        self.alert_ticks = 0
+        if self.alert_window is not None:
+            self.alert_window.set_visible(False)
+        if self.card is not None:
+            self.card.remove_css_class("alert")
 
     def render(self):
         name = self.timer.phase_name(self.timer.phase)
@@ -454,6 +584,8 @@ class Daemon:
 
     def on_tick(self):
         self.timer.tick()
+        if self.timer.take_work_finished():
+            self.trigger_alert()
         self.sync_visibility()
         self.render()
         return True
@@ -469,6 +601,7 @@ class Daemon:
             self.timer.toggle()
         elif command == "reset":
             self.timer.reset()
+            self.stop_alert()
         elif command == "status":
             pass
         elif command == "stop":
