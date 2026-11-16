@@ -12,7 +12,7 @@ radius_bottom_right = 12
 radius_top_left = 0
 radius_top_right = 0
 scale = 1.10
-start = [ "launcher", "clock", "keyboard_layout", "spacer_1", "group:g1" ]
+start = [ "launcher", "clock", "spacer_1", "group:g1", "keyboard_layout" ]
 thickness = 35
 
     [[bar.default.capsule_group]]
@@ -105,6 +105,10 @@ color = "secondary"
 format = "{:%H:%M %A %m/%d/%y}"
 
 [widget.keyboard_layout]
+capsule = true
+capsule_fill = "primary"
+capsule_foreground = "on_primary"
+font_weight = 700
 hide_when_single_layout = false
 show_glyph = false
 show_label = true
