@@ -1,5 +1,6 @@
 hl.on("hyprland.start", function()
     hl.exec_cmd("~/.config/hypr/scripts/xdg.sh")
+    hl.exec_cmd("~/.config/hypr/scripts/xwayland-primary.fish " .. MONITOR1)
     hl.exec_cmd("ssh-agent -a /run/user/1000/ssh-agent.socket")
     hl.exec_cmd("dbus-update-activation-environment --systemd --all")
     hl.exec_cmd("noctalia")
