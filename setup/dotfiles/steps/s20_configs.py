@@ -27,6 +27,8 @@ BIN_FILES = (
 )
 PIPEWIRE_SOURCE = "pipewire/mic-denoise-rnnoise.conf"
 PIPEWIRE_DEST = ".config/pipewire/pipewire.conf.d/50-mic-denoise.conf"
+WIREPLUMBER_SOURCE = "wireplumber/51-bluez-a2dp-only.conf"
+WIREPLUMBER_DEST = ".config/wireplumber/wireplumber.conf.d/51-bluez-a2dp-only.conf"
 NETBIRD_DESKTOP = "netbird/netbird.desktop"
 NETBIRD_UI = "netbird-ui"
 NPU_SERVICE = "systemd/user/npu-denoise.service"
@@ -45,6 +47,7 @@ REQUIRED_DIRS = (
     ".local/bin",
     ".config/pbackup",
     ".config/pipewire/pipewire.conf.d",
+    ".config/wireplumber/wireplumber.conf.d",
     ".config/systemd/user",
     "projects",
 )
@@ -71,6 +74,7 @@ def _built_in(ctx: Context) -> list[Link]:
         links.append(Link(ctx.root / name, home / ".local/bin" / Path(name).name))
 
     links.append(Link(ctx.root / PIPEWIRE_SOURCE, home / PIPEWIRE_DEST))
+    links.append(Link(ctx.root / WIREPLUMBER_SOURCE, home / WIREPLUMBER_DEST))
     links.extend(_ladspa_links(ctx, home))
 
     if shutil.which(NETBIRD_UI):
