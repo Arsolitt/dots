@@ -22,6 +22,8 @@ BITLAND_WMI_DEV = Path("/sys/bus/wmi/drivers/bitland-mifs-wmi/B60BFB48-3E5B-49E4
 LAPTOP_CHASSIS = frozenset({8, 9, 10, 14})
 CHARGE_LIMIT_VENDORS = ("XIAOMI", "REDMI BOOK")
 FINGERPRINT_VENDORS = frozenset({"27c6", "138a", "06cb", "04f3", "08ff", "1c7a"})
+RTL8761BU_VENDOR = "0bda"
+RTL8761BU_PRODUCT = "8771"
 
 
 class UnsupportedHost(RuntimeError):
@@ -153,6 +155,32 @@ def bitland_sleep_fix(dev: Path = BITLAND_WMI_DEV) -> bool:
     return dev.is_dir()
 
 
+def _usb_attr(usb: Path, vendor: str, product: str, attr: str) -> str:
+    try:
+        devices = sorted(usb.iterdir())
+    except OSError:
+        return ""
+    for device in devices:
+        if (_read(device / "idVendor") == vendor
+                and _read(device / "idProduct") == product):
+            return _read(device / attr)
+    return ""
+
+
+def rtl8761bu_bt(usb: Path = USB_DEVICES) -> bool:
+    """True when the Realtek RTL8761BU Bluetooth dongle is present.
+
+    Its firmware wedges after USB runtime suspend (HCI command tx timeouts),
+    so the bluetooth_pm step pins power/control=on for it via udev.
+    """
+    return _usb_attr(usb, RTL8761BU_VENDOR, RTL8761BU_PRODUCT, "idProduct") != ""
+
+
+def rtl8761bu_pm_control(usb: Path = USB_DEVICES) -> str:
+    """power/control of the RTL8761BU dongle (empty when absent)."""
+    return _usb_attr(usb, RTL8761BU_VENDOR, RTL8761BU_PRODUCT, "power/control")
+
+
 def device() -> Device:
     """Describe this host and probe its hardware features."""
     has_battery = battery()
@@ -167,5 +195,6 @@ def device() -> Device:
             "npu": npu(),
             "docker": docker(),
             "bitland_sleep_fix": bitland_sleep_fix(),
+            "rtl8761bu_bt": rtl8761bu_bt(),
         },
     )

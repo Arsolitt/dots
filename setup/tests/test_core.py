@@ -17,6 +17,7 @@ from dotfiles import profile as profiles
 from dotfiles import steps as stepmod
 from dotfiles.steps import s55_session as session_step
 from dotfiles.steps import s56_nemo as nemo_step
+from dotfiles.steps import s57_bluetooth_pm as bt_step
 
 SETUP_DIR = Path(__file__).resolve().parents[1]
 
@@ -312,6 +313,20 @@ class DetectTest(unittest.TestCase):
             (usb / "1-1" / "idVendor").write_text("1d6b\n", encoding="utf-8")
             self.assertFalse(detector.fingerprint(usb))
 
+    def test_rtl8761bu_matches_vendor_and_product(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            usb = Path(tmp)
+            (usb / "1-5").mkdir()
+            (usb / "1-5" / "idVendor").write_text("0bda\n", encoding="utf-8")
+            (usb / "1-5" / "idProduct").write_text("8771\n", encoding="utf-8")
+            (usb / "1-5" / "power").mkdir()
+            (usb / "1-5" / "power" / "control").write_text("auto\n", encoding="utf-8")
+            self.assertTrue(detector.rtl8761bu_bt(usb))
+            self.assertEqual(detector.rtl8761bu_pm_control(usb), "auto")
+            (usb / "1-5" / "idProduct").write_text("b711\n", encoding="utf-8")
+            self.assertFalse(detector.rtl8761bu_bt(usb))
+            self.assertEqual(detector.rtl8761bu_pm_control(usb), "")
+
 
 class StepsPlanTest(unittest.TestCase):
     def setUp(self) -> None:
@@ -514,6 +529,61 @@ class NemoStepTest(unittest.TestCase):
         self.assertIn(
             ("skip", "nemo: schema org.nemo.desktop not installed, skipping show-desktop-icons"),
             ctx.logs,
+        )
+
+
+class BluetoothPmStepTest(unittest.TestCase):
+    def setUp(self) -> None:
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.repo = Path(tmp.name)
+        (self.repo / "udev").mkdir()
+        self.artifact = self.repo / "udev" / "99-rtl8761bu-bt.rules"
+        self.artifact.write_text('ACTION=="add", SUBSYSTEM=="usb"\n', encoding="utf-8")
+        self.rule = self.repo / "etc-udev-rule"
+        rule_patcher = mock.patch.object(bt_step, "RULE", self.rule)
+        rule_patcher.start()
+        self.addCleanup(rule_patcher.stop)
+
+    def _ctx(self, control: str) -> SessionContext:
+        control_patcher = mock.patch.object(
+            bt_step.detect, "rtl8761bu_pm_control", lambda: control,
+        )
+        control_patcher.start()
+        self.addCleanup(control_patcher.stop)
+        ctx = SessionContext()
+        ctx.root = self.repo
+        return ctx
+
+    def test_rule_installed_and_triggered_when_pm_auto(self) -> None:
+        ctx = self._ctx("auto")
+        bt_step.STEP.run(ctx)
+        self.assertEqual(
+            ctx.runs[0],
+            (["install", "-m", "0644", str(self.artifact), str(self.rule)], True),
+        )
+        self.assertEqual(ctx.runs[1], (["udevadm", "control", "--reload"], True))
+        self.assertEqual(ctx.runs[2][0][:2], ["udevadm", "trigger"])
+        self.assertTrue(ctx.runs[2][1])
+        self.assertIn(("warn", "bluetooth_pm: control still not on — replug the dongle"), ctx.logs)
+
+    def test_matching_rule_and_pm_on_skip_everything(self) -> None:
+        self.rule.write_text(self.artifact.read_text(encoding="utf-8"), encoding="utf-8")
+        ctx = self._ctx("on")
+        bt_step.STEP.run(ctx)
+        self.assertEqual(ctx.runs, [])
+        self.assertIn(("skip", "bluetooth_pm: dongle runtime PM already disabled"), ctx.logs)
+
+    def test_changed_rule_backs_up_and_installs(self) -> None:
+        self.rule.write_text("old\n", encoding="utf-8")
+        ctx = self._ctx("on")
+        bt_step.STEP.run(ctx)
+        self.assertEqual(len(ctx.runs), 2)
+        self.assertEqual(ctx.runs[0][0][:3], ["cp", "-p", str(self.rule)])
+        self.assertIn(".dots-backup-", ctx.runs[0][0][3])
+        self.assertEqual(
+            ctx.runs[1],
+            (["install", "-m", "0644", str(self.artifact), str(self.rule)], True),
         )
 
 

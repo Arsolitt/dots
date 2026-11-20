@@ -1,0 +1,3 @@
+# RTL8761BU firmware wedges after USB runtime suspend (HCI command tx
+# timeouts), so headphone reconnects fail until the adapter is power-cycled.
+ACTION=="add|change", SUBSYSTEM=="usb", ATTR{idVendor}=="0bda", ATTR{idProduct}=="8771", ATTR{power/control}="on"

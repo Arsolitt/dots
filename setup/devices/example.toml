@@ -14,6 +14,9 @@ platform_profile_fix = "auto"
 # bitland_mifs_wmi suspend callback returns -EINVAL until kernel d3666875c75e
 # ships; the hook unbinds/rebinds the device around sleep.
 bitland_sleep_fix = "auto"
+# RTL8761BU Bluetooth dongle: its firmware wedges after USB autosuspend,
+# which kills headphone auto-reconnect; bluetooth_pm pins power/control=on.
+rtl8761bu_bt = "auto"
 
 [packages]
 # Extra pacman packages installed for this host.
